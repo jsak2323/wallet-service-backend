@@ -1,0 +1,13 @@
+{
+    "mysql_db_user"     : "root",
+    "mysql_db_pass"     : "123456",
+    "mysql_db_name"     : "wallet_service",
+
+    "notification_emails" : [],
+
+    "mail_host"             : "smtp.gmail.com",
+    "mail_port"             : "587",
+    "mail_user"             : "",
+    "mail_encrypted_pass"   : "",
+    "mail_encryption_key"   : ""
+}
