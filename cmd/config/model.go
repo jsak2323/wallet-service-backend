@@ -1,6 +1,8 @@
 package config
 
 type Configuration struct {
+    Port string `json:"port"`
+
     MysqlDbUser     string `json:"mysql_db_user"`
     MysqlDbPass     string `json:"mysql_db_pass"`
     MysqlDbName     string `json:"mysql_db_name"`

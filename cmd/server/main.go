@@ -1,18 +1,28 @@
 package main
 
 import(
+    "fmt"
+    "log"
+    "time"
     "net/http"
 
     "github.com/gorilla/mux"
-)
 
-func ProductHandler(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    w.WriteHeader(http.StatusOK)
-    fmt.Fprintf(w, "Key: %v\n", vars["key"])
-}
+    "github.com/btcid/wallet-services-backend/cmd/config"
+)
 
 func main() {
     r := mux.NewRouter()
-    r.HandleFunc("/products/{key}", ProductHandler)
+    setRoutes(r)
+
+    server := &http.Server{
+        Handler         : r,
+        Addr            : "127.0.0.1:"+config.CONF.Port,
+        WriteTimeout    : 15 * time.Second,
+        ReadTimeout     : 15 * time.Second,
+    }
+
+    fmt.Println("Running server on localhost:"+config.CONF.Port)
+
+    log.Fatal(server.ListenAndServe())
 }
