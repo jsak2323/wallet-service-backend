@@ -13,7 +13,7 @@ import(
 
 func main() {
     r := mux.NewRouter()
-    setRoutes(r)
+    SetRoutes(r)
 
     server := &http.Server{
         Handler         : r,
