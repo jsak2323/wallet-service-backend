@@ -28,37 +28,31 @@ type CurrencyConfiguration struct {
     NameUppercase   string
     NameLowercase   string
     Unit            string
+    TokenType       string
 
-    IsCrypto                bool
     IsFinanceEnabled        bool
     IsSingleAddress         bool
     IsUsingMemo             bool
     IsQrCodeEnabled         bool
     IsAddressNoticeEnabled  bool
-    IsSeparatedWallet       bool
 
     QrCodePrefix string
-
-    IsErc20     bool
-    IsTrc10     bool
-    IsOep4      bool
-    IsBep2      bool
 
     WithdrawFee     float64
     DefaultIdrPrice int
 
     CmcId       int
-
-    SenderRpcConfig     RpcConfiguration
-    ReceiverRpcConfig   RpcConfiguration
-    ExtraRpcConfig      RpcConfiguration
+    RpcConfigs  []RpcConfiguration
 }
 
 type RpcConfiguration struct {
     Id          int
+    CurrencyId  int
+    Type        string
     Name        string
-    Url         string
+    Host        string
     Port        string
+    Path        string
     User        string
     Password    string
     Hashkey     string
