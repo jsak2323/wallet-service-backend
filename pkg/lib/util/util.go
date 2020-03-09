@@ -4,7 +4,6 @@ import(
     // "fmt"
     "io"
     "reflect"
-    "encoding/hex"
     "math/big"
     "errors"
 

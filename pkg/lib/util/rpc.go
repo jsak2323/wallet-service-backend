@@ -23,12 +23,12 @@ type XmlRpc struct {
 }
 
 func NewXmlRpc(host string, port string, path string) *XmlRpc{
-    return &Xmlrpc{
-        host, port, path
+    return &XmlRpc{
+        host, port, path,
     }
 }
 
-func (xr *Xmlrpc) XmlRpcCall(method string, args RpcReq, reply *interface{}) error {
+func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) error {
     buf, err := xml.EncodeClientRequest(method, &args)
     if err != nil { return err }
 

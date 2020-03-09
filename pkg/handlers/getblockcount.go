@@ -2,7 +2,6 @@ package handlers
 
 import(
     "fmt"
-    "bytes"
     "net/http"
 
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
@@ -22,7 +21,7 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
 
     var res GetBlockCountRes
 
-    rpcReq := RpcReq{
+    rpcReq := util.RpcReq{
         RpcUser     : "testuser",
         Hash        : "hash",
         Arg1        : "arg1",
