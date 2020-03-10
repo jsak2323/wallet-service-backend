@@ -6,7 +6,7 @@ import (
 
     _ "github.com/go-sql-driver/mysql"
 
-    rc "github.com/btcid/wallet-services/pkg/domain/rpcconfig"
+    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
 )
 
 const rpcConfigTable = "rpc_config"

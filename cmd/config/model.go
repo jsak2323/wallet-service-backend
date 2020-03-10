@@ -1,8 +1,8 @@
 package config
 
 import (
-    cc "github.com/btcid/wallet-services/pkg/domain/currencyconfig"
-    rc "github.com/btcid/wallet-services/pkg/domain/rpcconfig"
+    cc "github.com/btcid/wallet-services-backend/pkg/domain/currencyconfig"
+    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
 )
 
 type Configuration struct {
