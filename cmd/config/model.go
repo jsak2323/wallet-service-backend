@@ -1,5 +1,10 @@
 package config
 
+import (
+    cc "github.com/btcid/wallet-services/pkg/domain/currencyconfig"
+    rc "github.com/btcid/wallet-services/pkg/domain/rpcconfig"
+)
+
 type Configuration struct {
     Port string `json:"port"`
 
@@ -22,38 +27,6 @@ type CurrencyConfigurations struct {
 }
 
 type CurrencyConfiguration struct {
-    Id              int
-    Symbol          string
-    Name            string
-    NameUppercase   string
-    NameLowercase   string
-    Unit            string
-    TokenType       string
-
-    IsFinanceEnabled        bool
-    IsSingleAddress         bool
-    IsUsingMemo             bool
-    IsQrCodeEnabled         bool
-    IsAddressNoticeEnabled  bool
-
-    QrCodePrefix string
-
-    WithdrawFee     float64
-    DefaultIdrPrice int
-
-    CmcId       int
-    RpcConfigs  []RpcConfiguration
-}
-
-type RpcConfiguration struct {
-    Id          int
-    CurrencyId  int
-    Type        string
-    Name        string
-    Host        string
-    Port        string
-    Path        string
-    User        string
-    Password    string
-    Hashkey     string
+    Config      cc.CurrencyConfig
+    RpcConfigs  []rc.RpcConfig
 }

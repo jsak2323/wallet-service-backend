@@ -29,14 +29,17 @@ func NewXmlRpc(host string, port string, path string) *XmlRpc{
 }
 
 func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) error {
-    buf, err := xml.EncodeClientRequest(method, &args)
+    buf, err := xml.EncodeClientRequest(method, args)
     if err != nil { return err }
 
-    resp, err := http.Post("http://"+xr.Host+":"+xr.Port+xr.Path, "text/xml", bytes.NewBuffer(buf))
+    url := "http://"+xr.Host+":"+xr.Port+xr.Path
+    resp, err := http.Post(url, "text/xml", bytes.NewBuffer(buf))
     if err != nil { return err }
+    
     defer resp.Body.Close()
 
     err = xml.DecodeClientResponse(resp.Body, reply)
+    if err != nil { return err }
+    
     return nil
 }
-
