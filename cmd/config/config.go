@@ -17,11 +17,12 @@ var (
 )
 
 func init() {
-    ReadConfiguration()
-    ReadCurrencyConfigurations()
+    LoadAppConfig()
+    LoadCurrencyConfigs()
 }
 
-func ReadConfiguration() {
+func LoadAppConfig() {
+    fmt.Print("Loading App Configuration ... ")
     pwd, _ := os.Getwd()
     file, _ := os.Open(pwd+"/cmd/config/config.json")
     defer file.Close()
@@ -30,6 +31,7 @@ func ReadConfiguration() {
     if err != nil {
       fmt.Println("error:", err)
     }
+    fmt.Println("Done.")
 }
 
 func mysqlDbConn() (db *sql.DB) {
@@ -43,8 +45,9 @@ func mysqlDbConn() (db *sql.DB) {
     return db
 }
 
-func ReadCurrencyConfigurations() {
-    fmt.Println("ReadCurrencyConfigurations")
+func LoadCurrencyConfigs() {
+    fmt.Print("Loading Currency Configurations ... ")
+
     mysqlDb := mysqlDbConn()
     defer mysqlDb.Close()
 
@@ -67,4 +70,6 @@ func ReadCurrencyConfigurations() {
             RpcConfigs  : rpcConfigs,
         }
     }
+
+    fmt.Println("Done.")
 }

@@ -1,7 +1,7 @@
 package handlers
 
 type GetBlockCountRes struct{
-    Ip      string
+    Host    string
     Type    string
     Blocks  string
 }

@@ -2,6 +2,7 @@ package util
 
 import(
     "bytes"
+    "time"
     "net/http"
 
     "github.com/divan/gorilla-xmlrpc/xml"
@@ -33,7 +34,10 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
     if err != nil { return err }
 
     url := "http://"+xr.Host+":"+xr.Port+xr.Path
-    resp, err := http.Post(url, "text/xml", bytes.NewBuffer(buf))
+    httpClient := &http.Client{
+        Timeout: 5 * time.Second,
+    }
+    resp, err := httpClient.Post(url, "text/xml", bytes.NewBuffer(buf))
     if err != nil { return err }
     
     defer resp.Body.Close()

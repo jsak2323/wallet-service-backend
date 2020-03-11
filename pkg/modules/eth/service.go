@@ -4,7 +4,6 @@ import(
     "errors"
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend/cmd/config"
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
@@ -12,7 +11,7 @@ type GetBlockCountRpcRes struct {
     Blocks string
 }
 
-func generateRpcReq(rpcConfig *rc.RpcConfig) util.RpcReq {
+func generateRpcReq(rpcConfig rc.RpcConfig) util.RpcReq {
 
     return util.RpcReq{
         RpcUser : rpcConfig.User,
@@ -33,7 +32,7 @@ func generateRpcReq(rpcConfig *rc.RpcConfig) util.RpcReq {
     // }
 }
 
-func GetBlockCount(rpcConfig *rc.RpcConfig) (*GetBlockCountRpcRes, error) {
+func GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error) {
     res := GetBlockCountRpcRes{ Blocks: "0" }
 
     // var senderRpcConfig rc.RpcConfig

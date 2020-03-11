@@ -22,7 +22,9 @@ func main() {
         ReadTimeout     : 15 * time.Second,
     }
 
+    fmt.Println()
     fmt.Println("Running server on localhost:"+config.CONF.Port)
+    fmt.Println("\n\n\n")
 
     log.Fatal(server.ListenAndServe())
 }
