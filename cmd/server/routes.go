@@ -7,6 +7,6 @@ import(
 )
 
 func SetRoutes(r *mux.Router) {
-    // r.HandleFunc("/getblockcount", handlers.GetBlockCountHandler)
+    r.HandleFunc("/getblockcount", handlers.GetBlockCountHandler)
     r.HandleFunc("/{symbol}/getblockcount", handlers.GetBlockCountHandler)
 }

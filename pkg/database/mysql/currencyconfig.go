@@ -23,14 +23,14 @@ func NewMysqlCurrencyConfigRepository(db *sql.DB) cc.CurrencyConfigRepository {
 func (r *currencyConfigRepository) GetAll() ([]cc.CurrencyConfig, error) {
     query := "SELECT * FROM "+currencyConfigTable
     currencyConfigs := []cc.CurrencyConfig{}
-    var currConf cc.CurrencyConfig
 
     rows, err := r.db.Query(query)
     defer rows.Close()
     if err != nil { return currencyConfigs, err }
 
-    for rows.Next() {
-        err = rows.Scan(&currConf)
+    for rows.Next() { 
+        var currConf cc.CurrencyConfig
+        err = mapCurrencyConfig(rows, &currConf)
         if err != nil { return currencyConfigs, err }
 
         currencyConfigs = append(currencyConfigs, currConf)
@@ -49,9 +49,39 @@ func (r *currencyConfigRepository) GetBySymbol(symbol string) (*cc.CurrencyConfi
     if err != nil { return &currConf, err }
 
     for rows.Next() {
-        err = rows.Scan(&currConf)
+        err = mapCurrencyConfig(rows, &currConf)
         if err != nil { return &currConf, err }
     }
 
     return &currConf, nil
+}
+
+func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
+    var qrCodePrefix    sql.NullString
+    var cmcId           sql.NullInt64
+
+    err := rows.Scan(
+        &currConf.Id,
+        &currConf.Symbol,
+        &currConf.Name,
+        &currConf.NameUppercase,
+        &currConf.NameLowercase,
+        &currConf.Unit,
+        &currConf.TokenType,
+        &currConf.IsFinanceEnabled,
+        &currConf.IsSingleAddress,
+        &currConf.IsUsingMemo,
+        &currConf.IsQrCodeEnabled,
+        &currConf.IsAddressNoticeEnabled,
+        &qrCodePrefix,
+        &currConf.WithdrawFee,
+        &currConf.DefaultIdrPrice,
+        &cmcId,
+    )
+    if err != nil { return err }
+
+    if qrCodePrefix.Valid { currConf.QrCodePrefix = qrCodePrefix.String }
+    if cmcId.Valid { currConf.CmcId = int(cmcId.Int64) }
+
+    return nil
 }

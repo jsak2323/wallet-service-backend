@@ -1,10 +1,11 @@
 package handlers
 
-import(
+import (
     "fmt"
     "net/http"
     "encoding/json"
 
+    "github.com/btcid/wallet-services-backend/cmd/config"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     ethservice "github.com/btcid/wallet-services-backend/pkg/modules/eth"
 
@@ -13,33 +14,54 @@ import(
 
 func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) { 
     vars := mux.Vars(r)
-    symbol := vars["symbol"]    
+    symbol := vars["symbol"]
 
-    var handleSuccess = func(res *ethservice.GetBlockCountRes) {
-        logger.InfoLog("GetBlockCountHandler Success. Symbol: "+symbol+", Blocks: "+res.Blocks, r)
+    RES := make(map[string]GetBlockCountRes)
+    RES["ETH"] = GetBlockCountRes{}
+
+    var handleSuccess = func() {
+        resJson, _ := json.Marshal(RES)
+        logger.InfoLog("GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), r)
         w.WriteHeader(http.StatusOK)
-        json.NewEncoder(w).Encode(res)
+        json.NewEncoder(w).Encode(RES)
     }
 
     var handleError = func(err error, funcName string) {
         errMsg := "GetBlockCountHandler "+funcName+" Error: "+err.Error()
         logger.ErrorLog(errMsg)
-        http.Error(w, errMsg, http.StatusInternalServerError)
+        // http.Error(w, errMsg, http.StatusInternalServerError)
     }
 
-    logger.InfoLog("GetBlockCountHandler Symbol: "+symbol+", Requesting ...", r) 
+    symbolText := "Symbol: "+symbol
+    if symbol == "" { symbolText = "For all symbol" }
+    logger.InfoLog("GetBlockCountHandler "+symbolText+", Requesting ...", r) 
 
     switch symbol { 
         case "eth" :
-            res, err := ethservice.GetBlockCount()
-            if err != nil { 
-                handleError(err, "ethservice.GetBlockCount()") 
-                return
-            }
-            handleSuccess(res) 
 
-        default :
-            fmt.Println("default")
+            for _ ethRpcConfig := range config.CURR["ETH"].RpcConfigs {
+                res, err := ethservice.GetBlockCount(ethRpcConfig)
+                if err != nil { handleError(err, "ethservice.GetBlockCount(ethRpcConfig)") }
+                RES["ETH"] = append(RES["ETH"], GetBlockCountRes{
+                    Ip      : ethRpcConfig.Ip,
+                    Type    : ethRpcConfig.Type,
+                    Blocks  : ethRpcConfig.Blocks,
+                })
+            }
+
+            // res, err := ethservice.GetBlockCount()
+            // if err != nil { 
+            //     handleError(err, "ethservice.GetBlockCount()") 
+            //     // return
+            // }
+            handleSuccess() 
+
+        default : // get all
+            fmt.Println("config.CURR: ")
+            ppJson , _ := json.MarshalIndent(config.CURR, "", "\t");
+            fmt.Println()
+            fmt.Print(string(ppJson))
+            fmt.Println()
     }
 
 }

@@ -16,7 +16,7 @@ CREATE TABLE currency_config (
   is_address_notice_enabled tinyint(1) NOT NULL DEFAULT 0,
   qrcode_prefix             varchar(50) NULL DEFAULT NULL,
   withdraw_fee              varchar(50) NOT NULL DEFAULT "0",
-  default_idr_price         int(10) NOT NULL DEFAULT 0,
+  default_idr_price         int(15) NOT NULL DEFAULT 0,
   cmc_id                    int(7) NULL DEFAULT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;

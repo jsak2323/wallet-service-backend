@@ -21,11 +21,6 @@ type Configuration struct {
     MailEncryptionKey   string `json:"mail_encryption_key"`
 }
 
-type CurrencyConfigurations struct {
-    // BTC CurrencyConfiguration
-    ETH CurrencyConfiguration
-}
-
 type CurrencyConfiguration struct {
     Config      cc.CurrencyConfig
     RpcConfigs  []rc.RpcConfig
