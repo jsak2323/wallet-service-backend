@@ -1,4 +1,4 @@
-package eth
+package btc
 
 import(
     "errors"
@@ -11,7 +11,8 @@ func GetBlockCount(rpcConfig rc.RpcConfig) (*m.GetBlockCountRpcRes, error) {
 
     rpcReq := m.GenerateRpcReq(rpcConfig)
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
-    err := xmlrpc.XmlRpcCall("EthRpc.GetBlockCount", &rpcReq, &res)
+    
+    err := xmlrpc.XmlRpcCall("bitrpc.getblockcount", &rpcReq, &res)
 
     if err != nil { 
         return &res, err

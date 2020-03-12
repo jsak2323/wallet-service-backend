@@ -8,6 +8,7 @@ import (
     "github.com/btcid/wallet-services-backend/cmd/config"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     ethservice "github.com/btcid/wallet-services-backend/pkg/modules/eth"
+    btcservice "github.com/btcid/wallet-services-backend/pkg/modules/btc"
 
     "github.com/gorilla/mux"
 )
@@ -32,9 +33,11 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
     logger.InfoLog("GetBlockCountHandler "+symbolText+", Requesting ...", r) 
 
     switch symbol { 
+        case "btc":
+            getBlockCountBtc(&RES)
+
         case "eth" :
             getBlockCountEth(&RES)
-            handleSuccess()
 
         default : // get all
             fmt.Println("config.CURR: ")
@@ -43,6 +46,8 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
             fmt.Print(string(ppJson))
             fmt.Println()
     }
+
+    handleSuccess()
 }
 
 func handleError(err error, funcName string) {
@@ -62,4 +67,27 @@ func getBlockCountEth(RES *GetBlockCountHandlerResponse) {
             Blocks  : res.Blocks,
         })
     }
+}
+
+func getBlockCountBtc(RES *GetBlockCountHandlerResponse) {
+    // (*RES)["BTC"] = make([]GetBlockCountRes, 0)
+
+    // (*RES)["BTC"] = append((*RES)["BTC"], GetBlockCountRes{
+    //     Host    : "test",
+    //     Type    : "test",
+    //     Blocks  : "test",
+    // })
+
+    (*RES)["BTC"] = make([]GetBlockCountRes, 0)
+    for _, btcRpcConfig := range config.CURR["BTC"].RpcConfigs {
+        res, err := btcservice.GetBlockCount(btcRpcConfig)
+        if err != nil { handleError(err, "btcservice.GetBlockCount(btcRpcConfig)") }
+
+        (*RES)["BTC"] = append((*RES)["BTC"], GetBlockCountRes{
+            Host    : btcRpcConfig.Host,
+            Type    : btcRpcConfig.Type,
+            Blocks  : res.Blocks,
+        })
+    }
+
 }
