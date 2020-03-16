@@ -12,7 +12,7 @@ type BtcService struct {}
 func (bs *BtcService) GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error) {
     res := GetBlockCountRpcRes{ Blocks: "0" }
 
-    rpcReq := GenerateRpcReq(rpcConfig, "", "", "")
+    rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("getblockcount", &rpcReq, &res)

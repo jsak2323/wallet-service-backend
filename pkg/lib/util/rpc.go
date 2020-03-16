@@ -50,7 +50,7 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
     return nil
 }
 
-func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 string) util.RpcReq {
+func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 string) RpcReq {
     return RpcReq{
         RpcUser : rpcConfig.User,
         Hash    : rpcConfig.Hashkey,
