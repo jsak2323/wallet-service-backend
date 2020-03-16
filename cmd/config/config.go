@@ -23,8 +23,8 @@ func init() {
 
 func LoadAppConfig() {
     fmt.Print("Loading App Configuration ... ")
-    pwd, _ := os.Getwd()
-    file, _ := os.Open(pwd+"/cmd/config/config.json")
+    gopath := os.Getenv("GOPATH")
+    file, _ := os.Open(gopath+"/src/github.com/btcid/wallet-services-backend/cmd/config/config.json")
     defer file.Close()
     decoder := json.NewDecoder(file)
     err := decoder.Decode(&CONF)

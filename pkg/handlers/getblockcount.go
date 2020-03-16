@@ -1,25 +1,27 @@
 package handlers
 
 import (
-    "fmt"
+    "sync"
+    "strings"
     "net/http"
     "encoding/json"
 
-    "github.com/btcid/wallet-services-backend/cmd/config"
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    ethservice "github.com/btcid/wallet-services-backend/pkg/modules/eth"
-    btcservice "github.com/btcid/wallet-services-backend/pkg/modules/btc"
-
     "github.com/gorilla/mux"
+
+    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    "github.com/btcid/wallet-services-backend/cmd/config"
+    "github.com/btcid/wallet-services-backend/pkg/modules"
 )
 
-type GetBlockCountHandlerResponse map[string][]GetBlockCountRes
+type GetBlockCountHandlerResponseMap map[string][]GetBlockCountRes
 
 func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) { 
     vars := mux.Vars(r)
     symbol := vars["symbol"]
+    isGetAll := symbol == ""
 
-    RES := make(GetBlockCountHandlerResponse)
+    RES := make(GetBlockCountHandlerResponseMap)
 
     var handleSuccess = func() {
         resJson, _ := json.Marshal(RES)
@@ -28,23 +30,13 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
         json.NewEncoder(w).Encode(RES)
     }
 
-    symbolText := "Symbol: "+symbol
-    if symbol == "" { symbolText = "For all symbol" }
-    logger.InfoLog("GetBlockCountHandler "+symbolText+", Requesting ...", r) 
+    if isGetAll {
+        logger.InfoLog("GetBlockCountHandler For all symbols, Requesting ...", r) 
+        invokeGetAllBlockCount(&RES)
 
-    switch symbol { 
-        case "btc":
-            getBlockCountBtc(&RES)
-
-        case "eth" :
-            getBlockCountEth(&RES)
-
-        default : // get all
-            fmt.Println("config.CURR: ")
-            ppJson , _ := json.MarshalIndent(config.CURR, "", "\t");
-            fmt.Println()
-            fmt.Print(string(ppJson))
-            fmt.Println()
+    } else {
+        logger.InfoLog("GetBlockCountHandler For symbol: "+symbol+", Requesting ...", r) 
+        invokeGetBlockCount(symbol, &RES)
     }
 
     handleSuccess()
@@ -55,39 +47,57 @@ func handleError(err error, funcName string) {
     logger.ErrorLog(errMsg)
 }
 
-func getBlockCountEth(RES *GetBlockCountHandlerResponse) {
-    (*RES)["ETH"] = make([]GetBlockCountRes, 0)
-    for _, ethRpcConfig := range config.CURR["ETH"].RpcConfigs {
-        res, err := ethservice.GetBlockCount(ethRpcConfig)
-        if err != nil { handleError(err, "ethservice.GetBlockCount(ethRpcConfig)") }
+func invokeGetBlockCount(symbol string, RES *GetBlockCountHandlerResponseMap) {
+    confKey := strings.ToUpper(symbol)
+    ModuleServices := modules.NewModuleServices()
 
-        (*RES)["ETH"] = append((*RES)["ETH"], GetBlockCountRes{
-            Host    : ethRpcConfig.Host,
-            Type    : ethRpcConfig.Type,
-            Blocks  : res.Blocks,
+    (*RES)[confKey] = make([]GetBlockCountRes, 0)
+    for _, rpcConfig := range config.CURR[confKey].RpcConfigs {
+        rpcRes, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
+        if err != nil { handleError(err, "invokeGetBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
+
+        (*RES)[confKey] = append((*RES)[confKey], GetBlockCountRes{
+            Symbol  : confKey,
+            Host    : rpcConfig.Host,
+            Type    : rpcConfig.Type,
+            Blocks  : rpcRes.Blocks,
         })
     }
 }
 
-func getBlockCountBtc(RES *GetBlockCountHandlerResponse) {
-    // (*RES)["BTC"] = make([]GetBlockCountRes, 0)
+func invokeGetAllBlockCount(RES *GetBlockCountHandlerResponseMap) {
+    var wg sync.WaitGroup
+    rpcConfigCount := 0
+    resChannel := make(chan GetBlockCountRes)
+    ModuleServices := modules.NewModuleServices()
 
-    // (*RES)["BTC"] = append((*RES)["BTC"], GetBlockCountRes{
-    //     Host    : "test",
-    //     Type    : "test",
-    //     Blocks  : "test",
-    // })
+    for confKey, currConfig := range config.CURR {
+        confKey = strings.ToUpper(confKey)
 
-    (*RES)["BTC"] = make([]GetBlockCountRes, 0)
-    for _, btcRpcConfig := range config.CURR["BTC"].RpcConfigs {
-        res, err := btcservice.GetBlockCount(btcRpcConfig)
-        if err != nil { handleError(err, "btcservice.GetBlockCount(btcRpcConfig)") }
+        for _, rpcConfig := range currConfig.RpcConfigs {
+            wg.Add(1)
+            rpcConfigCount++
+            wg.Done()
 
-        (*RES)["BTC"] = append((*RES)["BTC"], GetBlockCountRes{
-            Host    : btcRpcConfig.Host,
-            Type    : btcRpcConfig.Type,
-            Blocks  : res.Blocks,
-        })
+            go func(confKey string, rpcConfig rc.RpcConfig) {
+                rpcRes, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
+                if err != nil { handleError(err, "invokeGetAllBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
+
+                resChannel <- GetBlockCountRes{
+                    Symbol  : confKey,
+                    Host    : rpcConfig.Host,
+                    Type    : rpcConfig.Type,
+                    Blocks  : rpcRes.Blocks,
+                }
+            }(confKey, rpcConfig)
+        }
     }
 
+    wg.Wait()
+    i := 0
+    for res := range resChannel {
+        i++
+        (*RES)[res.Symbol] = append((*RES)[res.Symbol], res)
+        if i >= rpcConfigCount { close(resChannel) }
+    }
 }

@@ -16,3 +16,12 @@ func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 strin
         Nonce   : "nonce",
     }
 }
+
+func NewModuleServices() *map[string]ModuleService {
+    ModuleServices := make(map[string]ModuleService)
+
+    ModuleServices["BTC"] = &BtcService{}
+    ModuleServices["ETH"] = &EthService{}
+
+    return &ModuleServices
+}
