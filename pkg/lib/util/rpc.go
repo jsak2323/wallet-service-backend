@@ -6,6 +6,8 @@ import(
     "net/http"
 
     "github.com/divan/gorilla-xmlrpc/xml"
+
+    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
 )
 
 type RpcReq struct {
@@ -46,4 +48,15 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
     if err != nil { return err }
     
     return nil
+}
+
+func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 string) util.RpcReq {
+    return RpcReq{
+        RpcUser : rpcConfig.User,
+        Hash    : rpcConfig.Hashkey,
+        Arg1    : "arg1",
+        Arg2    : "arg2",
+        Arg3    : "arg3",
+        Nonce   : "nonce",
+    }
 }

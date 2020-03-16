@@ -83,6 +83,7 @@ func invokeGetAllBlockCount(RES *GetBlockCountHandlerResponseMap) {
                 rpcRes, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
                 if err != nil { handleError(err, "invokeGetAllBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
 
+                logger.Log("GetBlockCountHandler invokeGetAllBlockCount Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
                     Symbol  : confKey,
                     Host    : rpcConfig.Host,
