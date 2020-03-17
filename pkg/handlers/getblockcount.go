@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    // "fmt"
     "sync"
     "strings"
     "net/http"
@@ -32,13 +33,11 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
 
     if isGetAll {
         logger.InfoLog("GetBlockCountHandler For all symbols, Requesting ...", r) 
-        invokeGetAllBlockCount(&RES)
-
     } else {
         logger.InfoLog("GetBlockCountHandler For symbol: "+symbol+", Requesting ...", r) 
-        invokeGetBlockCount(symbol, &RES)
     }
 
+    doInvocation(&RES, symbol)
     handleSuccess()
 }
 
@@ -47,25 +46,7 @@ func handleError(err error, funcName string) {
     logger.ErrorLog(errMsg)
 }
 
-func invokeGetBlockCount(symbol string, RES *GetBlockCountHandlerResponseMap) {
-    confKey := strings.ToUpper(symbol)
-    ModuleServices := modules.NewModuleServices()
-
-    (*RES)[confKey] = make([]GetBlockCountRes, 0)
-    for _, rpcConfig := range config.CURR[confKey].RpcConfigs {
-        rpcRes, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
-        if err != nil { handleError(err, "invokeGetBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
-
-        (*RES)[confKey] = append((*RES)[confKey], GetBlockCountRes{
-            Symbol  : confKey,
-            Host    : rpcConfig.Host,
-            Type    : rpcConfig.Type,
-            Blocks  : rpcRes.Blocks,
-        })
-    }
-}
-
-func invokeGetAllBlockCount(RES *GetBlockCountHandlerResponseMap) {
+func doInvocation(RES *GetBlockCountHandlerResponseMap, symbol string) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
@@ -74,6 +55,9 @@ func invokeGetAllBlockCount(RES *GetBlockCountHandlerResponseMap) {
     for confKey, currConfig := range config.CURR {
         confKey = strings.ToUpper(confKey)
 
+        // if symbol is defined, only get for that symbol
+        if symbol != "" && strings.ToUpper(symbol) != confKey { continue }
+
         for _, rpcConfig := range currConfig.RpcConfigs {
             wg.Add(1)
             rpcConfigCount++
@@ -81,9 +65,9 @@ func invokeGetAllBlockCount(RES *GetBlockCountHandlerResponseMap) {
 
             go func(confKey string, rpcConfig rc.RpcConfig) {
                 rpcRes, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
-                if err != nil { handleError(err, "invokeGetAllBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
+                if err != nil { handleError(err, "doInvocation "+confKey+".GetBlockCount(rpcConfig)") }
 
-                logger.Log("GetBlockCountHandler invokeGetAllBlockCount Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                logger.Log("GetBlockCountHandler doInvocation Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
                     Symbol              : confKey,
                     Host                : rpcConfig.Host,
