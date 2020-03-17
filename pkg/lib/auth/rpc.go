@@ -1,4 +1,4 @@
-package util
+package auth
 
 import(
     "time"
@@ -11,7 +11,7 @@ import(
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
 )
 
-func generateHashkey(rpcConfig rc.RpcConfig) (digestSha256String string, nonce string) {
+func GenerateHashkey(rpcConfig rc.RpcConfig) (digestSha256String string, nonce string) {
     mt    := Microtime()
     nonce = strings.ReplaceAll(strconv.FormatFloat(mt, 'f', 9, 64), ".", "")
 

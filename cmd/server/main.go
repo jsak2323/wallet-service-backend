@@ -8,12 +8,15 @@ import(
 
     "github.com/gorilla/mux"
 
+    mw "github.com/btcid/wallet-services-backend/pkg/middlewares"
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
 func main() {
     r := mux.NewRouter()
     SetRoutes(r)
+    
+    r.Use(mw.LogMiddleware)
 
     server := &http.Server{
         Handler         : r,

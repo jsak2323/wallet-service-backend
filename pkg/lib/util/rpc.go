@@ -7,6 +7,7 @@ import(
 
     "github.com/divan/gorilla-xmlrpc/xml"
 
+    "github.com/btcid/wallet-services-backend/pkg/lib/auth"
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
 )
 
@@ -51,7 +52,7 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
 }
 
 func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 string) RpcReq {
-    hashkey, nonce := generateHashkey(rpcConfig)
+    hashkey, nonce := auth.GenerateHashkey(rpcConfig)
     
     return RpcReq{
         RpcUser : rpcConfig.User,
