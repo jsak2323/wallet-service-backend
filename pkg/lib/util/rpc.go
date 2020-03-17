@@ -51,12 +51,14 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
 }
 
 func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 string) RpcReq {
+    hashkey, nonce := generateHashkey(rpcConfig)
+    
     return RpcReq{
         RpcUser : rpcConfig.User,
-        Hash    : rpcConfig.Hashkey,
-        Arg1    : "arg1",
-        Arg2    : "arg2",
-        Arg3    : "arg3",
-        Nonce   : "nonce",
+        Hash    : hashkey,
+        Arg1    : arg1,
+        Arg2    : arg2,
+        Arg3    : arg3,
+        Nonce   : nonce,
     }
 }

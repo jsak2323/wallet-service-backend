@@ -85,10 +85,12 @@ func invokeGetAllBlockCount(RES *GetBlockCountHandlerResponseMap) {
 
                 logger.Log("GetBlockCountHandler invokeGetAllBlockCount Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
-                    Symbol  : confKey,
-                    Host    : rpcConfig.Host,
-                    Type    : rpcConfig.Type,
-                    Blocks  : rpcRes.Blocks,
+                    Symbol              : confKey,
+                    Host                : rpcConfig.Host,
+                    Type                : rpcConfig.Type,
+                    NodeVersion         : rpcConfig.NodeVersion,
+                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                    Blocks              : rpcRes.Blocks,
                 }
             }(confKey, rpcConfig)
         }

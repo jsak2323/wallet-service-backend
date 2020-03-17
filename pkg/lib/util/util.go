@@ -3,6 +3,7 @@ package util
 import(
     // "fmt"
     "io"
+    "time"
     "reflect"
     "math/big"
     "errors"
@@ -105,4 +106,11 @@ func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
 
     nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
     return gcm.Open(nil, nonce, ciphertext, nil)
+}
+
+func Microtime() float64 {
+    loc, _ := time.LoadLocation("UTC")
+    now := time.Now().In(loc)
+    micSeconds := float64(now.Nanosecond()) / 1000000000
+    return float64(now.Unix()) + micSeconds
 }

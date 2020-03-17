@@ -18,19 +18,23 @@ CREATE TABLE currency_config (
   withdraw_fee              varchar(50) NOT NULL DEFAULT "0",
   default_idr_price         int(15) NOT NULL DEFAULT 0,
   cmc_id                    int(7) NULL DEFAULT NULL,
+
   PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 CREATE TABLE rpc_config (
-  id            int(11) NOT NULL AUTO_INCREMENT,
-  currency_id   int(11) NOT NULL,
-  type          varchar(30) NOT NULL,
-  host          varchar(30) NOT NULL,
-  port          varchar(30) NOT NULL,
-  `path`        varchar(30) NOT NULL,
-  user          varchar(30) NOT NULL,
-  password      varchar(100) NOT NULL,
-  hashkey       varchar(150) NOT NULL,
+  id                  int(11) NOT NULL AUTO_INCREMENT,
+  currency_id         int(11) NOT NULL,
+  type                varchar(30) NOT NULL,
+  host                varchar(30) NOT NULL,
+  port                varchar(30) NOT NULL,
+  `path`              varchar(30) NOT NULL,
+  user                varchar(30) NOT NULL,
+  password            varchar(100) NOT NULL,
+  hashkey             varchar(150) NOT NULL,
+  node_version        varchar(50) NOT NULL,
+  node_last_updated   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+
   PRIMARY KEY (id),
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
