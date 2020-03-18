@@ -1,4 +1,4 @@
-package modules
+package model
 
 import (
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
@@ -10,13 +10,4 @@ type GetBlockCountRpcRes struct {
 
 type ModuleService interface {
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
-}
-
-func NewModuleServices() *map[string]ModuleService {
-    ModuleServices := make(map[string]ModuleService)
-
-    ModuleServices["BTC"] = &BtcService{}
-    ModuleServices["ETH"] = &EthService{}
-
-    return &ModuleServices
 }

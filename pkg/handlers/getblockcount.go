@@ -12,7 +12,6 @@ import (
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     "github.com/btcid/wallet-services-backend/cmd/config"
-    "github.com/btcid/wallet-services-backend/pkg/modules"
 )
 
 type GetBlockCountHandlerResponseMap map[string][]GetBlockCountRes
@@ -34,7 +33,7 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
     if isGetAll {
         logger.InfoLog("GetBlockCountHandler For all symbols, Requesting ...", r) 
     } else {
-        logger.InfoLog("GetBlockCountHandler For symbol: "+symbol+", Requesting ...", r) 
+        logger.InfoLog("GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", r) 
     }
 
     doInvocation(&RES, symbol)
@@ -50,7 +49,7 @@ func doInvocation(RES *GetBlockCountHandlerResponseMap, symbol string) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
-    ModuleServices := modules.NewModuleServices()
+    ModuleServices := NewModuleServices()
 
     for confKey, currConfig := range config.CURR {
         confKey = strings.ToUpper(confKey)

@@ -17,6 +17,7 @@ func main() {
     SetRoutes(r)
     
     r.Use(mw.LogMiddleware)
+    r.Use(mw.AuthMiddleware)
 
     server := &http.Server{
         Handler         : r,

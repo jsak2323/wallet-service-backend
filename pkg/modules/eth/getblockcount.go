@@ -1,16 +1,17 @@
-package modules
+package eth
 
 import(
     "errors"
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend/pkg/modules/model"
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
 type EthService struct {}
 
-func (es *EthService) GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error) {
-    res := GetBlockCountRpcRes{ Blocks: "0" }
+func (es *EthService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
+    res := model.GetBlockCountRpcRes{ Blocks: "0" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
