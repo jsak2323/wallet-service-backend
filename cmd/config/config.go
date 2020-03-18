@@ -1,8 +1,8 @@
 package config
 
 import(
-    "fmt"
     "os"
+    "fmt"
     "encoding/json"
     "database/sql"
 
@@ -22,9 +22,16 @@ func init() {
 }
 
 func LoadAppConfig() {
+    isDev := os.GetEnv("IS_DEV")
+
+    configFilename := "config.json"
+    if isDev {
+        configFilename = "config-dev.json"
+    }
+
     fmt.Print("Loading App Configuration ... ")
     gopath := os.Getenv("GOPATH")
-    file, _ := os.Open(gopath+"/src/github.com/btcid/wallet-services-backend/cmd/config/config.json")
+    file, _ := os.Open(gopath+"/src/github.com/btcid/wallet-services-backend/cmd/config/json/"+configFilename)
     defer file.Close()
     decoder := json.NewDecoder(file)
     err := decoder.Decode(&CONF)

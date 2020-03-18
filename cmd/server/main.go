@@ -1,6 +1,7 @@
 package main
 
 import(
+    "os"
     "fmt"
     "log"
     "time"
@@ -13,6 +14,8 @@ import(
 )
 
 func main() {
+    os.SetEnv("IS_DEV", true)
+
     r := mux.NewRouter()
     SetRoutes(r)
     

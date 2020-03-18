@@ -1,4 +1,5 @@
 // INSTALL VM REQUIREMENTS
+
     export LANGUAGE=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
 
@@ -32,6 +33,7 @@
 
 
 // INSTALL APP
+
     cd
     mkdir go && cd go && mkdir src && cd src && mkdir github.com && cd github.com && mkdir btcid && cd btcid
 

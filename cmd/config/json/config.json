@@ -11,5 +11,7 @@
     "mail_port"             : "587",
     "mail_user"             : "",
     "mail_encrypted_pass"   : "",
-    "mail_encryption_key"   : ""
+    "mail_encryption_key"   : "",
+
+    "crypto_apis_key"     : ""
 }

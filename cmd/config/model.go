@@ -19,6 +19,8 @@ type Configuration struct {
     MailUser            string `json:"mail_user`
     MailEncryptedPass   string `json:"mail_encrypted_pass"`
     MailEncryptionKey   string `json:"mail_encryption_key"`
+
+    CryptoApisKey   string `json:"crypto_apis_key"`
 }
 
 type CurrencyConfiguration struct {
