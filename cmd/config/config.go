@@ -12,20 +12,20 @@ import(
 )
 
 var (
+    IS_DEV bool
     CONF Configuration
     CURR = make(map[string]CurrencyConfiguration)
 )
 
 func init() {
+    IS_DEV = true
     LoadAppConfig()
     LoadCurrencyConfigs()
 }
 
 func LoadAppConfig() {
-    isDev := os.GetEnv("IS_DEV")
-
     configFilename := "config.json"
-    if isDev {
+    if IS_DEV {
         configFilename = "config-dev.json"
     }
 

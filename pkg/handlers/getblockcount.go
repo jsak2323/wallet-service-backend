@@ -11,6 +11,7 @@ import (
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    "github.com/btcid/wallet-services-backend/pkg/modules"
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
@@ -49,7 +50,7 @@ func doInvocation(RES *GetBlockCountHandlerResponseMap, symbol string) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
-    ModuleServices := NewModuleServices()
+    ModuleServices := modules.ModuleServices
 
     for confKey, currConfig := range config.CURR {
         confKey = strings.ToUpper(confKey)

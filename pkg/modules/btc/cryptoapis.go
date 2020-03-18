@@ -1,28 +1,29 @@
 package btc
 
 import(
+    "fmt"
+    "encoding/json"
+
     "gopkg.in/resty.v0"
 
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
-
-var CryptoApisApiKey string = config.CONF.CryptoApisKey
 
 type CryptoApisGetNodeInfoRes struct {
     Payload CryptoApisGetNodeInfoResPayload `json:"payload"`
 }
 
 type CryptoApisGetNodeInfoResPayload struct {
-    Difficulty              string `json:"difficulty"`
-    Headers                 string `json:"headers"`
-    Chain                   string `json:"chain"`
-    Chainwork               string `json:"chainwork"`
-    MedianTime              string `json:"mediantime"`
-    Blocks                  string `json:"blocks"`
-    BestBlockHash           string `json:"bestblockhash"`
-    Currency                string `json:"currency"`
-    Transactions            string `json:"transactions"`
-    VerificationProgress    string `json:"verificationprogress"`
+    Difficulty              float64     `json:"difficulty"`
+    Headers                 int         `json:"headers"`
+    Chain                   string      `json:"chain"`
+    Chainwork               string      `json:"chainwork"`
+    MedianTime              int         `json:"mediantime"`
+    Blocks                  int         `json:"blocks"`
+    BestBlockHash           string      `json:"bestblockhash"`
+    Currency                string      `json:"currency"`
+    Transactions            int         `json:"transactions"`
+    VerificationProgress    float64     `json:"verificationprogress"`
 }
 
 type CryptoApisService struct{
@@ -32,12 +33,12 @@ type CryptoApisService struct{
 
 func NewCryptoApisService() *CryptoApisService {
     network := "mainnet"
-    if os.GetEnv("IS_DEV") {
-        network := "testnet"
+    if config.IS_DEV {
+        network = "testnet"
     }
 
     return &CryptoApisService{
-        ApiKey      : CryptoApisApiKey,
+        ApiKey      : config.CONF.CryptoApisKey,
         Network     : network,
     }
 }
@@ -50,7 +51,11 @@ func (cas *CryptoApisService) GetNodeInfo() (CryptoApisGetNodeInfoRes, error) {
       SetHeader("X-API-Key", cas.ApiKey).
       Get("https://api.cryptoapis.io/v1/bc/btc/"+cas.Network+"/info")
 
-    err = json.Unmarshal(restRes, &getNodeInfoRes)
+    fmt.Println("restRes: ")
+    fmt.Printf("%+v", restRes)
+    fmt.Println("\n\n")
+
+    err = json.Unmarshal([]byte(restRes.String()), &getNodeInfoRes)
 
     return getNodeInfoRes, err
 }
