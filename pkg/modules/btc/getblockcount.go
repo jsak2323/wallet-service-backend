@@ -3,6 +3,7 @@ package btc
 import(
     "fmt"
     "errors"    
+    "strconv"
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     "github.com/btcid/wallet-services-backend/pkg/modules/model"
@@ -13,8 +14,6 @@ type BtcService struct {}
 
 func (bs *BtcService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
     res := model.GetBlockCountRpcRes{ Blocks: "0" }
-
-    bs.ConfirmBlockCount()
 
     rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
@@ -30,13 +29,9 @@ func (bs *BtcService) ConfirmBlockCount() (*model.GetBlockCountRpcRes, error) {
     cryptoApisService := NewCryptoApisService()
     casRes, err := cryptoApisService.GetNodeInfo()
 
-    if err != nil {
-        fmt.Println("casRes err: "+err.Error())
+    if err == nil {
+        res.Blocks := strconv.Itoa(casRes.Payload.Blocks)
     }
-
-    fmt.Println("casRes: ")
-    fmt.Printf("%+v", casRes)
-    fmt.Println("\n\n")
 
     return handleResponse(&res, err)
 }

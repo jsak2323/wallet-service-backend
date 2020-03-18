@@ -5,7 +5,7 @@ import(
 
     "github.com/gorilla/mux"
     
-    "github.com/btcid/wallet-services-backend/pkg/handlers"
+    "github.com/btcid/wallet-services-backend/pkg/http/handlers"
 )
 
 func SetRoutes(r *mux.Router) {
