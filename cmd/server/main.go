@@ -15,6 +15,7 @@ import(
 func main() {
     r := mux.NewRouter()
     SetRoutes(r)
+    SetCronRoutes(r)
     
     r.Use(mw.LogMiddleware)
     r.Use(mw.AuthMiddleware)

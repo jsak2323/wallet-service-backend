@@ -1,7 +1,7 @@
 package btc
 
 import(
-    "fmt"
+    // "fmt"
     "errors"    
     "strconv"
 
@@ -30,7 +30,7 @@ func (bs *BtcService) ConfirmBlockCount() (*model.GetBlockCountRpcRes, error) {
     casRes, err := cryptoApisService.GetNodeInfo()
 
     if err == nil {
-        res.Blocks := strconv.Itoa(casRes.Payload.Blocks)
+        res.Blocks = strconv.Itoa(casRes.Payload.Blocks)
     }
 
     return handleResponse(&res, err)
