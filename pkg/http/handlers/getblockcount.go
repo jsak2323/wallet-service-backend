@@ -3,6 +3,7 @@ package handlers
 import (
     // "fmt"
     "sync"
+    "strconv"
     "strings"
     "net/http"
     "encoding/json"
@@ -11,6 +12,7 @@ import (
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    modules_m "github.com/btcid/wallet-services-backend/pkg/modules/model"
     "github.com/btcid/wallet-services-backend/pkg/modules"
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
@@ -37,7 +39,7 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
         logger.InfoLog("GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", r) 
     }
 
-    doInvocation(&RES, symbol)
+    InvokeGetBlockCount(&RES, symbol, false)
     handleSuccess()
 }
 
@@ -46,7 +48,7 @@ func handleError(err error, funcName string) {
     logger.ErrorLog(errMsg)
 }
 
-func doInvocation(RES *GetBlockCountHandlerResponseMap, symbol string) {
+func InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string, isConfirmation bool) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
@@ -63,11 +65,21 @@ func doInvocation(RES *GetBlockCountHandlerResponseMap, symbol string) {
             rpcConfigCount++
             wg.Done()
 
-            go func(confKey string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
-                if err != nil { handleError(err, "doInvocation "+confKey+".GetBlockCount(rpcConfig)") }
+            go func(confKey string, rpcConfig rc.RpcConfig, isConfirmation bool) {
 
-                logger.Log("GetBlockCountHandler doInvocation Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                rpcRes := modules_m.GetBlockCountRpcRes{}
+                if !isConfirmation { 
+                    res, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
+                    if err != nil { handleError(err, "InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" "+confKey+".GetBlockCount(rpcConfig)") }
+                    rpcRes = *res
+
+                } else {
+                    res, err := (*ModuleServices)[confKey].ConfirmBlockCount()
+                    if err != nil { handleError(err, "InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" "+confKey+".ConfirmBlockCount()") } 
+                    rpcRes = *res
+                }
+
+                logger.Log("InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
                     Symbol              : confKey,
                     Host                : rpcConfig.Host,
@@ -76,7 +88,7 @@ func doInvocation(RES *GetBlockCountHandlerResponseMap, symbol string) {
                     NodeLastUpdated     : rpcConfig.NodeLastUpdated,
                     Blocks              : rpcRes.Blocks,
                 }
-            }(confKey, rpcConfig)
+            }(confKey, rpcConfig, isConfirmation)
         }
     }
 

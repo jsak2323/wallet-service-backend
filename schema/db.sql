@@ -16,6 +16,7 @@ CREATE TABLE currency_config (
   is_address_notice_enabled TINYINT(1) NOT NULL DEFAULT 0,
   qrcode_prefix             VARCHAR(50) NULL DEFAULT NULL,
   withdraw_fee              VARCHAR(50) NOT NULL DEFAULT "0",
+  healthy_block_diff        INT(11) NOT NULL DEFAULT 0,
   default_idr_price         INT(15) NOT NULL DEFAULT 0,
   cmc_id                    INT(7) NULL DEFAULT NULL,
 

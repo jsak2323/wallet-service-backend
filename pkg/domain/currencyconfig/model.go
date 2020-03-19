@@ -17,6 +17,7 @@ type CurrencyConfig struct {
 
     QrCodePrefix            string
     WithdrawFee             string
+    HealthyBlockDiff        int
     DefaultIdrPrice         int
     CmcId                   int
 }

@@ -1,5 +1,5 @@
 package healthcheck
 
 type HealthCheckRepository interface {
-    GetAll() ([]BlockCount, error)
+    GetAll() ([]HealthCheck, error)
 }

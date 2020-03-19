@@ -75,6 +75,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.IsAddressNoticeEnabled,
         &qrCodePrefix,
         &currConf.WithdrawFee,
+        &currConf.HealthyBlockDiff,
         &currConf.DefaultIdrPrice,
         &cmcId,
     )

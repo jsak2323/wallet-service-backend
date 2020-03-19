@@ -10,4 +10,5 @@ type GetBlockCountRpcRes struct {
 
 type ModuleService interface {
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
+    ConfirmBlockCount() (*GetBlockCountRpcRes, error)
 }

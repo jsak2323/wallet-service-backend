@@ -28,3 +28,9 @@ func (es *EthService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCoun
         return &res, nil
     }
 }
+
+func (es *EthService) ConfirmBlockCount() (*model.GetBlockCountRpcRes, error) {
+    res := model.GetBlockCountRpcRes{ Blocks: "100" }
+
+    return &res, nil
+}
