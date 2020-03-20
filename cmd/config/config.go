@@ -41,7 +41,7 @@ func LoadAppConfig() {
     fmt.Println("Done.")
 }
 
-func mysqlDbConn() (db *sql.DB) {
+func MysqlDbConn() (db *sql.DB) {
     dbDriver := "mysql"
     dbUser   := CONF.MysqlDbUser
     dbPass   := CONF.MysqlDbPass
@@ -55,7 +55,7 @@ func mysqlDbConn() (db *sql.DB) {
 func LoadCurrencyConfigs() {
     fmt.Print("Loading Currency Configurations ... ")
 
-    mysqlDb := mysqlDbConn()
+    mysqlDb := MysqlDbConn()
     defer mysqlDb.Close()
 
     currencyConfigRepo  := mysqldb.NewMysqlCurrencyConfigRepository(mysqlDb)

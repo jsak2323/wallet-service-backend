@@ -4,42 +4,94 @@ import(
     "fmt"
     "strconv"
     "net/http"
-    // "encoding/json"
 
     h "github.com/btcid/wallet-services-backend/pkg/http/handlers"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    "github.com/btcid/wallet-services-backend/cmd/config"
+    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
 )
 
-func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-    // node blockcounts 
+type HealthCheckService struct{
+    healthCheckRepo hc.HealthCheckRepository
+}
+
+func NewHealthCheckService(healthCheckRepo hc.HealthCheckRepository) *HealthCheckService{
+    return &HealthCheckService{
+        healthCheckRepo,
+    }
+}
+
+func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+
+    getBlockCountService := h.NewGetBlockCountService()
+
+    // get node blockcounts 
     logger.InfoLog("HealthCheckHandler Getting node blockcounts ..." , r)
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
-    h.InvokeGetBlockCount(&gbcRES, "", false)
+    getBlockCountService.InvokeGetBlockCount(&gbcRES, "", false)
     logger.InfoLog("HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , r)
 
-    // comparation blockcounts
+    // get comparation blockcounts
     logger.InfoLog("HealthCheckHandler Getting comparation blockcounts ..." , r)
     cbcRES := make(h.GetBlockCountHandlerResponseMap)
-    h.InvokeGetBlockCount(&cbcRES, "", true)
+    getBlockCountService.InvokeGetBlockCount(&cbcRES, "", true)
     logger.InfoLog("HealthCheckHandler Getting comparation blockcounts done. Fetched "+strconv.Itoa(len(cbcRES))+" results." , r)
 
+    // compare the results
     for resSymbol, resRpcConfigs := range gbcRES {
         for _, resRpcConfig := range resRpcConfigs {        
             nodeBlocks          := resRpcConfig.Blocks
-            comparationBlocks   := findComparationResultByHost(resSymbol, resRpcConfig.Host, &cbcRES).Blocks
+            comparationBlocks   := hcs.findComparationResultByRpcConfigId(resRpcConfig.RpcConfigId, &cbcRES).Blocks
 
-            fmt.Println("nodeBlocks: "+nodeBlocks)
-            fmt.Println("comparationBlocks: "+comparationBlocks)
+            nodeBlocksInt, _        := strconv.Atoi(nodeBlocks)
+            comparationBlocksInt, _ := strconv.Atoi(comparationBlocks)
+
+            err := hcs.saveHealthCheck(resRpcConfig.RpcConfigId, nodeBlocksInt, comparationBlocksInt)
+            if err != nil { logger.ErrorLog("HealthCheckHandler hcs.saveHealthCheck(resRpcConfig, nodeBlocks, comparationBlocks), err: "+err.Error()) }
+
+
+            blocksDiff := nodeBlocksInt - comparationBlocksInt
+            if blocksDiff >= config.CURR[resSymbol].Config.HealthyBlockDiff {
+                fmt.Println("Block Difference detected.")
+            }
+
+
+
         }
     }
 }
 
-func findComparationResultByHost(symbol string, host string, RES *h.GetBlockCountHandlerResponseMap) h.GetBlockCountRes {
+func (hcs *HealthCheckService) findComparationResultByRpcConfigId(rpcConfigId int, RES *h.GetBlockCountHandlerResponseMap) h.GetBlockCountRes {
     emptyRes := h.GetBlockCountRes{}
-    for resSymbol, resRpcConfigs := range (*RES) {
+    for _, resRpcConfigs := range (*RES) {
         for _, resRpcConfig := range resRpcConfigs {
-            if symbol == resSymbol && resRpcConfig.Host == host { return resRpcConfig }
+            if resRpcConfig.RpcConfigId == rpcConfigId { return resRpcConfig }
         }
     }
     return emptyRes
+}
+
+func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, confirmBlockCount int) error {
+    
+    existingHealthCheck, err := hcs.healthCheckRepo.GetByRpcConfigId(rpcConfigId)
+    if err != nil { return err }
+
+    if existingHealthCheck.Id == 0 { // does not exist, create a new one
+        newHealthCheck := hc.HealthCheck{
+            RpcConfigId         : rpcConfigId,
+            BlockCount          : blockCount,
+            ConfirmBlockCount   : confirmBlockCount,
+        }
+        err := hcs.healthCheckRepo.Create(&newHealthCheck)
+        if err != nil {
+            logger.ErrorLog("saveHealthCheck err: "+err.Error())
+        } else {
+            logger.Log("saveHealthCheck Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck))
+        }
+
+    } else { // already exists, update
+        fmt.Println("update hit")
+    }
+
+    return nil
 }

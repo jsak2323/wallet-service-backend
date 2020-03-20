@@ -2,19 +2,35 @@ package main
 
 import(
     "net/http"
+    "database/sql"
 
     "github.com/gorilla/mux"
     
-    "github.com/btcid/wallet-services-backend/pkg/http/handlers"
-    "github.com/btcid/wallet-services-backend/pkg/http/handlers/cron"
+    h "github.com/btcid/wallet-services-backend/pkg/http/handlers"
+    c "github.com/btcid/wallet-services-backend/pkg/http/handlers/cron"
+    "github.com/btcid/wallet-services-backend/pkg/database/mysql"
 )
 
-func SetRoutes(r *mux.Router) {
-    r.HandleFunc("/getblockcount", handlers.GetBlockCountHandler).Methods(http.MethodGet)
-    r.HandleFunc("/{symbol}/getblockcount", handlers.GetBlockCountHandler).Methods(http.MethodGet)
-}
+func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
-func SetCronRoutes(r *mux.Router) {
-    r.HandleFunc("/cron/healthcheck", cron.HealthCheckHandler).Methods(http.MethodGet)
-}
+    // REPOSITORIES
+    healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 
+
+
+    // REST ROUTES
+
+    // getblockcount
+    getBlockCountService := h.NewGetBlockCountService()
+    r.HandleFunc("/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
+
+
+
+    // CRON ROUTES
+
+    // healthcheck
+    healthCheckService := c.NewHealthCheckService(healthCheckRepo)
+    r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
+
+}

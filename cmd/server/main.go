@@ -14,9 +14,10 @@ import(
 
 func main() {
     r := mux.NewRouter()
-    SetRoutes(r)
-    SetCronRoutes(r)
-    
+    mysqlDbConn := config.MysqlDbConn()
+
+    SetRoutes(r, mysqlDbConn)
+
     r.Use(mw.LogMiddleware)
     r.Use(mw.AuthMiddleware)
 

@@ -19,7 +19,13 @@ import (
 
 type GetBlockCountHandlerResponseMap map[string][]GetBlockCountRes
 
-func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) { 
+type GetBlockCountService struct {}
+
+func NewGetBlockCountService() *GetBlockCountService {
+    return &GetBlockCountService{}
+}
+
+func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, r *http.Request) { 
     vars := mux.Vars(r)
     symbol := vars["symbol"]
     isGetAll := symbol == ""
@@ -39,16 +45,16 @@ func GetBlockCountHandler(w http.ResponseWriter, r *http.Request) {
         logger.InfoLog("GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", r) 
     }
 
-    InvokeGetBlockCount(&RES, symbol, false)
+    gbcs.InvokeGetBlockCount(&RES, symbol, false)
     handleSuccess()
 }
 
-func handleError(err error, funcName string) {
+func (gbcs *GetBlockCountService) handleError(err error, funcName string) {
     errMsg := "GetBlockCountHandler "+funcName+" Error: "+err.Error()
     logger.ErrorLog(errMsg)
 }
 
-func InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string, isConfirmation bool) {
+func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string, isConfirmation bool) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
@@ -70,17 +76,18 @@ func InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string, is
                 rpcRes := modules_m.GetBlockCountRpcRes{}
                 if !isConfirmation { 
                     res, err := (*ModuleServices)[confKey].GetBlockCount(rpcConfig)
-                    if err != nil { handleError(err, "InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" "+confKey+".GetBlockCount(rpcConfig)") }
+                    if err != nil { gbcs.handleError(err, "InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" "+confKey+".GetBlockCount(rpcConfig)") }
                     rpcRes = *res
 
                 } else {
                     res, err := (*ModuleServices)[confKey].ConfirmBlockCount()
-                    if err != nil { handleError(err, "InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" "+confKey+".ConfirmBlockCount()") } 
+                    if err != nil { gbcs.handleError(err, "InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" "+confKey+".ConfirmBlockCount()") } 
                     rpcRes = *res
                 }
 
                 logger.Log("InvokeGetBlockCount isConfirmation: "+strconv.FormatBool(isConfirmation)+" Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
+                    RpcConfigId         : rpcConfig.Id,
                     Symbol              : confKey,
                     Host                : rpcConfig.Host,
                     Type                : rpcConfig.Type,
