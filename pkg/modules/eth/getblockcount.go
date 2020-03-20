@@ -8,8 +8,6 @@ import(
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
-type EthService struct {}
-
 func (es *EthService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
     res := model.GetBlockCountRpcRes{ Blocks: "0" }
 
@@ -29,8 +27,6 @@ func (es *EthService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCoun
     }
 }
 
-func (es *EthService) ConfirmBlockCount() (*model.GetBlockCountRpcRes, error) {
-    res := model.GetBlockCountRpcRes{ Blocks: "100" }
-
-    return &res, nil
+func (es *EthService) IsBlockCountHealthy(nodeBlockCount int) (bool, int, error) {
+    return true, 0, nil
 }

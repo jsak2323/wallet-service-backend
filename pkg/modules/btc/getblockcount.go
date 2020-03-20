@@ -1,16 +1,16 @@
 package btc
 
 import(
-    // "fmt"
+    "fmt"
+    "math"
     "errors"    
-    "strconv"
+    // "strconv"
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     "github.com/btcid/wallet-services-backend/pkg/modules/model"
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
+    "github.com/btcid/wallet-services-backend/cmd/config"
 )
-
-type BtcService struct {}
 
 func (bs *BtcService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
     res := model.GetBlockCountRpcRes{ Blocks: "0" }
@@ -23,17 +23,25 @@ func (bs *BtcService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCoun
     return handleResponse(&res, err)
 }
 
-func (bs *BtcService) ConfirmBlockCount() (*model.GetBlockCountRpcRes, error) {
-    res := model.GetBlockCountRpcRes{ Blocks: "0" }
+func (bs *BtcService) IsBlockCountHealthy(nodeBlockCount int) (bool, int, error) {
+    isBlockCountHealthy := false
+    healthyBlockDiff    := config.CURR["BTC"].Config.HealthyBlockDiff
+    blockDiff           := 0
 
     cryptoApisService := NewCryptoApisService()
     casRes, err := cryptoApisService.GetNodeInfo()
 
-    if err == nil {
-        res.Blocks = strconv.Itoa(casRes.Payload.Blocks)
+    if err != nil { // if third party service fail, compare with previous blockcount
+        fmt.Println("err: "+err.Error())
+
+    } else {
+        blockDiff = nodeBlockCount - casRes.Payload.Blocks
+        blockDiff = int(math.Abs(float64(blockDiff)))
+
+        isBlockCountHealthy = blockDiff <= healthyBlockDiff
     }
 
-    return handleResponse(&res, err)
+    return isBlockCountHealthy, blockDiff, nil
 }
 
 func handleResponse(res *model.GetBlockCountRpcRes, err error) (*model.GetBlockCountRpcRes, error) {

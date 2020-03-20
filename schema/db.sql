@@ -45,7 +45,8 @@ CREATE TABLE health_check (
   id                    INT(11) NOT NULL AUTO_INCREMENT,
   rpc_config_id         INT(11) NOT NULL,
   blockcount            INT(11) NOT NULL DEFAULT 0,
-  confirm_blockcount    INT(11) NOT NULL DEFAULT 0,
+  block_diff            INT(11) NOT NULL DEFAULT 0,
+  is_healthy            TINYINT(1) NOT NULL DEFAULT 1,
   last_updated          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
   PRIMARY KEY (id),

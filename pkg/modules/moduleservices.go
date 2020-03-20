@@ -1,17 +1,20 @@
 package modules
 
 import(
+    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
     modules_m "github.com/btcid/wallet-services-backend/pkg/modules/model"
     "github.com/btcid/wallet-services-backend/pkg/modules/btc"
     "github.com/btcid/wallet-services-backend/pkg/modules/eth"
 )
 
-var (
-    MS = make(map[string]modules_m.ModuleService)
-    ModuleServices = &MS
-)
+type ModuleServiceMap map[string]modules_m.ModuleService
 
-func init() {
-    (*ModuleServices)["BTC"] = &btc.BtcService{}
-    (*ModuleServices)["ETH"] = &eth.EthService{}
+func NewModuleServices(healthCheckRepo hc.HealthCheckRepository) *ModuleServiceMap {
+
+    ModuleServices := make(ModuleServiceMap)
+
+    ModuleServices["BTC"] = btc.NewBtcService(healthCheckRepo)
+    ModuleServices["ETH"] = eth.NewEthService(healthCheckRepo)
+
+    return &ModuleServices
 }

@@ -58,13 +58,17 @@ func (r *healthCheckRepository) GetByRpcConfigId(rpcConfigId int) (hc.HealthChec
 
 func (r *healthCheckRepository) Create(healthCheck *hc.HealthCheck) (error) {
     rows, err := r.db.Prepare("INSERT INTO "+healthCheckTable+
-        "(rpc_config_id, blockcount, confirm_blockcount) "+
-        " VALUES(?, ?, ?)")
+        "(rpc_config_id, blockcount, block_diff, is_healthy) "+
+        " VALUES(?, ?, ?, ?)")
     defer rows.Close()
     if err != nil { return err }
 
     res, err := rows.Exec(
-        healthCheck.RpcConfigId, healthCheck.BlockCount, healthCheck.ConfirmBlockCount)
+        healthCheck.RpcConfigId, 
+        healthCheck.BlockCount, 
+        healthCheck.BlockDiff, 
+        healthCheck.IsHealthy,
+    )
     if err != nil { return err }
 
     lastInsertId, _ := res.LastInsertId()
@@ -73,13 +77,18 @@ func (r *healthCheckRepository) Create(healthCheck *hc.HealthCheck) (error) {
     return nil
 }
 
-func (r *healthCheckRepository) Update(id int, healthCheck hc.HealthCheck) (error) {
+func (r *healthCheckRepository) Update(healthCheck *hc.HealthCheck) (error) {
+    isHealthy := 0
+    if healthCheck.IsHealthy {
+        isHealthy = 1
+    }
+
     query := "UPDATE "+healthCheckTable+" SET "+
-    " `rpc_config_id` = "+strconv.Itoa(healthCheck.RpcConfigId)+", "+
     " `blockcount` = "+strconv.Itoa(healthCheck.BlockCount)+", "+
-    " `confirm_blockcount` = "+strconv.Itoa(healthCheck.ConfirmBlockCount)+", "+
-    " `last_updated_block_num` = CURRENT_TIMESTAMP() "+
-    " WHERE id = "+strconv.Itoa(id)
+    " `block_diff` = "+strconv.Itoa(healthCheck.BlockDiff)+", "+
+    " `is_healthy` = "+strconv.Itoa(isHealthy)+", "+
+    " `last_updated` = CURRENT_TIMESTAMP() "+
+    " WHERE id = "+strconv.Itoa(healthCheck.Id)
 
     rows, err := r.db.Query(query)
     defer rows.Close()
@@ -93,7 +102,8 @@ func mapHealthCheck(rows *sql.Rows, healthCheck *hc.HealthCheck) error {
         &healthCheck.Id,
         &healthCheck.RpcConfigId,
         &healthCheck.BlockCount,
-        &healthCheck.ConfirmBlockCount,
+        &healthCheck.BlockDiff,
+        &healthCheck.IsHealthy,
         &healthCheck.LastUpdated,
     )
     if err != nil { return err }
