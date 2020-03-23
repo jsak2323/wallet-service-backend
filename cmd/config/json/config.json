@@ -13,5 +13,6 @@
     "mail_encrypted_pass"   : "",
     "mail_encryption_key"   : "",
 
-    "crypto_apis_key"     : ""
+    "crypto_apis_key"       : "",
+    "infura_project_id"     : ""
 }

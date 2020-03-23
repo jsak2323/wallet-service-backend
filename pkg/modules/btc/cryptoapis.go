@@ -1,7 +1,6 @@
 package btc
 
 import(
-    "fmt"
     "encoding/json"
 
     "gopkg.in/resty.v0"
@@ -51,11 +50,9 @@ func (cas *CryptoApisService) GetNodeInfo() (CryptoApisGetNodeInfoRes, error) {
       SetHeader("X-API-Key", cas.ApiKey).
       Get("https://api.cryptoapis.io/v1/bc/btc/"+cas.Network+"/info")
 
-    fmt.Println("restRes: ")
-    fmt.Printf("%+v", restRes)
-    fmt.Println("\n\n")
-
-    err = json.Unmarshal([]byte(restRes.String()), &getNodeInfoRes)
+    if err == nil {
+        err = json.Unmarshal([]byte(restRes.String()), &getNodeInfoRes)
+    }
 
     return getNodeInfoRes, err
 }

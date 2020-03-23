@@ -18,6 +18,7 @@ var (
 )
 
 func init() {
+    // todo: changeable from args
     IS_DEV = true
     LoadAppConfig()
     LoadCurrencyConfigs()

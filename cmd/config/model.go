@@ -20,7 +20,8 @@ type Configuration struct {
     MailEncryptedPass   string `json:"mail_encrypted_pass"`
     MailEncryptionKey   string `json:"mail_encryption_key"`
 
-    CryptoApisKey   string `json:"crypto_apis_key"`
+    CryptoApisKey       string `json:"crypto_apis_key"`
+    InfuraProjectId     string `json:"infura_project_id"`
 }
 
 type CurrencyConfiguration struct {

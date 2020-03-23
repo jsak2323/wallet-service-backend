@@ -24,16 +24,17 @@ func NewHealthCheckService(healthCheckRepo hc.HealthCheckRepository, moduleServi
 }
 
 func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-    getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
-    logger.InfoLog("HealthCheckHandler Getting node blockcounts ..." , r)
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
+    getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
+
+    logger.InfoLog("HealthCheckHandler Getting node blockcounts ..." , r)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
     logger.InfoLog("HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , r)
 
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 
             nodeBlockCount, _ := strconv.Atoi(resRpcConfig.Blocks)
-            isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount)
+            isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfigId)
             if err != nil { logger.ErrorLog("hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
 
             hcs.saveHealthCheck(resRpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)

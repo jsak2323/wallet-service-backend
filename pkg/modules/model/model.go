@@ -10,5 +10,5 @@ type GetBlockCountRpcRes struct {
 
 type ModuleService interface {
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
-    IsBlockCountHealthy(nodeBlockCount int) (bool, int, error)
+    IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error)
 }
