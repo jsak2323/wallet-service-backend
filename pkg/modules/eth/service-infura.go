@@ -1,7 +1,6 @@
 package eth
 
 import (
-    "fmt"
     "encoding/json"
 
     "gopkg.in/resty.v0"
@@ -11,7 +10,7 @@ import (
 
 type InfuraEthBlockNumberRes struct {
     Jsonrpc     string `json:"jsonrpc"` 
-    Id          string `json:"id"` 
+    Id          int `json:"id"` 
     Result      string `json:"result"` 
 }
 
@@ -34,7 +33,7 @@ func NewInfuraService() *InfuraService {
 
 func (is *InfuraService) EthBlockNumber() (InfuraEthBlockNumberRes, error) {
     ethBlockNumberRes := InfuraEthBlockNumberRes{}
-    
+
     endpoint := "https://"+is.Network+".infura.io/v3/"+is.ProjectId
     restRes, err := resty.R().
           SetHeader("Content-Type", "application/json").
