@@ -2,6 +2,7 @@ package handlers
 
 import (
     "sync"
+    "strconv"
     "strings"
     "net/http"
     "encoding/json"
@@ -75,7 +76,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
                 rpcRes, err := (*gbcs.moduleServices)[confKey].GetBlockCount(rpcConfig)
                 if err != nil { gbcs.handleError(err, "InvokeGetBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
 
-                logger.Log("InvokeGetBlockCount Symbol: "+confKey+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                logger.Log("InvokeGetBlockCount Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
                     RpcConfigId         : rpcConfig.Id,
                     Symbol              : confKey,

@@ -2,29 +2,28 @@ package eth
 
 import (
     "math"
+    "strconv"
 
     "github.com/ethereum/go-ethereum/common/hexutil"
 
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    modules_util "github.com/btcid/wallet-services-backend/pkg/modules/util"
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
 func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
     isBlockCountHealthy := false
-    healthyBlockDiff    := config.CURR["ETH"].Config.HealthyBlockDiff
+    healthyBlockDiff    := config.CURR[es.GetSymbol()].Config.HealthyBlockDiff
     blockDiff           := 0
 
     infuraService := NewInfuraService()
     ethBlockNumberRes, err := infuraService.EthBlockNumber()
 
     if err != nil { // if third party service fail, compare with previous blockcount
-        logger.Log(" - ETH isBlockCountHealthy  err: "+err.Error())
-        previousHealthCheck, err := es.healthCheckRepo.GetByRpcConfigId(rpcConfigId)
-        if err != nil { return isBlockCountHealthy, blockDiff, err }
-
-        if nodeBlockCount == previousHealthCheck.BlockCount { // if it's still the same, then it's not healthy
-            isBlockCountHealthy = false
-        }
+        logger.Log(" - "+es.GetSymbol()+" rpcConfigId: "+strconv.Itoa(rpcConfigId)+" isBlockCountHealthy service err: "+err.Error()+". Executing fallback ...")
+        isBlockCountFallbackHealthy, fallbackErr := modules_util.IsBlockCountHealthyFallback(es, nodeBlockCount, rpcConfigId)
+        if fallbackErr != nil { return isBlockCountFallbackHealthy, blockDiff, fallbackErr }
+        isBlockCountHealthy = isBlockCountFallbackHealthy
 
     } else {
         ethBlockNumberHex := ethBlockNumberRes.Result
