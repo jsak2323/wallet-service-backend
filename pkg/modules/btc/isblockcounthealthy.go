@@ -11,7 +11,7 @@ import (
 
 func (bs *BtcService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
     isBlockCountHealthy := false
-    healthyBlockDiff    := config.CURR["BTC"].Config.HealthyBlockDiff
+    healthyBlockDiff    := config.CURR[bs.GetSymbol()].Config.HealthyBlockDiff
     blockDiff           := 0
 
     cryptoApisService := NewCryptoApisService()

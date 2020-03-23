@@ -5,7 +5,7 @@
     "mysql_db_pass"     : "123456",
     "mysql_db_name"     : "wallet_service",
 
-    "notification_emails" : ["ifan.wijaya.000@bitcoin.co.id"],
+    "notification_emails" : ["ifan.wijaya@bitcoin.co.id"],
 
     "mail_host"             : "smtp.gmail.com",
     "mail_port"             : "587",

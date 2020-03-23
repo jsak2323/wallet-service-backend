@@ -8,7 +8,9 @@ import(
     h "github.com/btcid/wallet-services-backend/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    "github.com/btcid/wallet-services-backend/cmd/config"
     "github.com/btcid/wallet-services-backend/pkg/modules"
+    "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
 type HealthCheckService struct{
@@ -38,6 +40,10 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
             if err != nil { logger.ErrorLog("hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
 
             hcs.saveHealthCheck(resRpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+
+            if !isBlockCountHealthy { // if not healthy, send notification emails
+                hcs.sendNotificationEmails(resRpcConfig)
+            }
         }
     }
 }
@@ -77,4 +83,22 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
     }
 
     return nil
+}
+
+func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
+    logger.Log("HealthCheckHandler -- Sending notification email ...")
+
+    subject := "Health Check Failed for "+res.Symbol+" VM ("+res.Host+")"
+    message := "Health check has failed with following detail: "+
+    "\n Symbol: "+res.Symbol+
+    "\n Host: "+res.Host+
+    "\n Type: "+res.Type+
+    "\n Node Version: "+res.NodeVersion+
+    "\n BlockCount: "+res.Blocks
+
+    recipients := config.CONF.NotificationEmails
+
+    isEmailSent, err := util.SendEmail(subject, message, recipients)
+    if err != nil { logger.ErrorLog(err.Error()) }
+    logger.Log("HealthCheckHandler -- Is notification email sent: "+strconv.FormatBool(isEmailSent))
 }

@@ -16,7 +16,7 @@ type Configuration struct {
 
     MailHost            string `json:"mail_host"`
     MailPort            string `json:"mail_port"`
-    MailUser            string `json:"mail_user`
+    MailUser            string `json:"mail_user"`
     MailEncryptedPass   string `json:"mail_encrypted_pass"`
     MailEncryptionKey   string `json:"mail_encryption_key"`
 
