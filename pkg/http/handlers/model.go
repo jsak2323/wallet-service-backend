@@ -1,8 +1,9 @@
 package handlers
 
 type GetBlockCountRes struct{
-    RpcConfigId 		int
+    RpcConfigId         int
     Symbol              string
+    Name                string
     Host                string
     Type                string
     NodeVersion         string

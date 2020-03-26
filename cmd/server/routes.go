@@ -26,8 +26,8 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
     // getblockcount
     getBlockCountService := h.NewGetBlockCountService(ModuleServices)
-    r.HandleFunc("/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
-    r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
+    r.HandleFunc("/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
 
 
 

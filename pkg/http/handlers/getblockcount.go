@@ -80,6 +80,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
                 resChannel <- GetBlockCountRes{
                     RpcConfigId         : rpcConfig.Id,
                     Symbol              : confKey,
+                    Name                : rpcConfig.Name,
                     Host                : rpcConfig.Host,
                     Type                : rpcConfig.Type,
                     NodeVersion         : rpcConfig.NodeVersion,

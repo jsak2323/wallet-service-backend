@@ -36,6 +36,8 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
             &rpcConf.Id,
             &rpcConf.CurrencyId,
             &rpcConf.Type,
+            &rpcConf.Name,
+            &rpcConf.Platform,
             &rpcConf.Host,
             &rpcConf.Port,
             &rpcConf.Path,
@@ -44,6 +46,9 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
             &rpcConf.Hashkey,
             &rpcConf.NodeVersion,
             &rpcConf.NodeLastUpdated,
+            &rpcConf.IsBackupable,
+            &rpcConf.IsHealthCheckEnabled,
+            &rpcConf.ZapierLink,
         )
         if err != nil { return rpcConfigs, err }
 

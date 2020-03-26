@@ -19,6 +19,7 @@ CREATE TABLE currency_config (
   healthy_block_diff        INT(11) NOT NULL DEFAULT 0,
   default_idr_price         INT(15) NOT NULL DEFAULT 0,
   cmc_id                    INT(7) NULL DEFAULT NULL,
+  last_updated              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
   PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -27,6 +28,8 @@ CREATE TABLE rpc_config (
   id                        INT(11) NOT NULL AUTO_INCREMENT,
   currency_id               INT(11) NOT NULL,
   type                      VARCHAR(30) NOT NULL,
+  name                      VARCHAR(50) NOT NULL DEFAULT "",
+  platform                  VARCHAR(30) NOT NULL DEFAULT "GCP",
   host                      VARCHAR(30) NOT NULL,
   port                      VARCHAR(30) NOT NULL,
   `path`                    VARCHAR(30) NOT NULL,
@@ -35,7 +38,9 @@ CREATE TABLE rpc_config (
   hashkey                   VARCHAR(150) NOT NULL,
   node_version              VARCHAR(50) NOT NULL,
   node_last_updated         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  is_backupable             TINYINT(1) NOT NULL DEFAULT 0,
   is_health_check_enabled   TINYINT(1) NOT NULL DEFAULT 0,
+  zapier_link               VARCHAR(255) NOT NULL DEFAULT "",
 
   PRIMARY KEY (id),
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)
