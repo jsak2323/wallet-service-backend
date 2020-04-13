@@ -16,13 +16,13 @@ func (es *EthService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRe
 
     err := xmlrpc.XmlRpcCall("EthRpc.GetBalance", &rpcReq, &res)
 
-    if err != nil { 
+    if err == nil {
+        return &res, nil
+
+    } else if err != nil {
         return &res, err
 
-    } else if res.Balance == "0" {
-        return &res, errors.New("Unexpected error occured in Node.")
-
     } else {
-        return &res, nil
+        return &res, errors.New("Unexpected error occured in Node.")
     }
 }

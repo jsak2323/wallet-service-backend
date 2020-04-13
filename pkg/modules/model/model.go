@@ -10,14 +10,14 @@ type GetBlockCountRpcRes struct {
 }
 
 type GetBalanceRpcRes struct {
-	Balance string
+    Balance string
 }
 
 type ModuleService interface {
     GetSymbol() (string)
     GetHealthCheckRepo() (hc.HealthCheckRepository)
     IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error)
-    
+
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
     GetBalance(rpcConfig rc.RpcConfig) (*GetBalanceRpcRes, error)
 }

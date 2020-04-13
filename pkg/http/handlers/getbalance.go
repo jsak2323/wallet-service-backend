@@ -76,7 +76,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
                 rpcRes, err := (*gbcs.moduleServices)[confKey].GetBalance(rpcConfig)
                 if err != nil { gbcs.handleError(err, "InvokeGetBalance "+confKey+".GetBalance(rpcConfig)") }
 
-                logger.Log(" - InvokeGetBalance Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                logger.Log(" - InvokeGetBalance Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
                 resChannel <- GetBalanceRes{
                     RpcConfigId         : rpcConfig.Id,
                     Symbol              : confKey,

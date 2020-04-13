@@ -29,6 +29,12 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
 
+    // -- getbalance
+    getBalanceService := h.NewGetBalanceService(ModuleServices)
+    r.HandleFunc("/balance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/balance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
+
+
 
 
     // CRON ROUTES
