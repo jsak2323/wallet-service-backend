@@ -1,4 +1,4 @@
-package eth
+package ethxmlrpc
 
 import (
     "math"
@@ -9,6 +9,7 @@ import (
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     modules_util "github.com/btcid/wallet-services-backend/pkg/modules/util"
     "github.com/btcid/wallet-services-backend/cmd/config"
+    "github.com/btcid/wallet-services-backend/pkg/lib/modules/eth"
 )
 
 func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
@@ -16,7 +17,7 @@ func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (
     healthyBlockDiff    := config.CURR[es.GetSymbol()].Config.HealthyBlockDiff
     blockDiff           := 0
 
-    infuraService := NewInfuraService()
+    infuraService := eth.NewInfuraService()
     ethBlockNumberRes, err := infuraService.EthBlockNumber()
 
     if err != nil { // if third party service fail, compare with previous blockcount

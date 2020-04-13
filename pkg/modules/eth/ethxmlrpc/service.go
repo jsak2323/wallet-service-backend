@@ -1,4 +1,4 @@
-package eth
+package ethxmlrpc
 
 import(
     hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"

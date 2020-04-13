@@ -1,4 +1,4 @@
-package eth
+package btcxmlrpc
 
 import(
     "errors"
@@ -8,21 +8,21 @@ import(
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
-func (es *EthService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRes, error) {
-    res := model.GetBalanceRpcRes{ Balance: "0" }
+func (bs *BtcService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
+    res := model.GetBlockCountRpcRes{ Blocks: "0" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    err := xmlrpc.XmlRpcCall("EthRpc.GetBalance", &rpcReq, &res)
+    err := xmlrpc.XmlRpcCall("getblockcount", &rpcReq, &res)
 
-    if err == nil {
-        return &res, nil
-
-    } else if err != nil {
+    if err != nil { 
         return &res, err
 
-    } else {
+    } else if res.Blocks == "0" {
         return &res, errors.New("Unexpected error occured in Node.")
+
+    } else {
+        return &res, nil
     }
 }

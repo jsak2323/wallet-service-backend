@@ -3,8 +3,8 @@ package modules
 import(
     hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
     modules_m "github.com/btcid/wallet-services-backend/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend/pkg/modules/btc"
-    "github.com/btcid/wallet-services-backend/pkg/modules/eth"
+    "github.com/btcid/wallet-services-backend/pkg/modules/btc/btcxmlrpc"
+    "github.com/btcid/wallet-services-backend/pkg/modules/eth/ethxmlrpc"
 )
 
 type ModuleServiceMap map[string]modules_m.ModuleService
@@ -13,8 +13,8 @@ func NewModuleServices(healthCheckRepo hc.HealthCheckRepository) *ModuleServiceM
 
     ModuleServices := make(ModuleServiceMap)
 
-    ModuleServices["BTC"] = btc.NewBtcService(healthCheckRepo)
-    ModuleServices["ETH"] = eth.NewEthService(healthCheckRepo)
+    ModuleServices["BTC"] = btcxmlrpc.NewBtcService(healthCheckRepo)
+    ModuleServices["ETH"] = ethxmlrpc.NewEthService(healthCheckRepo)
 
     return &ModuleServices
 }

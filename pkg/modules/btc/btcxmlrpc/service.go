@@ -1,4 +1,4 @@
-package btc
+package btcxmlrpc
 
 import(
     hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"

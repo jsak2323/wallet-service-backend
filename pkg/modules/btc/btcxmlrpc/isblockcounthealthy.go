@@ -1,4 +1,4 @@
-package btc
+package btcxmlrpc
 
 import (
     "math"
@@ -7,6 +7,7 @@ import (
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     modules_util "github.com/btcid/wallet-services-backend/pkg/modules/util"
     "github.com/btcid/wallet-services-backend/cmd/config"
+    "github.com/btcid/wallet-services-backend/pkg/lib/modules/btc"
 )
 
 func (bs *BtcService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
@@ -14,7 +15,7 @@ func (bs *BtcService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (
     healthyBlockDiff    := config.CURR[bs.GetSymbol()].Config.HealthyBlockDiff
     blockDiff           := 0
 
-    cryptoApisService := NewCryptoApisService()
+    cryptoApisService := btc.NewCryptoApisService()
     getNodeInfoRes, err := cryptoApisService.GetNodeInfo()
 
     if err != nil { // if third party service fail, compare with previous blockcount

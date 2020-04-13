@@ -1,4 +1,4 @@
-package btc
+package btcxmlrpc
 
 import (
     "errors"
