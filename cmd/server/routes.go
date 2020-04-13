@@ -17,14 +17,14 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     // REPOSITORIES
     healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 
-
     // MODULE SERVICES
     ModuleServices := modules.NewModuleServices(healthCheckRepo)
 
 
+
     // REST ROUTES
 
-    // getblockcount
+    // -- getblockcount
     getBlockCountService := h.NewGetBlockCountService(ModuleServices)
     r.HandleFunc("/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
@@ -33,7 +33,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
     // CRON ROUTES
 
-    // healthcheck
+    // -- healthcheck
     healthCheckService := c.NewHealthCheckService(healthCheckRepo, ModuleServices)
     r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
 

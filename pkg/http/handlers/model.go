@@ -10,3 +10,12 @@ type GetBlockCountRes struct{
     NodeLastUpdated     string
     Blocks              string
 }
+
+type GetBalanceRes struct {
+    RpcConfigId         int
+    Symbol              string
+    Name                string
+    Host                string
+    Type                string
+    Balance             string
+}

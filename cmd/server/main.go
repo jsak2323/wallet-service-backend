@@ -13,8 +13,10 @@ import(
 )
 
 func main() {
-    r := mux.NewRouter()
     mysqlDbConn := config.MysqlDbConn()
+    defer mysqlDbConn.Close()
+    
+    r := mux.NewRouter()
 
     SetRoutes(r, mysqlDbConn)
 

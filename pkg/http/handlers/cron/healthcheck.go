@@ -29,15 +29,15 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
 
-    logger.InfoLog("HealthCheckHandler Getting node blockcounts ..." , r)
+    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , r)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
-    logger.InfoLog("HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , r)
+    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , r)
 
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 
             nodeBlockCount, _ := strconv.Atoi(resRpcConfig.Blocks)
             isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfigId)
-            if err != nil { logger.ErrorLog("hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
+            if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
 
             hcs.saveHealthCheck(resRpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
 
@@ -61,9 +61,9 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
         }
         err := hcs.healthCheckRepo.Create(&newHealthCheck)
         if err != nil {
-            logger.ErrorLog("saveHealthCheck err: "+err.Error())
+            logger.ErrorLog(" - saveHealthCheck err: "+err.Error())
         } else {
-            logger.Log("saveHealthCheck Create rpcConfigId: "+strconv.Itoa(newHealthCheck.Id)+" Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck))
+            logger.Log(" - saveHealthCheck Create rpcConfigId: "+strconv.Itoa(newHealthCheck.Id)+" Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck))
         }
 
     } else { // already exists, update
@@ -76,9 +76,9 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
         }
         err := hcs.healthCheckRepo.Update(&newHealthCheck)
         if err != nil {
-            logger.ErrorLog("saveHealthCheck err: "+err.Error())
+            logger.ErrorLog(" - saveHealthCheck err: "+err.Error())
         } else {
-            logger.Log("saveHealthCheck Update rpcConfigId: "+strconv.Itoa(rpcConfigId)+" Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck))
+            logger.Log(" - saveHealthCheck Update rpcConfigId: "+strconv.Itoa(rpcConfigId)+" Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck))
         }
     }
 
@@ -86,12 +86,13 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
 }
 
 func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
-    logger.Log("HealthCheckHandler -- Sending notification email ...")
+    logger.Log(" - HealthCheckHandler -- Sending notification email ...")
 
     subject := "Health Check Failed for "+res.Symbol+" VM ("+res.Host+")"
     message := "Health check has failed with following detail: "+
     "\n Symbol: "+res.Symbol+
     "\n Host: "+res.Host+
+    "\n Name: "+res.Name+
     "\n Type: "+res.Type+
     "\n Node Version: "+res.NodeVersion+
     "\n BlockCount: "+res.Blocks
@@ -100,5 +101,5 @@ func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
 
     isEmailSent, err := util.SendEmail(subject, message, recipients)
     if err != nil { logger.ErrorLog(err.Error()) }
-    logger.Log("HealthCheckHandler -- Is notification email sent: "+strconv.FormatBool(isEmailSent))
+    logger.Log(" - HealthCheckHandler -- Is notification email sent: "+strconv.FormatBool(isEmailSent))
 }

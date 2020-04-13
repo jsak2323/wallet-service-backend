@@ -15,51 +15,51 @@ import (
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
-type GetBlockCountHandlerResponseMap map[string][]GetBlockCountRes
+type GetBalanceHandlerResponseMap map[string][]GetBalanceRes
 
-type GetBlockCountService struct {
+type GetBalanceService struct {
     moduleServices *modules.ModuleServiceMap
 }
 
-func NewGetBlockCountService(moduleServices *modules.ModuleServiceMap) *GetBlockCountService {
-    return &GetBlockCountService{
+func NewGetBalanceService(moduleServices *modules.ModuleServiceMap) *GetBalanceService {
+    return &GetBalanceService{
         moduleServices,
     }
 }
 
-func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, req *http.Request) { 
+func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) { 
     vars := mux.Vars(req)
     symbol := vars["symbol"]
     isGetAll := symbol == ""
 
-    RES := make(GetBlockCountHandlerResponseMap)
+    RES := make(GetBalanceHandlerResponseMap)
 
     var handleSuccess = func() {
         resJson, _ := json.Marshal(RES)
-        logger.InfoLog(" - GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+        logger.InfoLog(" - GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
         w.WriteHeader(http.StatusOK)
         json.NewEncoder(w).Encode(RES)
     }
 
     if isGetAll {
-        logger.InfoLog(" - GetBlockCountHandler For all symbols, Requesting ...", req) 
+        logger.InfoLog(" - GetBalanceHandler For all symbols, Requesting ...", req) 
     } else {
-        logger.InfoLog(" - GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
+        logger.InfoLog(" - GetBalanceHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
     }
 
-    gbcs.InvokeGetBlockCount(&RES, symbol)
+    gbcs.InvokeGetBalance(&RES, symbol)
     handleSuccess()
 }
 
-func (gbcs *GetBlockCountService) handleError(err error, funcName string) {
-    errMsg := " - GetBlockCountHandler "+funcName+" Error: "+err.Error()
+func (gbcs *GetBalanceService) handleError(err error, funcName string) {
+    errMsg := " - GetBalanceHandler "+funcName+" Error: "+err.Error()
     logger.ErrorLog(errMsg)
 }
 
-func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string) {
+func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol string) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
-    resChannel := make(chan GetBlockCountRes)
+    resChannel := make(chan GetBalanceRes)
 
     for confKey, currConfig := range config.CURR {
         confKey = strings.ToUpper(confKey)
@@ -73,19 +73,17 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
             wg.Done()
 
             go func(confKey string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*gbcs.moduleServices)[confKey].GetBlockCount(rpcConfig)
-                if err != nil { gbcs.handleError(err, "InvokeGetBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
+                rpcRes, err := (*gbcs.moduleServices)[confKey].GetBalance(rpcConfig)
+                if err != nil { gbcs.handleError(err, "InvokeGetBalance "+confKey+".GetBalance(rpcConfig)") }
 
-                logger.Log(" - InvokeGetBlockCount Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
-                resChannel <- GetBlockCountRes{
+                logger.Log(" - InvokeGetBalance Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                resChannel <- GetBalanceRes{
                     RpcConfigId         : rpcConfig.Id,
                     Symbol              : confKey,
                     Name                : rpcConfig.Name,
                     Host                : rpcConfig.Host,
                     Type                : rpcConfig.Type,
-                    NodeVersion         : rpcConfig.NodeVersion,
-                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-                    Blocks              : rpcRes.Blocks,
+                    Balance             : rpcRes.Balance,
                 }
             }(confKey, rpcConfig)
         }
