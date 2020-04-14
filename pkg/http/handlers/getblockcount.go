@@ -34,13 +34,6 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
 
     RES := make(GetBlockCountHandlerResponseMap)
 
-    var handleSuccess = func() {
-        resJson, _ := json.Marshal(RES)
-        logger.InfoLog(" - GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
-        w.WriteHeader(http.StatusOK)
-        json.NewEncoder(w).Encode(RES)
-    }
-
     if isGetAll {
         logger.InfoLog(" - GetBlockCountHandler For all symbols, Requesting ...", req) 
     } else {
@@ -48,12 +41,11 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
     }
 
     gbcs.InvokeGetBlockCount(&RES, symbol)
-    handleSuccess()
-}
-
-func (gbcs *GetBlockCountService) handleError(err error, funcName string) {
-    errMsg := " - GetBlockCountHandler "+funcName+" Error: "+err.Error()
-    logger.ErrorLog(errMsg)
+    
+    resJson, _ := json.Marshal(RES)
+    logger.InfoLog(" - GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(RES)
 }
 
 func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string) {
@@ -74,18 +66,22 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
 
             go func(confKey string, rpcConfig rc.RpcConfig) {
                 rpcRes, err := (*gbcs.moduleServices)[confKey].GetBlockCount(rpcConfig)
-                if err != nil { gbcs.handleError(err, "InvokeGetBlockCount "+confKey+".GetBlockCount(rpcConfig)") }
+                if err != nil { 
+                    logger.ErrorLog(" - GetBlockCountHandler (*gbcs.moduleServices)[confKey].GetBlockCount(rpcConfig) Error: "+err.Error())
+                }
 
                 logger.Log(" - InvokeGetBlockCount Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
-                    RpcConfigId         : rpcConfig.Id,
-                    Symbol              : confKey,
-                    Name                : rpcConfig.Name,
-                    Host                : rpcConfig.Host,
-                    Type                : rpcConfig.Type,
-                    NodeVersion         : rpcConfig.NodeVersion,
-                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-                    Blocks              : rpcRes.Blocks,
+                    RpcConfig: RpcConfigResDetail{
+                        RpcConfigId         : rpcConfig.Id,
+                        Symbol              : confKey,
+                        Name                : rpcConfig.Name,
+                        Host                : rpcConfig.Host,
+                        Type                : rpcConfig.Type,
+                        NodeVersion         : rpcConfig.NodeVersion,
+                        NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                    },
+                    Blocks: rpcRes.Blocks,
                 }
             }(confKey, rpcConfig)
         }

@@ -15,43 +15,45 @@ import (
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
-type GetBalanceHandlerResponseMap map[string][]GetBalanceRes
+type ListTransactionsHandlerResponseMap map[string][]ListTransactionsRes
 
-type GetBalanceService struct {
+type ListTransactionsService struct {
     moduleServices *modules.ModuleServiceMap
 }
 
-func NewGetBalanceService(moduleServices *modules.ModuleServiceMap) *GetBalanceService {
-    return &GetBalanceService{
+func NewListTransactionsService(moduleServices *modules.ModuleServiceMap) *ListTransactionsService {
+    return &ListTransactionsService{
         moduleServices,
     }
 }
 
-func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) { 
+func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWriter, req *http.Request) { 
     vars := mux.Vars(req)
     symbol := vars["symbol"]
+    limit  := vars["limit"]
     isGetAll := symbol == ""
 
-    RES := make(GetBalanceHandlerResponseMap)
+    RES := make(ListTransactionsHandlerResponseMap)
 
     if isGetAll {
-        logger.InfoLog(" - GetBalanceHandler For all symbols, Requesting ...", req) 
+        logger.InfoLog(" - ListTransactionsHandler For all symbols, Requesting ...", req) 
     } else {
-        logger.InfoLog(" - GetBalanceHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
+        logger.InfoLog(" - ListTransactionsHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
     }
 
-    gbcs.InvokeGetBalance(&RES, symbol)
+    limitInt, _ := strconv.Atoi(limit)
+    lts.InvokeListTransactions(&RES, symbol, limitInt)
 
     resJson, _ := json.Marshal(RES)
-    logger.InfoLog(" - GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+    logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
 
-func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol string) {
+func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactionsHandlerResponseMap, symbol string, limit int) {
     var wg sync.WaitGroup
     rpcConfigCount := 0
-    resChannel := make(chan GetBalanceRes)
+    resChannel := make(chan ListTransactionsRes)
 
     for confKey, currConfig := range config.CURR {
         confKey = strings.ToUpper(confKey)
@@ -65,14 +67,14 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
             wg.Done()
 
             go func(confKey string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*gbcs.moduleServices)[confKey].GetBalance(rpcConfig)
+                rpcRes, err := (*lts.moduleServices)[confKey].ListTransactions(rpcConfig, limit)
                 if err != nil { 
-                    logger.ErrorLog(" - GetBalanceHandler (*gbcs.moduleServices)[confKey].GetBalance(rpcConfig) Error: "+err.Error())
+                    logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[confKey].ListTransactions(rpcConfig, limit) Error: "+err.Error())
                 }
 
-                logger.Log(" - InvokeGetBalance Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
-                resChannel <- GetBalanceRes{
-                    RpcConfig: RpcConfigResDetail{                    
+                logger.Log(" - InvokeListTransactions Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
+                resChannel <- ListTransactionsRes{
+                    RpcConfig: RpcConfigResDetail{
                         RpcConfigId         : rpcConfig.Id,
                         Symbol              : confKey,
                         Name                : rpcConfig.Name,
@@ -81,7 +83,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
                         NodeVersion         : rpcConfig.NodeVersion,
                         NodeLastUpdated     : rpcConfig.NodeLastUpdated,
                     },
-                    Balance: rpcRes.Balance,
+                    Transactions: rpcRes.Transactions,
                 }
             }(confKey, rpcConfig)
         }

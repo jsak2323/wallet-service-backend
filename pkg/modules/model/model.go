@@ -13,6 +13,10 @@ type GetBalanceRpcRes struct {
     Balance string
 }
 
+type ListTransactionsRpcRes struct {
+    Transactions string
+}
+
 type ModuleService interface {
     GetSymbol() (string)
     GetHealthCheckRepo() (hc.HealthCheckRepository)
@@ -20,4 +24,5 @@ type ModuleService interface {
 
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
     GetBalance(rpcConfig rc.RpcConfig) (*GetBalanceRpcRes, error)
+    ListTransactions(rpcConfig rc.RpcConfig, limit int) (*ListTransactionsRpcRes, error)
 }

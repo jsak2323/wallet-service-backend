@@ -34,6 +34,12 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/balance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/balance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 
+    // -- listtransactions
+    listTransactionsService := h.NewListTransactionsService(ModuleServices)
+    r.HandleFunc("/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+    r.HandleFunc("/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
 
 
 

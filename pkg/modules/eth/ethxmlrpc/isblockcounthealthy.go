@@ -9,7 +9,7 @@ import (
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     modules_util "github.com/btcid/wallet-services-backend/pkg/modules/util"
     "github.com/btcid/wallet-services-backend/cmd/config"
-    "github.com/btcid/wallet-services-backend/pkg/lib/modules/eth"
+    "github.com/btcid/wallet-services-backend/pkg/modules/eth"
 )
 
 func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
