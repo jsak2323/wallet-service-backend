@@ -91,7 +91,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
     i := 0
     for res := range resChannel {
         i++
-        (*RES)[res.Symbol] = append((*RES)[res.Symbol], res)
+        (*RES)[res.RpcConfig.Symbol] = append((*RES)[res.RpcConfig.Symbol], res)
         if i >= rpcConfigCount { close(resChannel) }
     }
 }

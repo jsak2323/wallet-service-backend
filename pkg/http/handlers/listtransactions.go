@@ -44,8 +44,7 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
     limitInt, _ := strconv.Atoi(limit)
     lts.InvokeListTransactions(&RES, symbol, limitInt)
 
-    resJson, _ := json.Marshal(RES)
-    logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+    logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol, req)
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
@@ -72,7 +71,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
                     logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[confKey].ListTransactions(rpcConfig, limit) Error: "+err.Error())
                 }
 
-                logger.Log(" - InvokeListTransactions Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
+                logger.Log(" - InvokeListTransactions Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
                 resChannel <- ListTransactionsRes{
                     RpcConfig: RpcConfigResDetail{
                         RpcConfigId         : rpcConfig.Id,
@@ -93,7 +92,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
     i := 0
     for res := range resChannel {
         i++
-        (*RES)[res.Symbol] = append((*RES)[res.Symbol], res)
+        (*RES)[res.RpcConfig.Symbol] = append((*RES)[res.RpcConfig.Symbol], res)
         if i >= rpcConfigCount { close(resChannel) }
     }
 }

@@ -16,13 +16,13 @@ func (es *EthService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCoun
 
     err := xmlrpc.XmlRpcCall("EthRpc.GetBlockCount", &rpcReq, &res)
 
-    if err != nil { 
+    if err == nil {
+        return &res, nil
+
+    } else if err != nil {
         return &res, err
 
-    } else if res.Blocks == "0" {
-        return &res, errors.New("Unexpected error occured in Node.")
-
     } else {
-        return &res, nil
+        return &res, errors.New("Unexpected error occured in Node.")
     }
 }

@@ -36,10 +36,10 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 
             nodeBlockCount, _ := strconv.Atoi(resRpcConfig.Blocks)
-            isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfigId)
+            isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
             if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
 
-            hcs.saveHealthCheck(resRpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+            hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
 
             if !isBlockCountHealthy { // if not healthy, send notification emails
                 hcs.sendNotificationEmails(resRpcConfig)
@@ -88,13 +88,13 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
 func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
     logger.Log(" - HealthCheckHandler -- Sending notification email ...")
 
-    subject := "Health Check Failed for "+res.Symbol+" VM ("+res.Host+")"
+    subject := "Health Check Failed for "+res.RpcConfig.Symbol+" VM ("+res.RpcConfig.Host+")"
     message := "Health check has failed with following detail: "+
-    "\n Symbol: "+res.Symbol+
-    "\n Host: "+res.Host+
-    "\n Name: "+res.Name+
-    "\n Type: "+res.Type+
-    "\n Node Version: "+res.NodeVersion+
+    "\n Symbol: "+res.RpcConfig.Symbol+
+    "\n Host: "+res.RpcConfig.Host+
+    "\n Name: "+res.RpcConfig.Name+
+    "\n Type: "+res.RpcConfig.Type+
+    "\n Node Version: "+res.RpcConfig.NodeVersion+
     "\n BlockCount: "+res.Blocks
 
     recipients := config.CONF.NotificationEmails
