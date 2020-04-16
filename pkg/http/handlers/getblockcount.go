@@ -53,28 +53,28 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
 
-    for confKey, currConfig := range config.CURR {
-        confKey = strings.ToUpper(confKey)
+    for SYMBOL, currConfig := range config.CURR {
+        SYMBOL = strings.ToUpper(SYMBOL)
 
         // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != confKey { continue }
+        if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
             wg.Add(1)
             rpcConfigCount++
             wg.Done()
 
-            go func(confKey string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*gbcs.moduleServices)[confKey].GetBlockCount(rpcConfig)
+            go func(SYMBOL string, rpcConfig rc.RpcConfig) {
+                rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig)
                 if err != nil { 
-                    logger.ErrorLog(" - GetBlockCountHandler (*gbcs.moduleServices)[confKey].GetBlockCount(rpcConfig) Error: "+err.Error())
+                    logger.ErrorLog(" - GetBlockCountHandler (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig) Error: "+err.Error())
                 }
 
-                logger.Log(" - InvokeGetBlockCount Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                logger.Log(" - InvokeGetBlockCount Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
                 resChannel <- GetBlockCountRes{
                     RpcConfig: RpcConfigResDetail{
                         RpcConfigId         : rpcConfig.Id,
-                        Symbol              : confKey,
+                        Symbol              : SYMBOL,
                         Name                : rpcConfig.Name,
                         Host                : rpcConfig.Host,
                         Type                : rpcConfig.Type,
@@ -83,7 +83,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
                     },
                     Blocks: rpcRes.Blocks,
                 }
-            }(confKey, rpcConfig)
+            }(SYMBOL, rpcConfig)
         }
     }
 

@@ -53,28 +53,28 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
     rpcConfigCount := 0
     resChannel := make(chan GetBalanceRes)
 
-    for confKey, currConfig := range config.CURR {
-        confKey = strings.ToUpper(confKey)
+    for SYMBOL, currConfig := range config.CURR {
+        SYMBOL = strings.ToUpper(SYMBOL)
 
         // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != confKey { continue }
+        if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
             wg.Add(1)
             rpcConfigCount++
             wg.Done()
 
-            go func(confKey string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*gbcs.moduleServices)[confKey].GetBalance(rpcConfig)
+            go func(SYMBOL string, rpcConfig rc.RpcConfig) {
+                rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig)
                 if err != nil { 
-                    logger.ErrorLog(" - GetBalanceHandler (*gbcs.moduleServices)[confKey].GetBalance(rpcConfig) Error: "+err.Error())
+                    logger.ErrorLog(" - GetBalanceHandler (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig) Error: "+err.Error())
                 }
 
-                logger.Log(" - InvokeGetBalance Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
+                logger.Log(" - InvokeGetBalance Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
                 resChannel <- GetBalanceRes{
                     RpcConfig: RpcConfigResDetail{                    
                         RpcConfigId         : rpcConfig.Id,
-                        Symbol              : confKey,
+                        Symbol              : SYMBOL,
                         Name                : rpcConfig.Name,
                         Host                : rpcConfig.Host,
                         Type                : rpcConfig.Type,
@@ -83,7 +83,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
                     },
                     Balance: rpcRes.Balance,
                 }
-            }(confKey, rpcConfig)
+            }(SYMBOL, rpcConfig)
         }
     }
 

@@ -54,28 +54,28 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
     rpcConfigCount := 0
     resChannel := make(chan ListTransactionsRes)
 
-    for confKey, currConfig := range config.CURR {
-        confKey = strings.ToUpper(confKey)
+    for SYMBOL, currConfig := range config.CURR {
+        SYMBOL = strings.ToUpper(SYMBOL)
 
         // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != confKey { continue }
+        if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
             wg.Add(1)
             rpcConfigCount++
             wg.Done()
 
-            go func(confKey string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*lts.moduleServices)[confKey].ListTransactions(rpcConfig, limit)
+            go func(SYMBOL string, rpcConfig rc.RpcConfig) {
+                rpcRes, err := (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit)
                 if err != nil { 
-                    logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[confKey].ListTransactions(rpcConfig, limit) Error: "+err.Error())
+                    logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit) Error: "+err.Error())
                 }
 
-                logger.Log(" - InvokeListTransactions Symbol: "+confKey+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
+                logger.Log(" - InvokeListTransactions Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
                 resChannel <- ListTransactionsRes{
                     RpcConfig: RpcConfigResDetail{
                         RpcConfigId         : rpcConfig.Id,
-                        Symbol              : confKey,
+                        Symbol              : SYMBOL,
                         Name                : rpcConfig.Name,
                         Host                : rpcConfig.Host,
                         Type                : rpcConfig.Type,
@@ -84,7 +84,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
                     },
                     Transactions: rpcRes.Transactions,
                 }
-            }(confKey, rpcConfig)
+            }(SYMBOL, rpcConfig)
         }
     }
 
