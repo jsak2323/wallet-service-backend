@@ -4,13 +4,15 @@ import(
     // "fmt"
     "io"
     "time"
+    "errors"
     "reflect"
     "math/big"
-    "errors"
-
     "crypto/aes"
-    "crypto/cipher"
     "crypto/rand"
+    "crypto/cipher"
+
+    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
 func InArray(val interface{}, array interface{}) (exists bool, index int) {
@@ -113,4 +115,13 @@ func Microtime() float64 {
     now := time.Now().In(loc)
     micSeconds := float64(now.Nanosecond()) / 1000000000
     return float64(now.Unix()) + micSeconds
+}
+
+func GetRpcConfigByType(SYMBOL string, rpcConfigType string) rc.RpcConfig {
+    for _, rpcConfig := range config.CURR[SYMBOL].RpcConfigs {
+        if rpcConfig.Type == rpcConfigType {
+            return rpcConfig
+        }
+    }
+    return rc.RpcConfig{}
 }

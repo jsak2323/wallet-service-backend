@@ -1,4 +1,4 @@
-package btcxmlrpc
+package ethxmlrpc
 
 import (
     "errors"
@@ -11,19 +11,13 @@ import (
 func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, address string, amountInDecimal string) (*model.SendToAddressRpcRes, error) {
     res := model.SendToAddressRpcRes{ TxHash: "" }
 
-    return &res, nil
-
-
-
-    
-
     rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    err := xmlrpc.XmlRpcCall("SendToAddress", &rpcReq, &res)
+    err := xmlrpc.XmlRpcCall("EthRpc.SendTransaction", &rpcReq, &res)
 
     if err == nil {
-        res.Balance = nodeRpcRes.Response.Balance
+        res.TxHash = res.TxHash
         return &res, nil
 
     } else if err != nil {

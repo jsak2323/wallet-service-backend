@@ -12,7 +12,7 @@ type SendToAddressNodeXmlRpcRes struct {
     Response SendToAddressNodeXmlRpcResStruct
 }
 type SendToAddressNodeXmlRpcResStruct struct {
-    TxHash string
+    Tx string
 }
 
 func (bs *BtcService) SendToAddress(rpcConfig rc.RpcConfig, address string, amountInDecimal string) (*model.SendToAddressRpcRes, error) {
@@ -23,10 +23,10 @@ func (bs *BtcService) SendToAddress(rpcConfig rc.RpcConfig, address string, amou
 
     nodeRpcRes := SendToAddressNodeXmlRpcRes{}
 
-    err := xmlrpc.XmlRpcCall("SendToAddress", &rpcReq, &nodeRpcRes)
+    err := xmlrpc.XmlRpcCall("sendtoaddress", &rpcReq, &nodeRpcRes)
 
     if err == nil {
-        res.Balance = nodeRpcRes.Response.Balance
+        res.TxHash = nodeRpcRes.Response.Tx
         return &res, nil
 
     } else if err != nil {

@@ -1,18 +1,19 @@
 package handlers
 
 import (
-    "sync"
-    "strconv"
+    // "sync"
+    // "strconv"
     "strings"
     "net/http"
     "encoding/json"
 
     "github.com/gorilla/mux"
 
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    // rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    "github.com/btcid/wallet-services-backend/pkg/lib/util"
     "github.com/btcid/wallet-services-backend/pkg/modules"
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    // "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
 type SendToAddressService struct {
@@ -35,12 +36,14 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
 
     logger.InfoLog(" - SendToAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
+    rpcConfig := util.GetRpcConfigByType(SYMBOL, "sender")
+
     rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, address, amountInDecimal)
     if err != nil { 
         logger.ErrorLog(" - SendToAddressHandler (*stas.moduleServices)[strings.ToUpper(symbol)].SendToAddress(rpcConfig, address, amountInDecimal) address:"+address+", amount: "+amountInDecimal+", Error: "+err.Error())
+        return
     }
 
-    logger.Log(" - InvokeSendToAddress Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". TxHash: "+rpcRes.TxHash) 
     RES := SendToAddressRes{
         RpcConfig: RpcConfigResDetail{ 
             RpcConfigId         : rpcConfig.Id,
