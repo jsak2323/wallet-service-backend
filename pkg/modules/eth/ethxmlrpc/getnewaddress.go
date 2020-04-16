@@ -8,13 +8,13 @@ import (
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
-func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, address string, amountInDecimal string) (*model.SendToAddressRpcRes, error) {
-    res := model.SendToAddressRpcRes{ TxHash: "" }
+func (es *EthService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*model.GetNewAddressRpcRes, error) {
+    res := model.SendToAddressRpcRes{ Address: "" }
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")
+    rpcReq := util.GenerateRpcReq(rpcConfig, addressType, "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    err := xmlrpc.XmlRpcCall("EthRpc.SendTransaction", &rpcReq, &res)
+    err := xmlrpc.XmlRpcCall("EthRpc.GetNewAddress", &rpcReq, &res)
 
     if err == nil {
         return &res, nil
