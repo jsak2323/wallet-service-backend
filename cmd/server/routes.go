@@ -41,6 +41,9 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
 
+    // -- sendtoaddress
+    sendToAddressService := h.NewSendToAddressService(ModuleServices)
+    r.HandleFunc("/{symbol}/sendtoaddress/{address}/{amount}", sendToAddressService.SendToAddressHandler).Methods(http.MethodGet)
 
 
     // CRON ROUTES

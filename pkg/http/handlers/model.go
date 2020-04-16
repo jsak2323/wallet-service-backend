@@ -24,3 +24,8 @@ type ListTransactionsRes struct {
     RpcConfig       RpcConfigResDetail
     Transactions    string
 }
+
+type SendToAddressRes struct {
+    RpcConfig   RpcConfigResDetail
+    TxHash      string
+}
