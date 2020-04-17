@@ -25,6 +25,10 @@ type GetNewAddressRpcRes struct {
     Address string
 }
 
+type AddressTypeRpcRes struct {
+    AddressType string
+}
+
 type ModuleService interface {
     GetSymbol() (string)
     GetHealthCheckRepo() (hc.HealthCheckRepository)
@@ -35,4 +39,5 @@ type ModuleService interface {
     ListTransactions(rpcConfig rc.RpcConfig, limit int) (*ListTransactionsRpcRes, error)
     SendToAddress(rpcConfig rc.RpcConfig, address string, amountInDecimal string) (*SendToAddressRpcRes, error)
     GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*GetNewAddressRpcRes, error)
+    AddressType(rpcConfig rc.RpcConfig, address string) (*AddressTypeRpcRes, error)
 }

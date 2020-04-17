@@ -34,3 +34,8 @@ type GetNewAddressRes struct {
     RpcConfig   RpcConfigResDetail
     Address     string
 }
+
+type AddressTypeRes struct {
+    RpcConfig   RpcConfigResDetail
+    AddressType string
+}

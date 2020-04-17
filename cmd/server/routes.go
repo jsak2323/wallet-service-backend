@@ -50,6 +50,10 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/{symbol}/getnewaddress", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/getnewaddress/{type}", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
 
+    // -- addresstype
+    addressTypeService := h.NewAddressTypeService(ModuleServices)
+    r.HandleFunc("/{symbol}/addresstype/{address}", addressTypeService.AddressTypeHandler).Methods(http.MethodGet)
+
     // CRON ROUTES
 
     // -- healthcheck
