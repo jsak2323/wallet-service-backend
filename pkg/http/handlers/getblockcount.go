@@ -81,7 +81,8 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
                         NodeVersion         : rpcConfig.NodeVersion,
                         NodeLastUpdated     : rpcConfig.NodeLastUpdated,
                     },
-                    Blocks: rpcRes.Blocks,
+                    Blocks  : rpcRes.Blocks,
+                    Error   : rpcRes.Error,
                 }
             }(SYMBOL, rpcConfig)
         }

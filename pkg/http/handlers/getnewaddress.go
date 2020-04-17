@@ -53,7 +53,8 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
             NodeVersion         : rpcConfig.NodeVersion,
             NodeLastUpdated     : rpcConfig.NodeLastUpdated,
         },
-        Address: rpcRes.Address,
+        Address : rpcRes.Address,
+        Error   : rpcRes.Error,
     }
 
     resJson, _ := json.Marshal(RES)

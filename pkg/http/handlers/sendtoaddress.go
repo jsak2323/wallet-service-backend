@@ -58,7 +58,8 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
             NodeVersion         : rpcConfig.NodeVersion,
             NodeLastUpdated     : rpcConfig.NodeLastUpdated,
         },
-        TxHash: rpcRes.TxHash,
+        TxHash  : rpcRes.TxHash,
+        Error   : rpcRes.Error,
     }
 
     resJson, _ := json.Marshal(RES)

@@ -81,7 +81,8 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
                         NodeVersion         : rpcConfig.NodeVersion,
                         NodeLastUpdated     : rpcConfig.NodeLastUpdated,
                     },
-                    Balance: rpcRes.Balance,
+                    Balance : rpcRes.Balance,
+                    Error   : rpcRes.Error,
                 }
             }(SYMBOL, rpcConfig)
         }

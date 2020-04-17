@@ -37,7 +37,7 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
         return
     }
 
-    rpcRes, err := (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, addressType)
+    rpcRes, err := (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, address)
     if err != nil { 
         logger.ErrorLog(" - AddressTypeHandler (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, addressType) address: "+address+", Error: "+err.Error())
         return
@@ -53,7 +53,8 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
             NodeVersion         : rpcConfig.NodeVersion,
             NodeLastUpdated     : rpcConfig.NodeLastUpdated,
         },
-        AddressType: rpcRes.AddressType,
+        AddressType : rpcRes.AddressType,
+        Error       : rpcRes.Error,
     }
 
     resJson, _ := json.Marshal(RES)

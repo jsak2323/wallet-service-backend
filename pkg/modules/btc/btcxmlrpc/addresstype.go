@@ -1,21 +1,22 @@
 package btcxmlrpc
 
 import (
-    "errors"
+    // "errors"
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     "github.com/btcid/wallet-services-backend/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
+    // "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
 // todo: addresstype function for btc (btc-middleware doesn't have the function yet)
 func (bs *BtcService) AddressType(rpcConfig rc.RpcConfig, address string) (*model.AddressTypeRpcRes, error) {
     res := model.AddressTypeRpcRes{ AddressType: "" }
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, address, "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
-
     return &res, nil
+    
+    // rpcReq := util.GenerateRpcReq(rpcConfig, address, "", "")
+    // xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+
 
     // nodeRpcRes := GetBalanceNodeXmlRpcRes{}
 

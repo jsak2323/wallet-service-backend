@@ -6,27 +6,33 @@ import (
 )
 
 type GetBlockCountRpcRes struct {
-    Blocks string
+    Blocks  string
+    Error   string
 }
 
 type GetBalanceRpcRes struct {
     Balance string
+    Error   string
 }
 
 type ListTransactionsRpcRes struct {
     Transactions string
+    Error        string
 }
 
 type SendToAddressRpcRes struct {
-    TxHash string
+    TxHash  string
+    Error   string
 }
 
 type GetNewAddressRpcRes struct {
     Address string
+    Error   string
 }
 
 type AddressTypeRpcRes struct {
     AddressType string
+    Error       string
 }
 
 type ModuleService interface {

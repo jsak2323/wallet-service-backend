@@ -59,4 +59,6 @@ func ErrorLog(msg string) {
     
     fmt.Println(msg)
     log.Error(msg)
+
+    // todo: add send email for error notification
 }

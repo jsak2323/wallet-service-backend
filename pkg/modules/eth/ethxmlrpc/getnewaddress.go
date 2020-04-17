@@ -9,7 +9,7 @@ import (
 )
 
 func (es *EthService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*model.GetNewAddressRpcRes, error) {
-    res := model.GetNewAddressRpcRes{ Address: "" }
+    res := model.GetNewAddressRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, addressType, "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)

@@ -10,7 +10,7 @@ import(
 )
 
 func (es *EthService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
-    res := model.ListTransactionsRpcRes{ Transactions: "" }
+    res := model.ListTransactionsRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, strconv.Itoa(limit), "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
