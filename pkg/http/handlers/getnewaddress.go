@@ -16,7 +16,7 @@ type GetNewAddressService struct {
     moduleServices *modules.ModuleServiceMap
 }
 
-func GetNewAddressService(moduleServices *modules.ModuleServiceMap) *GetNewAddressService {
+func NewGetNewAddressService(moduleServices *modules.ModuleServiceMap) *GetNewAddressService {
     return &GetNewAddressService{
         moduleServices,
     }
@@ -24,13 +24,18 @@ func GetNewAddressService(moduleServices *modules.ModuleServiceMap) *GetNewAddre
 
 func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, req *http.Request) { 
     vars := mux.Vars(req)
+    symbol      := vars["symbol"]
     addressType := vars["type"]
 
     SYMBOL := strings.ToUpper(symbol)
 
     logger.InfoLog(" - GetNewAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
-    rpcConfig := util.GetRpcConfigByType(SYMBOL, "receiver")
+    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")
+    if err != nil {
+        logger.ErrorLog(" - GetNewAddressHandler util.GetRpcConfigByType(SYMBOL, \"receiver\") err: "+err.Error())
+        return
+    }
 
     rpcRes, err := (*gnas.moduleServices)[SYMBOL].GetNewAddress(rpcConfig, addressType)
     if err != nil { 

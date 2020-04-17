@@ -22,17 +22,17 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
 
 
-    // REST ROUTES
+    // API ROUTES
 
     // -- getblockcount
     getBlockCountService := h.NewGetBlockCountService(ModuleServices)
-    r.HandleFunc("/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
-    r.HandleFunc("/{symbol}/blockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
+    r.HandleFunc("/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
 
     // -- getbalance
     getBalanceService := h.NewGetBalanceService(ModuleServices)
-    r.HandleFunc("/balance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
-    r.HandleFunc("/{symbol}/balance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
+    r.HandleFunc("/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
+    r.HandleFunc("/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 
     // -- listtransactions
     listTransactionsService := h.NewListTransactionsService(ModuleServices)

@@ -86,6 +86,7 @@ func generateHashkey(rpcConfig rc.RpcConfig) (digestSha256String string, nonce s
     unixTime := time.Now().Unix()
     this15m  := unixTime / 60
 
+    // todo: implement encryption
     pass    := rpcConfig.Password
     hashkey := rpcConfig.Hashkey
 

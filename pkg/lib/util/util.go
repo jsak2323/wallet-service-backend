@@ -117,11 +117,11 @@ func Microtime() float64 {
     return float64(now.Unix()) + micSeconds
 }
 
-func GetRpcConfigByType(SYMBOL string, rpcConfigType string) rc.RpcConfig {
+func GetRpcConfigByType(SYMBOL string, rpcConfigType string) (rc.RpcConfig, error) {
     for _, rpcConfig := range config.CURR[SYMBOL].RpcConfigs {
-        if rpcConfig.Type == rpcConfigType {
-            return rpcConfig
+        if rpcConfig.Type == rpcConfigType || rpcConfig.Type == "master" {
+            return rpcConfig, nil
         }
     }
-    return rc.RpcConfig{}
+    return rc.RpcConfig{}, errors.New("RpcConfig not found.")
 }

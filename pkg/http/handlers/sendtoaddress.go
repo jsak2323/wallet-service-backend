@@ -36,7 +36,11 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
 
     logger.InfoLog(" - SendToAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
-    rpcConfig := util.GetRpcConfigByType(SYMBOL, "sender")
+    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "sender")
+    if err != nil {
+        logger.ErrorLog(" - SendToAddressHandler util.GetRpcConfigByType(SYMBOL, \"sender\") err: "+err.Error())
+        return
+    }
 
     rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, address, amountInDecimal)
     if err != nil { 

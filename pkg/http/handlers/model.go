@@ -29,3 +29,8 @@ type SendToAddressRes struct {
     RpcConfig   RpcConfigResDetail
     TxHash      string
 }
+
+type GetNewAddressRes struct {
+    RpcConfig   RpcConfigResDetail
+    Address     string
+}

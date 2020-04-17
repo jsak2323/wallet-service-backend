@@ -9,7 +9,7 @@ import (
 )
 
 type GetNewAddressNodeXmlRpcRes struct {
-    Response SendToAddressNodeXmlRpcResStruct
+    Response GetNewAddressNodeXmlRpcResStruct
 }
 type GetNewAddressNodeXmlRpcResStruct struct {
     Address string

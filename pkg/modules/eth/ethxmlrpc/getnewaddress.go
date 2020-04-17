@@ -9,12 +9,12 @@ import (
 )
 
 func (es *EthService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*model.GetNewAddressRpcRes, error) {
-    res := model.SendToAddressRpcRes{ Address: "" }
+    res := model.GetNewAddressRpcRes{ Address: "" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, addressType, "", "")
     xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    err := xmlrpc.XmlRpcCall("EthRpc.GetNewAddress", &rpcReq, &res)
+    err := xmlrpc.XmlRpcCall("EthRpc.NewAccount", &rpcReq, &res)
 
     if err == nil {
         return &res, nil
