@@ -45,3 +45,5 @@ type AddressTypeRes struct {
     AddressType string
     Error       string
 }
+
+

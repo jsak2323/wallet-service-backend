@@ -4,42 +4,59 @@
     export LC_ALL=en_US.UTF-8
 
     sudo apt-get update
-    sudo apt-get upgrade
+    sudo apt-get -y upgrade
 
-    sudo apt-get install apache2
-    sudo apt-get install mysql-server 
-    //user & password: root 123456
-
+    sudo apt-get install software-properties-common
     sudo apt-get update && sudo apt-get install sqlite3
+    sudo apt-get install jq
+    sudo apt-get install zip
 
-    sudo a2enmod rewrite
+    sudo apt-get install build-essential
 
-    // Change AllowOverride None to AllowOverride All in apache2.conf
+    sudo apt-get install mysql-server 
+    mysql_secure_installation
+    // run this query to require root password when connecting to db
+    // USE mysql; UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root' AND host = 'localhost'; UPDATE user set authentication_string=PASSWORD("mynewpassword") where User='root'; FLUSH PRIVILEGES;
+    sudo service mysql restart
 
-    sudo service apache2 restart
+    // install stackdriver
+    curl -sSO https://dl.google.com/cloudagents/add-monitoring-agent-repo.sh && sudo bash add-monitoring-agent-repo.sh && sudo apt-get update && sudo apt-cache madison stackdriver-agent
 
-    // install go
+    sudo apt-get install -y 'stackdriver-agent=6.*'
+
+    // version check
+    dpkg-query --show --showformat '${Package} ${Version} ${Architecture} ${Status}\n' stackdriver-agent
+
+
+
+// INSTALL GO
+
     cd /tmp
-    wget https://dl.google.com/go/go1.13.linux-amd64.tar.gz
-    sudo tar -xvf go1.13.linux-amd64.tar.gz
+    wget https://dl.google.com/go/go1.14.7.linux-amd64.tar.gz
+
+    sudo tar -xvf go1.14.7.linux-amd64.tar.gz
     sudo mv go /usr/local
 
-    // add to ~/.profile
-    export GOROOT=/usr/local/go
-    export GOPATH=$HOME/go
-    export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+    sudo nano ~/.bashrc
+    // add to end of file
+  export GOROOT=/usr/local/go
+  export GOPATH=$HOME/go
+  export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
     source ~/.profile
 
+    go version
 
-// INSTALL APP
+// CLONE APP FROM GIT
 
-    cd
-    mkdir go && cd go && mkdir src && cd src && mkdir github.com && cd github.com && mkdir btcid && cd btcid
+    cd $GOPATH
+    mkdir src && cd src
+    mkdir github.com && cd github.com
+    mkdir btcid && cd btcid
 
-    // clone git repository
-
+    git clone https://github.com/btcid/wallet-services-backend.git
     cd wallet-services-backend
+    mkdir logs
     go mod init
 
     // build app
@@ -47,9 +64,6 @@
 
     // run app
     ./main
-
-
-
 
 
 

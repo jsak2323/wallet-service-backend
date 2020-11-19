@@ -19,7 +19,7 @@ func (bs *BtcService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRe
     res := model.GetBalanceRpcRes{ Balance: "0" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     nodeRpcRes := GetBalanceNodeXmlRpcRes{}
 

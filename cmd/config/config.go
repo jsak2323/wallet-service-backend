@@ -81,3 +81,5 @@ func LoadCurrencyConfigs() {
 
     fmt.Println("Done.")
 }
+
+

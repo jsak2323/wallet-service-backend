@@ -13,7 +13,7 @@ func (es *EthService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*mode
     res := model.ListTransactionsRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, strconv.Itoa(limit), "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("EthRpc.ListTransactions", &rpcReq, &res)
 

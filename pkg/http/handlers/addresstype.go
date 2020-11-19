@@ -62,3 +62,5 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
+
+

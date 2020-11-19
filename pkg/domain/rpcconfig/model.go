@@ -16,5 +16,5 @@ type RpcConfig struct {
     NodeLastUpdated         string
     IsBackupable            bool
     IsHealthCheckEnabled    bool
-    ZapierLink              string
+    AtomFeed                string
 }

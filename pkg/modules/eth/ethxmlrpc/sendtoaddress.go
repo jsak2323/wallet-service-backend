@@ -12,7 +12,7 @@ func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, address string, amou
     res := model.SendToAddressRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("EthRpc.SendTransaction", &rpcReq, &res)
 

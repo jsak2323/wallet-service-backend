@@ -19,7 +19,7 @@ func (bs *BtcService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) 
     res := model.GetNewAddressRpcRes{ Address: "" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, addressType, "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     nodeRpcRes := GetNewAddressNodeXmlRpcRes{}
 

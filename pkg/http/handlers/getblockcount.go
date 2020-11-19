@@ -96,3 +96,5 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
         if i >= rpcConfigCount { close(resChannel) }
     }
 }
+
+

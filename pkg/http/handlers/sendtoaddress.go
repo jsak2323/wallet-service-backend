@@ -67,3 +67,5 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
+
+

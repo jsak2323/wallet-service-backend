@@ -43,7 +43,7 @@ func (bs *BtcService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*mode
     res := model.ListTransactionsRpcRes{ Transactions: "" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     nodeRpcRes := ListTransactionsNodeXmlRpcRes{}
 

@@ -109,3 +109,5 @@ func mapHealthCheck(rows *sql.Rows, healthCheck *hc.HealthCheck) error {
     if err != nil { return err }
     return nil
 }
+
+

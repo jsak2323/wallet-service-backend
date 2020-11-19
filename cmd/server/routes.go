@@ -61,3 +61,5 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
 
 }
+
+

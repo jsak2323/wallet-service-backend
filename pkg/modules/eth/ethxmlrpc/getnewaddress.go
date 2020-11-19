@@ -12,7 +12,7 @@ func (es *EthService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) 
     res := model.GetNewAddressRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, addressType, "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("EthRpc.NewAccount", &rpcReq, &res)
 

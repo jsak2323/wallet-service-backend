@@ -28,3 +28,5 @@ type CurrencyConfiguration struct {
     Config      cc.CurrencyConfig
     RpcConfigs  []rc.RpcConfig
 }
+
+

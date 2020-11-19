@@ -62,3 +62,5 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
+
+

@@ -12,7 +12,7 @@ func (es *EthService) AddressType(rpcConfig rc.RpcConfig, address string) (*mode
     res := model.AddressTypeRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, address, "", "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("EthRpc.AddressType", &rpcReq, &res)
 

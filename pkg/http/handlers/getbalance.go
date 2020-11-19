@@ -96,3 +96,5 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
         if i >= rpcConfigCount { close(resChannel) }
     }
 }
+
+

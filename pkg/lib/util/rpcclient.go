@@ -1,8 +1,6 @@
 package util
 
-import(
-    // "fmt"
-    // "io/ioutil"
+import (
     "bytes"
     "time"
     "strings"
@@ -32,13 +30,11 @@ type XmlRpc struct {
     Port string
     Path string
 }
-
-func NewXmlRpc(host string, port string, path string) *XmlRpc{
+func NewXmlRpcClient(host string, port string, path string) *XmlRpc{
     return &XmlRpc{
         host, port, path,
     }
 }
-
 func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) error {
     buf, err := xml.EncodeClientRequest(method, args)
     if err != nil { 
@@ -48,14 +44,14 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
 
     url := "http://"+xr.Host+":"+xr.Port+xr.Path
     httpClient := &http.Client{
-        Timeout: 5 * time.Second,
+        Timeout: 10 * time.Second,
     }
     res, err := httpClient.Post(url, "text/xml", bytes.NewBuffer(buf))
-    defer res.Body.Close()
     if err != nil { 
         logger.ErrorLog("httpClient.Post(url, \"text/xml\", bytes.NewBuffer(buf))")
         return err 
     }
+    defer res.Body.Close()
     
     err = xml.DecodeClientResponse(res.Body, reply)
     if err != nil {
@@ -98,3 +94,5 @@ func generateHashkey(rpcConfig rc.RpcConfig) (digestSha256String string, nonce s
 
     return
 }
+
+

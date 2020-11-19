@@ -1,7 +1,6 @@
 package util
 
-import(
-    // "fmt"
+import (
     "io"
     "time"
     "errors"
@@ -125,3 +124,5 @@ func GetRpcConfigByType(SYMBOL string, rpcConfigType string) (rc.RpcConfig, erro
     }
     return rc.RpcConfig{}, errors.New("RpcConfig not found.")
 }
+
+

@@ -33,7 +33,7 @@ func setupLogger() {
     })
 }
 
-func Log(msg string){
+func Log(msg string) {
     updateTime()
     setupLogger()
 
@@ -62,3 +62,5 @@ func ErrorLog(msg string) {
 
     // todo: add send email for error notification
 }
+
+

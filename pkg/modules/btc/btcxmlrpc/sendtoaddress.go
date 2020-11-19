@@ -19,7 +19,7 @@ func (bs *BtcService) SendToAddress(rpcConfig rc.RpcConfig, address string, amou
     res := model.SendToAddressRpcRes{ TxHash: "" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")
-    xmlrpc := util.NewXmlRpc(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     nodeRpcRes := SendToAddressNodeXmlRpcRes{}
 

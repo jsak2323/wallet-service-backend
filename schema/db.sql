@@ -40,7 +40,7 @@ CREATE TABLE rpc_config (
   node_last_updated         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
   is_backupable             TINYINT(1) NOT NULL DEFAULT 0,
   is_health_check_enabled   TINYINT(1) NOT NULL DEFAULT 0,
-  zapier_link               VARCHAR(255) NOT NULL DEFAULT "",
+  atom_feed                 VARCHAR(255) NOT NULL DEFAULT "",
 
   PRIMARY KEY (id),
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)

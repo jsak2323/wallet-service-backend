@@ -87,3 +87,5 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
 
     return nil
 }
+
+

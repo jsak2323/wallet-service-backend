@@ -47,3 +47,5 @@ type ModuleService interface {
     GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*GetNewAddressRpcRes, error)
     AddressType(rpcConfig rc.RpcConfig, address string) (*AddressTypeRpcRes, error)
 }
+
+
