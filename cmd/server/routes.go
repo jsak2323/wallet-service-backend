@@ -21,42 +21,46 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     ModuleServices := modules.NewModuleServices(healthCheckRepo)
 
 
-
     // API ROUTES
 
-    // -- getblockcount
+    // -- GET getblockcount
     getBlockCountService := h.NewGetBlockCountService(ModuleServices)
     r.HandleFunc("/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
 
-    // -- getbalance
+    // -- GET getbalance
     getBalanceService := h.NewGetBalanceService(ModuleServices)
     r.HandleFunc("/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 
-    // -- listtransactions
+    // -- GET listtransactions
     listTransactionsService := h.NewListTransactionsService(ModuleServices)
     r.HandleFunc("/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
     r.HandleFunc("/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
 
-    // -- sendtoaddress
-    sendToAddressService := h.NewSendToAddressService(ModuleServices)
-    r.HandleFunc("/{symbol}/sendtoaddress/{address}/{amount}", sendToAddressService.SendToAddressHandler).Methods(http.MethodGet)
-
-    // -- getnewaddress
+    // -- GET getnewaddress
     getNewAddressService := h.NewGetNewAddressService(ModuleServices)
     r.HandleFunc("/{symbol}/getnewaddress", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/getnewaddress/{type}", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
 
-    // -- addresstype
+    // -- GET addresstype
     addressTypeService := h.NewAddressTypeService(ModuleServices)
     r.HandleFunc("/{symbol}/addresstype/{address}", addressTypeService.AddressTypeHandler).Methods(http.MethodGet)
 
+    // -- POST sendtoaddress
+    sendToAddressService := h.NewSendToAddressService(ModuleServices)
+    r.HandleFunc("/sendtoaddress", sendToAddressService.SendToAddressHandler).Methods(http.MethodPost)
+    /*
+        curl example:
+        curl --header "Content-Type: application/json" --request POST --data '{"symbol":"btc", "amount":"0.001", "address":"2MtU6EMx37AYrCNj1RcRr6bw66QqHYw4D4R"}' localhost:3000/sendtoaddress | jq
+    */
+
+
     // CRON ROUTES
 
-    // -- healthcheck
+    // -- GET healthcheck
     healthCheckService := c.NewHealthCheckService(healthCheckRepo, ModuleServices)
     r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
 

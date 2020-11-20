@@ -6,13 +6,42 @@ import (
     "errors"
     "reflect"
     "math/big"
+    "net/http"
+    "io/ioutil"
     "crypto/aes"
     "crypto/rand"
     "crypto/cipher"
+    "encoding/json"
 
+    "github.com/mitchellh/mapstructure"
+
+    logger "github.com/btcid/wallet-services-backend/pkg/logging"
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
+
+func DecodeAndLogPostRequest(req *http.Request, output interface{}) error {
+    reqBody, err := ioutil.ReadAll(req.Body)
+    if err != nil { return err }
+
+    logger.InfoLog("POST Request Body : "+string(reqBody), req)
+
+    err = json.Unmarshal(reqBody, output)
+    if err != nil { return err }
+
+    return nil
+}
+
+func MapJsonToStruct(input interface{}, output interface{}) error {
+    decoderConfig := &mapstructure.DecoderConfig{ TagName: "json", Result: output }
+    decoder, err := mapstructure.NewDecoder(decoderConfig)
+    if err != nil { return errors.New("mapstructure.NewDecoder(decoderConfig) err :"+err.Error()) }
+
+    derr := decoder.Decode(input)
+    if derr != nil { return errors.New("decoder.Decode(input) err: "+derr.Error()) }
+
+    return nil
+}
 
 func InArray(val interface{}, array interface{}) (exists bool, index int) {
     exists = false

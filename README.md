@@ -62,6 +62,8 @@
     // build app
     go build cmd/server/main.go
 
+    // setup database
+
     // run app
     ./main
 

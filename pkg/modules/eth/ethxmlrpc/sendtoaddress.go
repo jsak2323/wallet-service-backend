@@ -8,7 +8,7 @@ import (
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
-func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, address string, amountInDecimal string) (*model.SendToAddressRpcRes, error) {
+func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string) (*model.SendToAddressRpcRes, error) {
     res := model.SendToAddressRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")

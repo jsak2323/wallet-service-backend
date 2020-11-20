@@ -1,20 +1,21 @@
 package handlers
 
 import (
-    // "sync"
-    // "strconv"
     "strings"
     "net/http"
     "encoding/json"
 
-    "github.com/gorilla/mux"
-
-    // rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
     logger "github.com/btcid/wallet-services-backend/pkg/logging"
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
     "github.com/btcid/wallet-services-backend/pkg/modules"
-    // "github.com/btcid/wallet-services-backend/cmd/config"
 )
+
+type SendToAddressRequest struct {
+    Symbol      string `json:"symbol"` 
+    Amount      string `json:"amount"` 
+    Address     string `json:"address"` 
+    Memo        string `json:"memo"` 
+}
 
 type SendToAddressService struct {
     moduleServices *modules.ModuleServiceMap
@@ -27,14 +28,21 @@ func NewSendToAddressService(moduleServices *modules.ModuleServiceMap) *SendToAd
 }
 
 func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, req *http.Request) { 
-    vars := mux.Vars(req)
-    symbol          := vars["symbol"]
-    address         := vars["address"]
-    amountInDecimal := vars["amount"]
+    sendToAddressRequest := SendToAddressRequest{}
+    err := util.DecodeAndLogPostRequest(req, &sendToAddressRequest)
+    if err != nil {
+        logger.ErrorLog(" - SendToAddressHandler util.DecodeAndLogPostRequest(req, &sendToAddressRequest) err: "+err.Error())
+        return
+    }
+
+    symbol          := sendToAddressRequest.Symbol
+    amountInDecimal := sendToAddressRequest.Amount
+    address         := sendToAddressRequest.Address
+    // memo            := sendToAddressRequest.Memo
 
     SYMBOL := strings.ToUpper(symbol)
 
-    logger.InfoLog(" - SendToAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
+    logger.InfoLog(" - SendToAddressHandler Sending "+amountInDecimal+" "+SYMBOL+", Requesting ...", req) 
 
     rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "sender")
     if err != nil {
@@ -42,7 +50,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
         return
     }
 
-    rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, address, amountInDecimal)
+    rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, amountInDecimal, address)
     if err != nil { 
         logger.ErrorLog(" - SendToAddressHandler (*stas.moduleServices)[strings.ToUpper(symbol)].SendToAddress(rpcConfig, address, amountInDecimal) address:"+address+", amount: "+amountInDecimal+", Error: "+err.Error())
         return
