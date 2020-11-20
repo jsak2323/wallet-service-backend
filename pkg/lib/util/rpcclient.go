@@ -44,7 +44,7 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
 
     url := "http://"+xr.Host+":"+xr.Port+xr.Path
     httpClient := &http.Client{
-        Timeout: 10 * time.Second,
+        Timeout: 120 * time.Second,
     }
     res, err := httpClient.Post(url, "text/xml", bytes.NewBuffer(buf))
     if err != nil { 

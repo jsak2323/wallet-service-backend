@@ -15,7 +15,7 @@ type SendToAddressNodeXmlRpcResStruct struct {
     Tx string
 }
 
-func (bs *BtcService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string) (*model.SendToAddressRpcRes, error) {
+func (bs *BtcService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*model.SendToAddressRpcRes, error) {
     res := model.SendToAddressRpcRes{ TxHash: "" }
 
     rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")

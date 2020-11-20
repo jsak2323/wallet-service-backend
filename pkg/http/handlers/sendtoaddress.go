@@ -38,7 +38,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
     symbol          := sendToAddressRequest.Symbol
     amountInDecimal := sendToAddressRequest.Amount
     address         := sendToAddressRequest.Address
-    // memo            := sendToAddressRequest.Memo
+    memo            := sendToAddressRequest.Memo
 
     SYMBOL := strings.ToUpper(symbol)
 
@@ -50,7 +50,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
         return
     }
 
-    rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, amountInDecimal, address)
+    rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, amountInDecimal, address, memo)
     if err != nil { 
         logger.ErrorLog(" - SendToAddressHandler (*stas.moduleServices)[strings.ToUpper(symbol)].SendToAddress(rpcConfig, address, amountInDecimal) address:"+address+", amount: "+amountInDecimal+", Error: "+err.Error())
         return
