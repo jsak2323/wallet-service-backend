@@ -26,19 +26,18 @@ func (gs *GeneralService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal 
 
     err := client.XmlRpcCall(gs.Symbol+"Rpc.SendToAddress", &rpcReq, &rpcRes)
 
-    if err == nil {
-        res.TxHash = rpcRes.Content.TxHash
-        return &res, nil
-
-    } else if err != nil {
+    if err != nil {
         return &res, err
 
-    } else if rpcRes.Content.Error != "" {
+    } else if rpcRes.Content.Error != "" { 
         return &res, errors.New(rpcRes.Content.Error)
 
-    } else {
+    } else if rpcRes.Content.TxHash == "" {
         return &res, errors.New("Unexpected error occured in Node.")
     }
+
+    res.TxHash = rpcRes.Content.TxHash
+    return &res, nil
 }
 
 

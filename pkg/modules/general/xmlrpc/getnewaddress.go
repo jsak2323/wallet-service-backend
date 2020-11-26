@@ -16,29 +16,29 @@ type GetNewAddressXmlRpcResStruct struct {
     Error   string
 }
 
-func (gs *GeneralService) GetNewAddress(rpcConfig rc.RpcConfig) (*model.GetNewAddressRpcRes, error) {
+func (gs *GeneralService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*model.GetNewAddressRpcRes, error) {
     res := model.GetNewAddressRpcRes{}
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
+    rpcReq := util.GenerateRpcReq(rpcConfig, addressType, "", "")
     client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     rpcRes := GetNewAddressXmlRpcRes{}
 
     err := client.XmlRpcCall(gs.Symbol+"Rpc.GetNewAddress", &rpcReq, &rpcRes)
 
-    if err == nil {
-        res.Address = rpcRes.Content.Address
-        return &res, nil
-
-    } else if err != nil {
+    if err != nil {
         return &res, err
 
     } else if rpcRes.Content.Error != "" {
         return &res, errors.New(rpcRes.Content.Error)
 
-    } else {
+    } else if rpcRes.Content.Address == "" {
         return &res, errors.New("Unexpected error occured in Node.")
+
     }
+
+    res.Address = rpcRes.Content.Address
+    return &res, nil
 }
 
 

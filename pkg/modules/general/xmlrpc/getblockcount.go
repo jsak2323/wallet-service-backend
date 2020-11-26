@@ -26,19 +26,18 @@ func (gs *GeneralService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlock
 
     err := client.XmlRpcCall(gs.Symbol+"Rpc.GetBlockCount", &rpcReq, &rpcRes)
 
-    if err == nil {
-        res.Blocks = rpcRes.Content.Blocks
-        return &res, nil
-
-    } else if err != nil {
+    if err != nil {
         return &res, err
 
     } else if rpcRes.Content.Error != "" {
         return &res, errors.New(rpcRes.Content.Error)
 
-    } else {
+    } else if rpcRes.Content.Blocks == "0" || rpcRes.Content.Blocks == "" {
         return &res, errors.New("Unexpected error occured in Node.")
     }
+    
+    res.Blocks = rpcRes.Content.Blocks
+    return &res, nil
 }
 
 

@@ -26,19 +26,18 @@ func (gs *GeneralService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceR
 
     err := client.XmlRpcCall(gs.Symbol+"Rpc.GetBalance", &rpcReq, &rpcRes)
 
-    if err == nil {
-        res.Balance = rpcRes.Content.Balance
-        return &res, nil
-
-    } else if err != nil {
+    if err != nil {
         return &res, err
 
     } else if rpcRes.Content.Error != "" {
         return &res, errors.New(rpcRes.Content.Error)
 
-    } else {
+    } else if rpcRes.Content.Balance == "0" || rpcRes.Content.Balance == "" {
         return &res, errors.New("Unexpected error occured in Node.")
-    }
+    } 
+
+    res.Balance = rpcRes.Content.Balance
+    return &res, nil
 }
 
 

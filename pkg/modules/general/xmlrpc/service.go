@@ -23,3 +23,5 @@ func NewGeneralService(symbol string, healthCheckRepo hc.HealthCheckRepository) 
         healthCheckRepo,
     }
 }
+
+
