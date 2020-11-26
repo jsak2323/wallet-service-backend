@@ -25,9 +25,9 @@ func main() {
 
     server := &http.Server{
         Handler         : r,
-        Addr            : "127.0.0.1:"+config.CONF.Port,
-        WriteTimeout    : 15 * time.Second,
-        ReadTimeout     : 15 * time.Second,
+        Addr            : ":"+config.CONF.Port,
+        WriteTimeout    : 120 * time.Second,
+        ReadTimeout     : 120 * time.Second,
     }
 
     fmt.Println()

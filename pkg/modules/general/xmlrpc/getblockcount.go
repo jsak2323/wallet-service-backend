@@ -1,0 +1,44 @@
+package xmlrpc
+
+import (
+    "errors"
+
+    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend/pkg/modules/model"
+    "github.com/btcid/wallet-services-backend/pkg/lib/util"
+)
+
+type GetBlockCountXmlRpcRes struct {
+    Content GetBlockCountXmlRpcResStruct
+}
+type GetBlockCountXmlRpcResStruct struct {
+    Blocks  string
+    Error   string
+}
+
+func (gs *GeneralService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
+    res := model.GetBlockCountRpcRes{ Blocks: "0" }
+
+    rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
+    client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+
+    rpcRes := GetBlockCountXmlRpcRes{}
+
+    err := client.XmlRpcCall(gs.Symbol+"Rpc.GetBlockCount", &rpcReq, &rpcRes)
+
+    if err == nil {
+        res.Blocks = rpcRes.Content.Blocks
+        return &res, nil
+
+    } else if err != nil {
+        return &res, err
+
+    } else if rpcRes.Content.Error != "" {
+        return &res, errors.New(rpcRes.Content.Error)
+
+    } else {
+        return &res, errors.New("Unexpected error occured in Node.")
+    }
+}
+
+

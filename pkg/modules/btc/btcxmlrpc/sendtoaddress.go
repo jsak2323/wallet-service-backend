@@ -9,7 +9,7 @@ import (
 )
 
 type SendToAddressNodeXmlRpcRes struct {
-    Response SendToAddressNodeXmlRpcResStruct
+    Content SendToAddressNodeXmlRpcResStruct
 }
 type SendToAddressNodeXmlRpcResStruct struct {
     Tx string
@@ -26,7 +26,7 @@ func (bs *BtcService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal stri
     err := xmlrpc.XmlRpcCall("sendtoaddress", &rpcReq, &nodeRpcRes)
 
     if err == nil {
-        res.TxHash = nodeRpcRes.Response.Tx
+        res.TxHash = nodeRpcRes.Content.Tx
         return &res, nil
 
     } else if err != nil {

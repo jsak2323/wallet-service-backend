@@ -9,7 +9,7 @@ import (
 )
 
 type GetBalanceNodeXmlRpcRes struct {
-    Response GetBalanceNodeXmlRpcResStruct
+    Content GetBalanceNodeXmlRpcResStruct
 }
 type GetBalanceNodeXmlRpcResStruct struct {
     Balance string
@@ -26,7 +26,7 @@ func (bs *BtcService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRe
     err := xmlrpc.XmlRpcCall("getbalance", &rpcReq, &nodeRpcRes)
 
     if err == nil {
-        res.Balance = nodeRpcRes.Response.Balance
+        res.Balance = nodeRpcRes.Content.Balance
         return &res, nil
 
     } else if err != nil {

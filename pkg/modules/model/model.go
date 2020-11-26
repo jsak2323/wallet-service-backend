@@ -43,7 +43,7 @@ type ModuleService interface {
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
     GetBalance(rpcConfig rc.RpcConfig) (*GetBalanceRpcRes, error)
     ListTransactions(rpcConfig rc.RpcConfig, limit int) (*ListTransactionsRpcRes, error)
-    SendToAddress(rpcConfig rc.RpcConfig, address string, amountInDecimal string) (*SendToAddressRpcRes, error)
+    SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*SendToAddressRpcRes, error)
     GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*GetNewAddressRpcRes, error)
     AddressType(rpcConfig rc.RpcConfig, address string) (*AddressTypeRpcRes, error)
 }

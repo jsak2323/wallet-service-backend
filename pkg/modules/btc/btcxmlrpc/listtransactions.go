@@ -14,7 +14,7 @@ import(
 )
 
 type ListTransactionsNodeXmlRpcRes struct {
-    Response ListTransactionsNodeXmlRpcResStruct
+    Content ListTransactionsNodeXmlRpcResStruct
 }
 type ListTransactionsNodeXmlRpcResStruct struct {
     Transactions string
@@ -50,14 +50,14 @@ func (bs *BtcService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*mode
     err := xmlrpc.XmlRpcCall("listtransactions", &rpcReq, &nodeRpcRes)
 
     if err == nil {
-        // transactionsJson, err := serializedTransactionsToJson(nodeRpcRes.Response.Transactions)
+        // transactionsJson, err := serializedTransactionsToJson(nodeRpcRes.Content.Transactions)
         // if err != nil {
-        //     logger.ErrorLog(" ---- btcxmlrpc ListTransactions serializedTransactionsToJson(nodeRpcRes.Response.Transactions) transactions: "+nodeRpcRes.Response.Transactions+", err: "+err.Error())
+        //     logger.ErrorLog(" ---- btcxmlrpc ListTransactions serializedTransactionsToJson(nodeRpcRes.Content.Transactions) transactions: "+nodeRpcRes.Content.Transactions+", err: "+err.Error())
         //     return &res, err
         // }
         // res.Transactions = transactionsJson
 
-        res.Transactions = nodeRpcRes.Response.Transactions
+        res.Transactions = nodeRpcRes.Content.Transactions
 
         return &res, nil
 

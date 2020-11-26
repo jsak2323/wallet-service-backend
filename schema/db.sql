@@ -58,3 +58,4 @@ CREATE TABLE health_check (
   FOREIGN KEY (rpc_config_id) REFERENCES rpc_config(id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
+

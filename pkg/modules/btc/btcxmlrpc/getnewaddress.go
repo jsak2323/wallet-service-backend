@@ -9,7 +9,7 @@ import (
 )
 
 type GetNewAddressNodeXmlRpcRes struct {
-    Response GetNewAddressNodeXmlRpcResStruct
+    Content GetNewAddressNodeXmlRpcResStruct
 }
 type GetNewAddressNodeXmlRpcResStruct struct {
     Address string
@@ -26,7 +26,7 @@ func (bs *BtcService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) 
     err := xmlrpc.XmlRpcCall("getnewaddress", &rpcReq, &nodeRpcRes)
 
     if err == nil {
-        res.Address = nodeRpcRes.Response.Address
+        res.Address = nodeRpcRes.Content.Address
         return &res, nil
 
     } else if err != nil {
