@@ -1,7 +1,6 @@
 package util
 
 import (
-    // "fmt"
     "encoding/hex"
     "net/smtp"
     "strings"

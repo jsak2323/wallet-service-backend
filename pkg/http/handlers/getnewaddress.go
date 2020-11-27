@@ -28,39 +28,52 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
     addressType := vars["type"]
 
     SYMBOL := strings.ToUpper(symbol)
-
     logger.InfoLog(" - GetNewAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
+    // define response object
+    RES := GetNewAddressRes{}
+
+    // define response handler
+    handleResponse := func() {
+        resStatus := http.StatusOK
+        if RES.Error != "" {
+            resStatus = http.StatusInternalServerError
+        }
+        w.WriteHeader(resStatus)
+        json.NewEncoder(w).Encode(RES)
+    }
+    defer handleResponse()
+
+    // define rpc config
     rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")
     if err != nil {
         logger.ErrorLog(" - GetNewAddressHandler util.GetRpcConfigByType(SYMBOL, \"receiver\") err: "+err.Error())
+        RES.Error = err.Error()
         return
     }
+    RES.RpcConfig = RpcConfigResDetail{
+        RpcConfigId     : rpcConfig.Id,
+        Symbol          : SYMBOL,
+        Name            : rpcConfig.Name,
+        Host            : rpcConfig.Host,
+        Type            : rpcConfig.Type,
+        NodeVersion     : rpcConfig.NodeVersion,
+        NodeLastUpdated : rpcConfig.NodeLastUpdated,
+    }
 
+    // execute rpc call
     rpcRes, err := (*gnas.moduleServices)[SYMBOL].GetNewAddress(rpcConfig, addressType)
     if err != nil { 
         logger.ErrorLog(" - GetNewAddressHandler (*gnas.moduleServices)[SYMBOL].GetNewAddress(rpcConfig, addressType) addressType: "+addressType+", Error: "+err.Error())
+        RES.Error = err.Error()
         return
     }
 
-    RES := GetNewAddressRes{
-        RpcConfig: RpcConfigResDetail{ 
-            RpcConfigId         : rpcConfig.Id,
-            Symbol              : SYMBOL,
-            Name                : rpcConfig.Name,
-            Host                : rpcConfig.Host,
-            Type                : rpcConfig.Type,
-            NodeVersion         : rpcConfig.NodeVersion,
-            NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-        },
-        Address : rpcRes.Address,
-        Error   : rpcRes.Error,
-    }
-
+    // handle success response
+    RES.Address = rpcRes.Address
+    RES.Error   = rpcRes.Error
     resJson, _ := json.Marshal(RES)
     logger.InfoLog(" - GetNewAddressHandler Success. Symbol: "+SYMBOL+", Res: "+string(resJson), req)
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(RES)
 }
 
 
