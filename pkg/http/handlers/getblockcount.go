@@ -1,7 +1,6 @@
 package handlers
 
 import (
-    "sync"
     "strconv"
     "strings"
     "net/http"
@@ -42,6 +41,7 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
 
     gbcs.InvokeGetBlockCount(&RES, symbol)
     
+    // handle success response
     resJson, _ := json.Marshal(RES)
     logger.InfoLog(" - GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
     w.WriteHeader(http.StatusOK)
@@ -49,7 +49,6 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
 }
 
 func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol string) {
-    var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
 
@@ -60,35 +59,39 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
         if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
-            wg.Add(1)
             rpcConfigCount++
-            wg.Done()
 
+            _RES := GetBlockCountRes{
+                RpcConfig: RpcConfigResDetail{
+                    RpcConfigId         : rpcConfig.Id,
+                    Symbol              : SYMBOL,
+                    Name                : rpcConfig.Name,
+                    Host                : rpcConfig.Host,
+                    Type                : rpcConfig.Type,
+                    NodeVersion         : rpcConfig.NodeVersion,
+                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                },
+            }
+
+            // execute concurrent rpc calls
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
                 rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig)
                 if err != nil { 
                     logger.ErrorLog(" - GetBlockCountHandler (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig) Error: "+err.Error())
+                    _RES.Error = rpcRes.Error
+
+                } else {
+                    logger.Log(" - InvokeGetBlockCount Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
+                    _RES.Blocks = rpcRes.Blocks
+                    _RES.Error  = rpcRes.Error
                 }
 
-                logger.Log(" - InvokeGetBlockCount Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
-                resChannel <- GetBlockCountRes{
-                    RpcConfig: RpcConfigResDetail{
-                        RpcConfigId         : rpcConfig.Id,
-                        Symbol              : SYMBOL,
-                        Name                : rpcConfig.Name,
-                        Host                : rpcConfig.Host,
-                        Type                : rpcConfig.Type,
-                        NodeVersion         : rpcConfig.NodeVersion,
-                        NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-                    },
-                    Blocks : rpcRes.Blocks,
-                    Error  : rpcRes.Error,
-                }
+                resChannel <- _RES
+                
             }(SYMBOL, rpcConfig)
         }
     }
 
-    wg.Wait()
     i := 0
     for res := range resChannel {
         i++

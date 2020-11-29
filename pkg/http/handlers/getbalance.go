@@ -1,7 +1,6 @@
 package handlers
 
 import (
-    "fmt"
     "strconv"
     "strings"
     "net/http"
@@ -42,6 +41,7 @@ func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *htt
 
     gbcs.InvokeGetBalance(&RES, symbol)
 
+    // handle success response
     resJson, _ := json.Marshal(RES)
     logger.InfoLog(" - GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
     w.WriteHeader(http.StatusOK)
@@ -73,8 +73,8 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
                 },
             }
 
+            // execute concurrent rpc calls
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
-                fmt.Println(" - SYMBOL: ", SYMBOL)
                 rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig)
                 if err != nil { 
                     logger.ErrorLog(" -- InvokeGetBalance (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig) Error: "+err.Error())

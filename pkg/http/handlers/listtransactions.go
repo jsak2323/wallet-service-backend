@@ -1,7 +1,6 @@
 package handlers
 
 import (
-    "sync"
     "strconv"
     "strings"
     "net/http"
@@ -44,13 +43,13 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
     limitInt, _ := strconv.Atoi(limit)
     lts.InvokeListTransactions(&RES, symbol, limitInt)
 
+    // handle success response
     logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol, req)
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
 
 func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactionsHandlerResponseMap, symbol string, limit int) {
-    var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan ListTransactionsRes)
 
@@ -61,35 +60,39 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
         if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
-            wg.Add(1)
             rpcConfigCount++
-            wg.Done()
 
+            _RES := ListTransactionsRes{
+                RpcConfig: RpcConfigResDetail{
+                    RpcConfigId         : rpcConfig.Id,
+                    Symbol              : SYMBOL,
+                    Name                : rpcConfig.Name,
+                    Host                : rpcConfig.Host,
+                    Type                : rpcConfig.Type,
+                    NodeVersion         : rpcConfig.NodeVersion,
+                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                },
+            }
+
+            // execute concurrent rpc calls
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
                 rpcRes, err := (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit)
                 if err != nil { 
                     logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit) Error: "+err.Error())
+                    _RES.Error = rpcRes.Error
+
+                } else {
+                    logger.Log(" - InvokeListTransactions Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
+                    _RES.Transactions = rpcRes.Transactions
+                    _RES.Error        = rpcRes.Error
                 }
 
-                logger.Log(" - InvokeListTransactions Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
-                resChannel <- ListTransactionsRes{
-                    RpcConfig: RpcConfigResDetail{
-                        RpcConfigId         : rpcConfig.Id,
-                        Symbol              : SYMBOL,
-                        Name                : rpcConfig.Name,
-                        Host                : rpcConfig.Host,
-                        Type                : rpcConfig.Type,
-                        NodeVersion         : rpcConfig.NodeVersion,
-                        NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-                    },
-                    Transactions : rpcRes.Transactions,
-                    Error        : rpcRes.Error,
-                }
+                resChannel <- _RES
+
             }(SYMBOL, rpcConfig)
         }
     }
 
-    wg.Wait()
     i := 0
     for res := range resChannel {
         i++
