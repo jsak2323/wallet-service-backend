@@ -82,8 +82,8 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
                         NodeVersion         : rpcConfig.NodeVersion,
                         NodeLastUpdated     : rpcConfig.NodeLastUpdated,
                     },
-                    Transactions    : rpcRes.Transactions,
-                    Error           : rpcRes.Error,
+                    Transactions : rpcRes.Transactions,
+                    Error        : rpcRes.Error,
                 }
             }(SYMBOL, rpcConfig)
         }

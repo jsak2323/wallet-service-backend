@@ -22,14 +22,7 @@ func NewGetNewAddressService(moduleServices *modules.ModuleServiceMap) *GetNewAd
     }
 }
 
-func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, req *http.Request) { 
-    vars := mux.Vars(req)
-    symbol      := vars["symbol"]
-    addressType := vars["type"]
-
-    SYMBOL := strings.ToUpper(symbol)
-    logger.InfoLog(" - GetNewAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
-
+func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, req *http.Request) {     
     // define response object
     RES := GetNewAddressRes{}
 
@@ -43,6 +36,14 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
         json.NewEncoder(w).Encode(RES)
     }
     defer handleResponse()
+
+    // define request params
+    vars := mux.Vars(req)
+    symbol      := vars["symbol"]
+    addressType := vars["type"]
+
+    SYMBOL := strings.ToUpper(symbol)
+    logger.InfoLog(" - GetNewAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
     // define rpc config
     rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")

@@ -23,44 +23,58 @@ func NewAddressTypeService(moduleServices *modules.ModuleServiceMap) *AddressTyp
 }
 
 func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *http.Request) { 
+    // define response object
+    RES := AddressTypeRes{}
+
+    // define response handler
+    handleResponse := func() {
+        resStatus := http.StatusOK
+        if RES.Error != "" {
+            resStatus = http.StatusInternalServerError
+        }
+        w.WriteHeader(resStatus)
+        json.NewEncoder(w).Encode(RES)
+    }
+    defer handleResponse()
+
+    // define request params
     vars := mux.Vars(req)
     symbol  := vars["symbol"]
     address := vars["address"]
 
     SYMBOL := strings.ToUpper(symbol)
-
     logger.InfoLog(" - AddressTypeHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
+    // define rpc config
     rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")
     if err != nil {
         logger.ErrorLog(" - AddressTypeHandler util.GetRpcConfigByType(SYMBOL, \"receiver\") err: "+err.Error())
+        RES.Error = err.Error()
         return
     }
+    RES.RpcConfig = RpcConfigResDetail{
+        RpcConfigId     : rpcConfig.Id,
+        Symbol          : SYMBOL,
+        Name            : rpcConfig.Name,
+        Host            : rpcConfig.Host,
+        Type            : rpcConfig.Type,
+        NodeVersion     : rpcConfig.NodeVersion,
+        NodeLastUpdated : rpcConfig.NodeLastUpdated,
+    }
 
+    // execute rpc call
     rpcRes, err := (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, address)
     if err != nil { 
         logger.ErrorLog(" - AddressTypeHandler (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, addressType) address: "+address+", Error: "+err.Error())
+        RES.Error = err.Error()
         return
     }
 
-    RES := AddressTypeRes{
-        RpcConfig: RpcConfigResDetail{ 
-            RpcConfigId         : rpcConfig.Id,
-            Symbol              : SYMBOL,
-            Name                : rpcConfig.Name,
-            Host                : rpcConfig.Host,
-            Type                : rpcConfig.Type,
-            NodeVersion         : rpcConfig.NodeVersion,
-            NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-        },
-        AddressType : rpcRes.AddressType,
-        Error       : rpcRes.Error,
-    }
-
+    // handle success response
+    RES.AddressType = rpcRes.AddressType
+    RES.Error       = rpcRes.Error
     resJson, _ := json.Marshal(RES)
     logger.InfoLog(" - AddressTypeHandler Success. Symbol: "+SYMBOL+", Res: "+string(resJson), req)
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(RES)
 }
 
 

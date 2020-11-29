@@ -1,7 +1,7 @@
 package handlers
 
 import (
-    "sync"
+    "fmt"
     "strconv"
     "strings"
     "net/http"
@@ -49,7 +49,6 @@ func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *htt
 }
 
 func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol string) {
-    var wg sync.WaitGroup
     rpcConfigCount := 0
     resChannel := make(chan GetBalanceRes)
 
@@ -60,35 +59,39 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
         if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
-            wg.Add(1)
             rpcConfigCount++
-            wg.Done()
+
+            _RES := GetBalanceRes{
+                RpcConfig: RpcConfigResDetail{ 
+                    RpcConfigId         : rpcConfig.Id,
+                    Symbol              : SYMBOL,
+                    Name                : rpcConfig.Name,
+                    Host                : rpcConfig.Host,
+                    Type                : rpcConfig.Type,
+                    NodeVersion         : rpcConfig.NodeVersion,
+                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                },
+            }
 
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
+                fmt.Println(" - SYMBOL: ", SYMBOL)
                 rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig)
                 if err != nil { 
-                    logger.ErrorLog(" - GetBalanceHandler (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig) Error: "+err.Error())
+                    logger.ErrorLog(" -- InvokeGetBalance (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig) Error: "+err.Error())
+                    _RES.Error = rpcRes.Error
+
+                } else {
+                    logger.Log(" -- InvokeGetBalance Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
+                    _RES.Balance = rpcRes.Balance
+                    _RES.Error   = rpcRes.Error
                 }
 
-                logger.Log(" - InvokeGetBalance Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
-                resChannel <- GetBalanceRes{
-                    RpcConfig: RpcConfigResDetail{                    
-                        RpcConfigId         : rpcConfig.Id,
-                        Symbol              : SYMBOL,
-                        Name                : rpcConfig.Name,
-                        Host                : rpcConfig.Host,
-                        Type                : rpcConfig.Type,
-                        NodeVersion         : rpcConfig.NodeVersion,
-                        NodeLastUpdated     : rpcConfig.NodeLastUpdated,
-                    },
-                    Balance : rpcRes.Balance,
-                    Error   : rpcRes.Error,
-                }
+                resChannel <- _RES
+
             }(SYMBOL, rpcConfig)
         }
     }
 
-    wg.Wait()
     i := 0
     for res := range resChannel {
         i++
