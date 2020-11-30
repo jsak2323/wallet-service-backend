@@ -10,7 +10,7 @@
     "mail_host"             : "smtp.gmail.com",
     "mail_port"             : "587",
     "mail_user"             : "icefang.000@gmail.com",
-    "mail_encrypted_pass"   : "1ca87cc8303d0a4a5476ef0a8250dad8b0208b619c2c02afada6a5be2d553fbdd91498316ea246f25a",
+    "mail_encrypted_pass"   : "ec918dad44d2e2f5eb8cc93316043bd92cff6d80d162f09769c258fdb641bc62f1c92e571bab64",
     "mail_encryption_key"   : "tujDoivCitCiHaccoujhomyudrevPidd",
 
     "crypto_apis_key"       : "b9be86caab68c0b643b607ac619ebd4e053ff688",

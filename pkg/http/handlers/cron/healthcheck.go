@@ -103,3 +103,5 @@ func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
     if err != nil { logger.ErrorLog(err.Error()) }
     logger.Log(" - HealthCheckHandler -- Is notification email sent: "+strconv.FormatBool(isEmailSent))
 }
+
+
