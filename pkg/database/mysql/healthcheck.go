@@ -10,6 +10,7 @@ import (
 )
 
 const healthCheckTable = "health_check"
+const rpcConfigTable   = "rpc_config"
 
 type healthCheckRepository struct {
     db *sql.DB
@@ -23,21 +24,41 @@ func NewMysqlHealthCheckRepository(db *sql.DB) hc.HealthCheckRepository {
 
 func (r *healthCheckRepository) GetAll() ([]hc.HealthCheck, error) {
     query := "SELECT * FROM "+healthCheckTable
-    allHealthCheck := []hc.HealthCheck{}
+    healthChecks := []hc.HealthCheck{}
 
     rows, err := r.db.Query(query)
     defer rows.Close()
-    if err != nil { return allHealthCheck, err }
+    if err != nil { return healthChecks, err }
 
     for rows.Next() { 
         var healthCheck hc.HealthCheck
         err = mapHealthCheck(rows, &healthCheck)
-        if err != nil { return allHealthCheck, err }
+        if err != nil { return healthChecks, err }
 
-        allHealthCheck = append(allHealthCheck, healthCheck)
+        healthChecks = append(healthChecks, healthCheck)
     }
 
-    return allHealthCheck, nil
+    return healthChecks, nil
+}
+
+func (r *healthCheckRepository) GetAllWithRpcConfig() ([]hc.HealthCheckWithRpcConfig, error) {
+    query := "SELECT * FROM "+healthCheckTable+" hct "
+    query += "JOIN "+rpcConfigTable+" rct ON rct.id = hct.rpc_config_id "
+    healthChecks := []hc.HealthCheckWithRpcConfig{}
+
+    rows, err := r.db.Query(query)
+    defer rows.Close()
+    if err != nil { return healthChecks, err }
+
+    for rows.Next() { 
+        var healthCheck hc.HealthCheckWithRpcConfig
+        err = mapHealthCheckWithRpcConfig(rows, &healthCheck)
+        if err != nil { return healthChecks, err }
+
+        healthChecks = append(healthChecks, healthCheck)
+    }
+
+    return healthChecks, nil
 }
 
 func (r *healthCheckRepository) GetByRpcConfigId(rpcConfigId int) (hc.HealthCheck, error) {
@@ -106,6 +127,22 @@ func mapHealthCheck(rows *sql.Rows, healthCheck *hc.HealthCheck) error {
         &healthCheck.IsHealthy,
         &healthCheck.LastUpdated,
     )
+    if err != nil { return err }
+    return nil
+}
+
+func mapHealthCheckWithRpcConfig(rows *sql.Rows, healthCheck *hc.HealthCheckWithRpcConfig) error {
+    err := rows.Scan(
+        &healthCheck.Id,
+        &healthCheck.RpcConfigId,
+        &healthCheck.BlockCount,
+        &healthCheck.BlockDiff,
+        &healthCheck.IsHealthy,
+        &healthCheck.LastUpdated,
+    )
+
+    
+
     if err != nil { return err }
     return nil
 }

@@ -1,5 +1,9 @@
 package handlers
 
+import (
+    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
+)
+
 type RpcConfigResDetail struct { 
     RpcConfigId         int
     Symbol              string
@@ -8,6 +12,12 @@ type RpcConfigResDetail struct {
     Type                string
     NodeVersion         string
     NodeLastUpdated     string
+}
+
+type GetHealthCheckRes struct { 
+    RpcConfig    RpcConfigResDetail
+    HealthChecks []hc.HealthCheck
+    Error        string
 }
 
 type GetBlockCountRes struct { 

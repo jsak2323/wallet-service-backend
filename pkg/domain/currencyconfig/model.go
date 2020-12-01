@@ -22,3 +22,5 @@ type CurrencyConfig struct {
     CmcId                   int
     LastUpdated             string
 }
+
+

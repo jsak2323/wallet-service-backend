@@ -18,3 +18,5 @@ type RpcConfig struct {
     IsHealthCheckEnabled    bool
     AtomFeed                string
 }
+
+
