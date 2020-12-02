@@ -10,7 +10,6 @@ import (
 )
 
 const healthCheckTable = "health_check"
-const rpcConfigTable   = "rpc_config"
 
 type healthCheckRepository struct {
     db *sql.DB
@@ -132,16 +131,32 @@ func mapHealthCheck(rows *sql.Rows, healthCheck *hc.HealthCheck) error {
 }
 
 func mapHealthCheckWithRpcConfig(rows *sql.Rows, healthCheck *hc.HealthCheckWithRpcConfig) error {
+    placeHolderInt := 0
+    
     err := rows.Scan(
         &healthCheck.Id,
-        &healthCheck.RpcConfigId,
+        &healthCheck.RpcConfig.Id,
         &healthCheck.BlockCount,
         &healthCheck.BlockDiff,
         &healthCheck.IsHealthy,
         &healthCheck.LastUpdated,
+        &placeHolderInt,
+        &healthCheck.RpcConfig.CurrencyId,
+        &healthCheck.RpcConfig.Type,
+        &healthCheck.RpcConfig.Name,
+        &healthCheck.RpcConfig.Platform,
+        &healthCheck.RpcConfig.Host,
+        &healthCheck.RpcConfig.Port,
+        &healthCheck.RpcConfig.Path,
+        &healthCheck.RpcConfig.User,
+        &healthCheck.RpcConfig.Password,
+        &healthCheck.RpcConfig.Hashkey,
+        &healthCheck.RpcConfig.NodeVersion,
+        &healthCheck.RpcConfig.NodeLastUpdated,
+        &healthCheck.RpcConfig.IsBackupable,
+        &healthCheck.RpcConfig.IsHealthCheckEnabled,
+        &healthCheck.RpcConfig.AtomFeed,
     )
-
-    
 
     if err != nil { return err }
     return nil

@@ -16,7 +16,7 @@ type RpcConfigResDetail struct {
 
 type GetHealthCheckRes struct { 
     RpcConfig    RpcConfigResDetail
-    HealthChecks []hc.HealthCheck
+    HealthCheck  hc.HealthCheck
     Error        string
 }
 

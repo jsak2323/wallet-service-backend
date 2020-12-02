@@ -29,7 +29,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
 
     // -- GET gethealthcheck
-    getHealthCheckService := h.NewGetHealthCheckService(ModuleServices)
+    getHealthCheckService := h.NewGetHealthCheckService(ModuleServices, healthCheckRepo)
     r.HandleFunc("/gethealthcheck", getHealthCheckService.GetHealthCheckHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/gethealthcheck", getHealthCheckService.GetHealthCheckHandler).Methods(http.MethodGet)
 

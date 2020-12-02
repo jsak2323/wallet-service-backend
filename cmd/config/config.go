@@ -3,8 +3,8 @@ package config
 import(
     "os"
     "fmt"
-    "encoding/json"
     "database/sql"
+    "encoding/json"
 
     _ "github.com/go-sql-driver/mysql"
 
@@ -15,6 +15,7 @@ var (
     IS_DEV bool
     CONF Configuration
     CURR = make(map[string]CurrencyConfiguration)
+    SYMBOLS = make(map[int]string)
 )
 
 func init() {
@@ -77,6 +78,8 @@ func LoadCurrencyConfigs() {
             Config      : currencyConfig,
             RpcConfigs  : rpcConfigs,
         }
+
+        SYMBOLS[currencyConfig.Id] = currencyConfig.Symbol
     }
 
     fmt.Println("Done.")
