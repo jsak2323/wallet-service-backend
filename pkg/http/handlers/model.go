@@ -15,9 +15,10 @@ type RpcConfigResDetail struct {
 }
 
 type GetHealthCheckRes struct { 
-    RpcConfig    RpcConfigResDetail
-    HealthCheck  hc.HealthCheck
-    Error        string
+    RpcConfig               RpcConfigResDetail
+    HealthCheck             hc.HealthCheck
+    IsHealthCheckEnabled    Boolean
+    Error                   string
 }
 
 type GetBlockCountRes struct { 

@@ -79,6 +79,8 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
             }
 
             _RES.HealthCheck = healthCheck
+            _RES.IsHealthCheckEnabled = rpcConfig.IsHealthCheckEnabled
+            
             (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
         }
 
@@ -111,6 +113,7 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
                     IsHealthy    : healthCheck.IsHealthy,
                     LastUpdated  : healthCheck.LastUpdated,
                 },
+                IsHealthCheckEnabled: healthCheck.RpcConfig.IsHealthCheckEnabled
             }
 
             (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
