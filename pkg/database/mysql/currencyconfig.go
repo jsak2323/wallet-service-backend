@@ -64,8 +64,6 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.Id,
         &currConf.Symbol,
         &currConf.Name,
-        &currConf.NameUppercase,
-        &currConf.NameLowercase,
         &currConf.Unit,
         &currConf.TokenType,
         &currConf.IsFinanceEnabled,

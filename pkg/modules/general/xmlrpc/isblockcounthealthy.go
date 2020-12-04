@@ -19,7 +19,7 @@ func (gs *GeneralService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId in
     previousBlockCount := previousHealthCheck.BlockCount
 
     blockDiff = nodeBlockCount - previousBlockCount
-    if blockDiff > healthyBlockDiff { 
+    if blockDiff < healthyBlockDiff { 
         isBlockCountHealthy = true
     }
 

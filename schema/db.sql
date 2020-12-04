@@ -5,8 +5,6 @@ CREATE TABLE currency_config (
   id                        INT(11) NOT NULL AUTO_INCREMENT,
   symbol                    VARCHAR(10) NOT NULL,
   name                      VARCHAR(50) NOT NULL,
-  name_uppercase            VARCHAR(50) NOT NULL,
-  name_lowercase            VARCHAR(50) NOT NULL,
   unit                      VARCHAR(10) NOT NULL,
   token_type                VARCHAR(10) NOT NULL DEFAULT 'main',
   is_finance_enabled        TINYINT(1) NOT NULL DEFAULT 0,
