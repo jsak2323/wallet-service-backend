@@ -5,19 +5,19 @@ import (
 )
 
 type RpcConfigResDetail struct { 
-    RpcConfigId         int
-    Symbol              string
-    Name                string
-    Host                string
-    Type                string
-    NodeVersion         string
-    NodeLastUpdated     string
+    RpcConfigId          int
+    Symbol               string
+    Name                 string
+    Host                 string
+    Type                 string
+    NodeVersion          string
+    NodeLastUpdated      string
+    IsHealthCheckEnabled bool
 }
 
 type GetHealthCheckRes struct { 
     RpcConfig               RpcConfigResDetail
     HealthCheck             hc.HealthCheck
-    IsHealthCheckEnabled    Boolean
     Error                   string
 }
 

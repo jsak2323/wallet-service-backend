@@ -63,13 +63,14 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
 
             _RES := GetBalanceRes{
                 RpcConfig: RpcConfigResDetail{ 
-                    RpcConfigId         : rpcConfig.Id,
-                    Symbol              : SYMBOL,
-                    Name                : rpcConfig.Name,
-                    Host                : rpcConfig.Host,
-                    Type                : rpcConfig.Type,
-                    NodeVersion         : rpcConfig.NodeVersion,
-                    NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                    RpcConfigId             : rpcConfig.Id,
+                    Symbol                  : SYMBOL,
+                    Name                    : rpcConfig.Name,
+                    Host                    : rpcConfig.Host,
+                    Type                    : rpcConfig.Type,
+                    NodeVersion             : rpcConfig.NodeVersion,
+                    NodeLastUpdated         : rpcConfig.NodeLastUpdated,
+                    IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
                 },
             }
 

@@ -65,13 +65,14 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
         return
     }
     RES.RpcConfig = RpcConfigResDetail{
-        RpcConfigId     : rpcConfig.Id,
-        Symbol          : SYMBOL,
-        Name            : rpcConfig.Name,
-        Host            : rpcConfig.Host,
-        Type            : rpcConfig.Type,
-        NodeVersion     : rpcConfig.NodeVersion,
-        NodeLastUpdated : rpcConfig.NodeLastUpdated,
+        RpcConfigId             : rpcConfig.Id,
+        Symbol                  : SYMBOL,
+        Name                    : rpcConfig.Name,
+        Host                    : rpcConfig.Host,
+        Type                    : rpcConfig.Type,
+        NodeVersion             : rpcConfig.NodeVersion,
+        NodeLastUpdated         : rpcConfig.NodeLastUpdated,
+        IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
 
     // execute rpc call

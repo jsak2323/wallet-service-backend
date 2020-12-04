@@ -36,14 +36,19 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 
             nodeBlockCount, _ := strconv.Atoi(resRpcConfig.Blocks)
-            isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
-            if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
+
+            isBlockCountHealthy, blockDiff := false, 0
+
+            if resRpcConfig.IsHealthCheckEnabled {
+                isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
+                if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
+
+                if !isBlockCountHealthy { // if not healthy, send notification emails
+                    hcs.sendNotificationEmails(resRpcConfig)
+                }
+            }
 
             hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
-
-            if !isBlockCountHealthy { // if not healthy, send notification emails
-                hcs.sendNotificationEmails(resRpcConfig)
-            }
         }
     }
 }

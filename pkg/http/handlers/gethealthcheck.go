@@ -62,13 +62,14 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
                 return 
             } 
             _RES.RpcConfig = RpcConfigResDetail{
-                RpcConfigId         : rpcConfig.Id,
-                Symbol              : SYMBOL,
-                Name                : rpcConfig.Name,
-                Host                : rpcConfig.Host,
-                Type                : rpcConfig.Type,
-                NodeVersion         : rpcConfig.NodeVersion,
-                NodeLastUpdated     : rpcConfig.NodeLastUpdated,
+                RpcConfigId          : rpcConfig.Id,
+                Symbol               : SYMBOL,
+                Name                 : rpcConfig.Name,
+                Host                 : rpcConfig.Host,
+                Type                 : rpcConfig.Type,
+                NodeVersion          : rpcConfig.NodeVersion,
+                NodeLastUpdated      : rpcConfig.NodeLastUpdated,
+                IsHealthCheckEnabled : rpcConfig.IsHealthCheckEnabled,
             }
 
             healthCheck, err := ghcs.healthCheckRepo.GetByRpcConfigId(rpcConfig.Id)
@@ -79,8 +80,6 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
             }
 
             _RES.HealthCheck = healthCheck
-            _RES.IsHealthCheckEnabled = rpcConfig.IsHealthCheckEnabled
-            
             (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
         }
 
@@ -97,13 +96,14 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
 
             _RES := GetHealthCheckRes{
                 RpcConfig: RpcConfigResDetail{
-                    RpcConfigId         : healthCheck.RpcConfig.Id,
-                    Symbol              : SYMBOL,
-                    Name                : healthCheck.RpcConfig.Name,
-                    Host                : healthCheck.RpcConfig.Host,
-                    Type                : healthCheck.RpcConfig.Type,
-                    NodeVersion         : healthCheck.RpcConfig.NodeVersion,
-                    NodeLastUpdated     : healthCheck.RpcConfig.NodeLastUpdated,
+                    RpcConfigId          : healthCheck.RpcConfig.Id,
+                    Symbol               : SYMBOL,
+                    Name                 : healthCheck.RpcConfig.Name,
+                    Host                 : healthCheck.RpcConfig.Host,
+                    Type                 : healthCheck.RpcConfig.Type,
+                    NodeVersion          : healthCheck.RpcConfig.NodeVersion,
+                    NodeLastUpdated      : healthCheck.RpcConfig.NodeLastUpdated,
+                    IsHealthCheckEnabled : healthCheck.RpcConfig.IsHealthCheckEnabled,
                 },
                 HealthCheck: hc.HealthCheck{
                     Id           : healthCheck.Id,
@@ -113,7 +113,6 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
                     IsHealthy    : healthCheck.IsHealthy,
                     LastUpdated  : healthCheck.LastUpdated,
                 },
-                IsHealthCheckEnabled: healthCheck.RpcConfig.IsHealthCheckEnabled
             }
 
             (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
