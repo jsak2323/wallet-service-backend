@@ -7,6 +7,12 @@
 
     "notification_emails" : ["ifan.wijaya@bitcoin.co.id"],
 
+    "authorized_ips" : [
+        "127.0.0.1",
+        "182.253.250.158",
+        
+    ],
+
     "mail_host"             : "smtp.gmail.com",
     "mail_port"             : "587",
     "mail_user"             : "icefang.000@gmail.com",

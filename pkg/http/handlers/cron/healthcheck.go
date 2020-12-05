@@ -39,9 +39,12 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
 
             isBlockCountHealthy, blockDiff := false, 0
 
-            if resRpcConfig.IsHealthCheckEnabled {
-                isBlockCountHealthy, blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
+            if resRpcConfig.RpcConfig.IsHealthCheckEnabled {
+                _isBlockCountHealthy, _blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
                 if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
+
+                isBlockCountHealthy = _isBlockCountHealthy
+                blockDiff           = _blockDiff
 
                 if !isBlockCountHealthy { // if not healthy, send notification emails
                     hcs.sendNotificationEmails(resRpcConfig)

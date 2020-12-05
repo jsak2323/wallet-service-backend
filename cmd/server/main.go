@@ -8,7 +8,8 @@ import(
 
     "github.com/gorilla/mux"
 
-    mw "github.com/btcid/wallet-services-backend/pkg/middlewares"
+    logm "github.com/btcid/wallet-services-backend/pkg/middlewares/logging"
+    authm "github.com/btcid/wallet-services-backend/pkg/middlewares/auth"
     "github.com/btcid/wallet-services-backend/cmd/config"
 )
 
@@ -20,8 +21,8 @@ func main() {
 
     SetRoutes(r, mysqlDbConn)
 
-    r.Use(mw.LogMiddleware)
-    r.Use(mw.AuthMiddleware)
+    r.Use(logm.LogMiddleware)
+    r.Use(authm.AuthMiddleware)
 
     server := &http.Server{
         Handler         : r,

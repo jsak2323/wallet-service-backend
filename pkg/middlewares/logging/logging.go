@@ -1,4 +1,4 @@
-package middlewares
+package logging
 
 import(
     "fmt"
@@ -15,3 +15,5 @@ func LogMiddleware(hf http.Handler) http.Handler {
         fmt.Println()
     })
 }
+
+
