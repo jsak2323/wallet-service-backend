@@ -7,7 +7,7 @@ import (
 )
 
 func AuthMiddleware(hf http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
         // to allow access from localhost
         w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -21,7 +21,7 @@ func AuthMiddleware(hf http.Handler) http.Handler {
             return
         }
 
-        hf.ServeHTTP(w, r)
+        hf.ServeHTTP(w, req)
     })
 }
 
