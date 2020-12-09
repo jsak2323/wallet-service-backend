@@ -44,7 +44,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
 
     // define request params
     sendToAddressRequest := SendToAddressRequest{}
-    err := util.DecodeAndLogPostRequest(req, &sendToAddressRequest)
+    err := DecodeAndLogPostRequest(req, &sendToAddressRequest)
     if err != nil {
         logger.ErrorLog(" - SendToAddressHandler util.DecodeAndLogPostRequest(req, &sendToAddressRequest) err: "+err.Error())
         return

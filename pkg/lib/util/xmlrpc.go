@@ -1,6 +1,7 @@
 package util
 
 import (
+    "fmt"
     "bytes"
     "time"
     "strings"
@@ -13,7 +14,6 @@ import (
     "github.com/divan/gorilla-xmlrpc/xml"
 
     rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
 )
 
 type RpcReq struct {
@@ -38,7 +38,7 @@ func NewXmlRpcClient(host string, port string, path string) *XmlRpc{
 func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) error {
     buf, err := xml.EncodeClientRequest(method, args)
     if err != nil { 
-        logger.ErrorLog("xml.EncodeClientRequest(method, args)")
+        fmt.Println(" - xml.EncodeClientRequest(method, args) err: "+err.Error())
         return err 
     }
 
@@ -48,14 +48,15 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
     }
     res, err := httpClient.Post(url, "text/xml", bytes.NewBuffer(buf))
     if err != nil { 
-        logger.ErrorLog("httpClient.Post(url, \"text/xml\", bytes.NewBuffer(buf))")
+        fmt.Println(" - httpClient.Post xml err: "+err.Error())
         return err 
     }
+
     defer res.Body.Close()
     
     err = xml.DecodeClientResponse(res.Body, reply)
-    if err != nil {
-        logger.ErrorLog("xml.DecodeClientResponse(res.Body, reply)") 
+    if err != nil { 
+        fmt.Println(" - xml.DecodeClientResponse err: "+err.Error())
         return err 
     }
     
