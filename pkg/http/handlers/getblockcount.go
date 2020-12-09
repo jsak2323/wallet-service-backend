@@ -78,7 +78,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
                 rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig)
                 if err != nil { 
-                    logger.ErrorLog(" - GetBlockCountHandler (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig) Error: "+err.Error())
+                    logger.Log(" - GetBlockCountHandler (*gbcs.moduleServices)["+SYMBOL+"].GetBlockCount(rpcConfig) Error: "+err.Error())
                     _RES.Error = rpcRes.Error
 
                 } else {

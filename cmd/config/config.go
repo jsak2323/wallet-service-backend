@@ -14,9 +14,11 @@ import(
 )
 
 var (
-    IS_DEV bool
-    CONF Configuration
-    CURR = make(map[string]CurrencyConfiguration)
+    IS_DEV          bool
+    CONF            Configuration
+    ErrorMailCount  int
+
+    CURR    = make(map[string]CurrencyConfiguration)
     SYMBOLS = make(map[int]string)
 )
 
