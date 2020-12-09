@@ -13,7 +13,7 @@ import(
     "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
-type HealthCheckService struct{
+type HealthCheckService struct {
     healthCheckRepo hc.HealthCheckRepository
     moduleServices *modules.ModuleServiceMap
 }

@@ -37,6 +37,8 @@ type Configuration struct {
     MailEncryptedPass   string `json:"mail_encrypted_pass"`
     MailEncryptionKey   string `json:"mail_encryption_key"`
 
+    SessionErrorMailNotifLimit int `json:"session_error_mail_notif_limit"`
+
     CryptoApisKey       string `json:"crypto_apis_key"`
     InfuraProjectId     string `json:"infura_project_id"`
 }

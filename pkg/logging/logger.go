@@ -6,6 +6,9 @@ import (
     "time"
     "github.com/sirupsen/logrus"
     "net/http"
+
+    "github.com/btcid/wallet-services-backend/cmd/config"
+    "github.com/btcid/wallet-services-backend/pkg/lib/util"
 )
 
 var logsDir = "/logs/"
@@ -60,7 +63,26 @@ func ErrorLog(msg string) {
     fmt.Println(msg)
     log.Error(msg)
 
-    // todo: add send email for error notification
+    go sendErrorNotificationEmail(msg)
 }
+
+func sendErrorNotificationEmail(msg string) {
+    config.ErrorMailCount += 1
+
+    if config.ErrorMailCount > config.CONF.SessionErrorMailNotifLimit {
+        fmt.Println("Error Notification Mail Limit is hit for this session. skipping ...")
+        return
+
+    } else {
+        const emailSubjectPrefix string = "[WALLETSERVICE]"
+        subject := emailSubjectPrefix+" Application Error"
+        message := "An error was encountered with following detail: "+
+        "\n Error: "+msg
+
+        recipients := config.CONF.NotificationEmails
+        util.SendEmail(subject, message, recipients) 
+    }
+}
+
 
 
