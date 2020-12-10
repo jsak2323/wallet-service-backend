@@ -36,7 +36,6 @@ CREATE TABLE rpc_config (
   hashkey                   VARCHAR(150) NOT NULL,
   node_version              VARCHAR(50) NOT NULL,
   node_last_updated         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-  is_backupable             TINYINT(1) NOT NULL DEFAULT 0,
   is_health_check_enabled   TINYINT(1) NOT NULL DEFAULT 0,
   atom_feed                 VARCHAR(255) NOT NULL DEFAULT "",
 

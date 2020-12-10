@@ -14,7 +14,6 @@ type RpcConfig struct {
     Hashkey                 string
     NodeVersion             string
     NodeLastUpdated         string
-    IsBackupable            bool
     IsHealthCheckEnabled    bool
     AtomFeed                string
 }

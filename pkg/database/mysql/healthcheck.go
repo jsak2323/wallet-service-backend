@@ -153,7 +153,6 @@ func mapHealthCheckWithRpcConfig(rows *sql.Rows, healthCheck *hc.HealthCheckWith
         &healthCheck.RpcConfig.Hashkey,
         &healthCheck.RpcConfig.NodeVersion,
         &healthCheck.RpcConfig.NodeLastUpdated,
-        &healthCheck.RpcConfig.IsBackupable,
         &healthCheck.RpcConfig.IsHealthCheckEnabled,
         &healthCheck.RpcConfig.AtomFeed,
     )
