@@ -7,9 +7,9 @@ import (
 
     "github.com/gorilla/mux"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
-    "github.com/btcid/wallet-services-backend/pkg/modules"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type GetNewAddressService struct {

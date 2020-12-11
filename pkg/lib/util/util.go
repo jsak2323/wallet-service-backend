@@ -12,8 +12,8 @@ import (
 
     "github.com/mitchellh/mapstructure"
 
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 func MapJsonToStruct(input interface{}, output interface{}) error {

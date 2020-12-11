@@ -5,7 +5,7 @@ import (
     "net/smtp"
     "strings"
 
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 var (

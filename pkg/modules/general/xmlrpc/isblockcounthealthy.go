@@ -3,8 +3,8 @@ package xmlrpc
 import (
     "strconv"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 func (gs *GeneralService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {

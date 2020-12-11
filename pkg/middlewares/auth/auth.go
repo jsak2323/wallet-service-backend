@@ -3,7 +3,7 @@ package auth
 import (
     "net/http"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func AuthMiddleware(hf http.Handler) http.Handler {

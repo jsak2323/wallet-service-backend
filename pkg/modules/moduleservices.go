@@ -1,11 +1,11 @@
 package modules
 
 import(
-    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
-    modules_m "github.com/btcid/wallet-services-backend/pkg/modules/model"
-    generalxmlrpc "github.com/btcid/wallet-services-backend/pkg/modules/general/xmlrpc"
-    "github.com/btcid/wallet-services-backend/pkg/modules/btc/btcxmlrpc"
-    "github.com/btcid/wallet-services-backend/pkg/modules/eth/ethxmlrpc"
+    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+    modules_m "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
+    generalxmlrpc "github.com/btcid/wallet-services-backend-go/pkg/modules/general/xmlrpc"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/btc/btcxmlrpc"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/eth/ethxmlrpc"
 )
 
 type ModuleServiceMap map[string]modules_m.ModuleService

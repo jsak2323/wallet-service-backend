@@ -7,10 +7,10 @@ import (
 
     "github.com/gorilla/mux"
 
-    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    "github.com/btcid/wallet-services-backend/pkg/modules"
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 type GetHealthCheckHandlerResponseMap map[string][]GetHealthCheckRes

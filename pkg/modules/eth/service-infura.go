@@ -5,7 +5,7 @@ import (
 
     "gopkg.in/resty.v0"
 
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 type InfuraEthBlockNumberRes struct {

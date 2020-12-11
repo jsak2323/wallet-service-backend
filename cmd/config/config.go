@@ -8,9 +8,9 @@ import(
 
     _ "github.com/go-sql-driver/mysql"
 
-    mysqldb "github.com/btcid/wallet-services-backend/pkg/database/mysql"
-    cc "github.com/btcid/wallet-services-backend/pkg/domain/currencyconfig"
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    mysqldb "github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 )
 
 var (
@@ -70,7 +70,7 @@ func LoadAppConfig() {
 
     fmt.Print("Loading App Configuration ... ")
     gopath := os.Getenv("GOPATH")
-    file, _ := os.Open(gopath+"/src/github.com/btcid/wallet-services-backend/cmd/config/json/"+configFilename)
+    file, _ := os.Open(gopath+"/src/github.com/btcid/wallet-services-backend-go/cmd/config/json/"+configFilename)
     defer file.Close()
     decoder := json.NewDecoder(file)
     err := decoder.Decode(&CONF)

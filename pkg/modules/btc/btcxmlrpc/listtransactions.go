@@ -7,10 +7,10 @@ import(
     // "github.com/mitchellh/mapstructure"
     // "github.com/elliotchance/phpserialize"
 
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    // logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    "github.com/btcid/wallet-services-backend/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    // logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
 type ListTransactionsNodeXmlRpcRes struct {

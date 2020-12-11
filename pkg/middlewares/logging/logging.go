@@ -4,7 +4,7 @@ import(
     "fmt"
     "net/http"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func LogMiddleware(hf http.Handler) http.Handler {

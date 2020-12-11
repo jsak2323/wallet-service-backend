@@ -6,10 +6,10 @@ import (
 
     "github.com/ethereum/go-ethereum/common/hexutil"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    modules_util "github.com/btcid/wallet-services-backend/pkg/modules/util"
-    "github.com/btcid/wallet-services-backend/cmd/config"
-    "github.com/btcid/wallet-services-backend/pkg/modules/eth"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    modules_util "github.com/btcid/wallet-services-backend-go/pkg/modules/util"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/eth"
 )
 
 func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {

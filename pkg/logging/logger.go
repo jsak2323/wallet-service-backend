@@ -7,8 +7,8 @@ import (
     "github.com/sirupsen/logrus"
     "net/http"
 
-    "github.com/btcid/wallet-services-backend/cmd/config"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
 var logsDir = "/logs/"

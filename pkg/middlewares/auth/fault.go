@@ -5,9 +5,9 @@ import (
     "strconv"
     "net/http"
 
-    "github.com/btcid/wallet-services-backend/cmd/config"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 const emailSubjectPrefix string = "[WALLETSERVICE]"

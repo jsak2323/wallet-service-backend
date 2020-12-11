@@ -54,8 +54,8 @@
     mkdir github.com && cd github.com
     mkdir btcid && cd btcid
 
-    git clone https://github.com/btcid/wallet-services-backend.git
-    cd wallet-services-backend
+    git clone git@35.240.159.3:btcid/wallet/wallet-services-backend-go.git
+    cd wallet-services-backend-go
     mkdir logs
     go mod init
 

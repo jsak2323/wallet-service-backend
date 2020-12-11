@@ -1,8 +1,8 @@
 package xmlrpc
 
 import (
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend/pkg/modules/model"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 func (gs *GeneralService) AddressType(rpcConfig rc.RpcConfig, address string) (*model.AddressTypeRpcRes, error) {

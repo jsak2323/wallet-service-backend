@@ -1,8 +1,8 @@
 package model
 
 import (
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 )
 
 type GetBlockCountRpcRes struct {

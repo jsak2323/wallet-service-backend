@@ -1,7 +1,7 @@
 package handlers
 
 import (
-    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
+    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 )
 
 type RpcConfigResDetail struct { 

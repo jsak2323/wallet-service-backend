@@ -6,10 +6,10 @@ import(
 
     "github.com/gorilla/mux"
     
-    h "github.com/btcid/wallet-services-backend/pkg/http/handlers"
-    c "github.com/btcid/wallet-services-backend/pkg/http/handlers/cron"
-    "github.com/btcid/wallet-services-backend/pkg/database/mysql"
-    "github.com/btcid/wallet-services-backend/pkg/modules"
+    h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
+    c "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
+    "github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {

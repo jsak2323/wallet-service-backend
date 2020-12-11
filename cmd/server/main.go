@@ -8,9 +8,9 @@ import(
 
     "github.com/gorilla/mux"
 
-    logm "github.com/btcid/wallet-services-backend/pkg/middlewares/logging"
-    authm "github.com/btcid/wallet-services-backend/pkg/middlewares/auth"
-    "github.com/btcid/wallet-services-backend/cmd/config"
+    logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
+    authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 func main() {

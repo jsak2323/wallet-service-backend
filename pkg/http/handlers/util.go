@@ -5,7 +5,7 @@ import (
     "io/ioutil"
     "encoding/json"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func DecodeAndLogPostRequest(req *http.Request, output interface{}) error {

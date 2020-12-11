@@ -6,7 +6,7 @@ import (
 
     _ "github.com/go-sql-driver/mysql"
 
-    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
+    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 )
 
 const healthCheckTable = "health_check"

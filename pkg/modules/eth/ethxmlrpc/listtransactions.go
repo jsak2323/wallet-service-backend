@@ -4,9 +4,9 @@ import(
     "errors"
     "strconv"
 
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
 func (es *EthService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {

@@ -4,8 +4,8 @@ import (
     "fmt"
     "strconv"
 
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    modules_m "github.com/btcid/wallet-services-backend/pkg/modules/model"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    modules_m "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 func IsBlockCountHealthyFallback(service modules_m.ModuleService, nodeBlockCount int, rpcConfigId int) (bool, error) {

@@ -1,8 +1,8 @@
 package btcxmlrpc
 
 import (
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend/pkg/modules/model"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 // todo: addresstype function for btc (btc-middleware doesn't have the function yet)

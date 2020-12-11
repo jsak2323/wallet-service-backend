@@ -13,7 +13,7 @@ import (
 
     "github.com/divan/gorilla-xmlrpc/xml"
 
-    rc "github.com/btcid/wallet-services-backend/pkg/domain/rpcconfig"
+    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 )
 
 type RpcReq struct {

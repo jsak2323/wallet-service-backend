@@ -5,7 +5,7 @@ import (
 
     _ "github.com/go-sql-driver/mysql"
 
-    cc "github.com/btcid/wallet-services-backend/pkg/domain/currencyconfig"
+    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 )
 
 const currencyConfigTable = "currency_config"

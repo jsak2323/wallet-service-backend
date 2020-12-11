@@ -5,12 +5,12 @@ import(
     "strconv"
     "net/http"
 
-    h "github.com/btcid/wallet-services-backend/pkg/http/handlers"
-    hc "github.com/btcid/wallet-services-backend/pkg/domain/healthcheck"
-    logger "github.com/btcid/wallet-services-backend/pkg/logging"
-    "github.com/btcid/wallet-services-backend/cmd/config"
-    "github.com/btcid/wallet-services-backend/pkg/modules"
-    "github.com/btcid/wallet-services-backend/pkg/lib/util"
+    h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
+    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+    "github.com/btcid/wallet-services-backend-go/cmd/config"
+    "github.com/btcid/wallet-services-backend-go/pkg/modules"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
 type HealthCheckService struct {
