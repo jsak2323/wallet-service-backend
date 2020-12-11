@@ -12,7 +12,7 @@ type ModuleServiceMap map[string]modules_m.ModuleService
 
 func NewModuleServices(healthCheckRepo hc.HealthCheckRepository) *ModuleServiceMap {
 
-    generalModules := []string{"ALGO", "ZIL"}
+    generalModules := []string{"ALGO", "CKB", "EGLD", "FIL", "HIVE", "XTZ", "THETA", "ZIL"}
 
     ModuleServices := make(ModuleServiceMap)
 
