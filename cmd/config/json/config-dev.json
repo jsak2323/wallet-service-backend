@@ -11,12 +11,16 @@
         "127.0.0.1",
         "182.253.124.22"
 
+
+        
+
     ],
 
     "mail_host"             : "smtp.gmail.com",
     "mail_port"             : "587",
     "mail_user"             : "icefang.000@gmail.com",
-    "mail_encrypted_pass"   : "1a38a40e8adf933e3844aa4d1aeacb8c7256d2f3193dfbd2f8e2a3c1e9407bfb9828b0e17c8312",
+    "mail_address"          : "icefang.000@gmail.com",
+    "mail_encrypted_pass"   : "1ca87cc8303d0a4a5476ef0a8250dad8b0208b619c2c02afada6a5be2d553fbdd91498316ea246f25a",
     "mail_encryption_key"   : "tujDoivCitCiHaccoujhomyudrevPidd",
 
     "session_error_mail_notif_limit" : 30,
