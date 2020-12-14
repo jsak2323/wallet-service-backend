@@ -78,6 +78,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     // -- GET healthcheck
     healthCheckService := c.NewHealthCheckService(healthCheckRepo, ModuleServices)
     r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
+    r.HandleFunc("/cron/healthcheck/{ping}", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
 
 }
 

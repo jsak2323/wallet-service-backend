@@ -5,6 +5,8 @@ import(
     "strconv"
     "net/http"
 
+    "github.com/gorilla/mux"
+
     h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
@@ -25,13 +27,16 @@ func NewHealthCheckService(healthCheckRepo hc.HealthCheckRepository, moduleServi
     }
 }
 
-func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *http.Request) {
+    vars := mux.Vars(req)
+    ping := vars["ping"]
+
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
 
-    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , r)
+    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
-    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , r)
+    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , req)
 
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 
@@ -40,6 +45,15 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
             isBlockCountHealthy, blockDiff := false, 0
 
             if resRpcConfig.RpcConfig.IsHealthCheckEnabled {
+
+                if ping != "" { // if ping, only check if blockount is 0
+                    if nodeBlockCount <= 0 {
+                        hcs.sendNotificationEmails(resRpcConfig)
+                    }
+                    fmt.Println(" -- Healthcheck ping "+resSymbol+" Blocks: "+resRpcConfig.Blocks)
+                    continue
+                }
+
                 _isBlockCountHealthy, _blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
                 if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
 
@@ -51,7 +65,9 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, r *http
                 }
             }
 
-            hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+            if ping == "" {
+                hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+            }
         }
     }
 }
