@@ -2,11 +2,8 @@ package cron
 
 import(
     "fmt"
-    "time"
     "strconv"
     "net/http"
-
-    "github.com/gorilla/mux"
 
     h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
@@ -29,14 +26,17 @@ func NewHealthCheckService(healthCheckRepo hc.HealthCheckRepository, moduleServi
 }
 
 func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *http.Request) {
-    vars := mux.Vars(req)
-    ping := vars["ping"]
-    isPing := ping != ""
+    isPing := false
 
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
 
-    if isPing { time.Sleep(time.Second*5) }
+    // after 9 or more minutes, save health check to db. otherwise, only ping
+    lastHealthCheck, _ := hcs.healthCheckRepo.GetByRpcConfigId(1)
+    minuteDiff, err := util.GetMinuteDiffFromNow(lastHealthCheck.LastUpdated)
+    if err == nil && lastHealthCheck.Id == 1 && minuteDiff < 9 {
+        isPing = true
+    }
 
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")

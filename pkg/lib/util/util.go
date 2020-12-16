@@ -5,7 +5,6 @@ import (
     "time"
     "errors"
     "reflect"
-    "math/big"
     "crypto/aes"
     "crypto/rand"
     "crypto/cipher"
@@ -44,29 +43,6 @@ func InArray(val interface{}, array interface{}) (exists bool, index int) {
         }
     }
     return
-}
-
-func WeiToEther(wei string) string {
-    bigFloat, ok := new(big.Float).SetString(wei)
-    if !ok { return "0" }
-
-    divider, ok := new(big.Float).SetString("1000000000000000000")
-    if !ok { return "0" }
-
-    eth := new(big.Float).Quo(bigFloat, divider)
-    return eth.String()
-}
-
-func EtherToWei(ether string) uint64 {
-    bigFloat, ok := new(big.Float).SetString(ether)
-    if !ok { return uint64(0) }
-
-    multiplier, ok := new(big.Float).SetString("1000000000000000000")
-    if !ok { return uint64(0) }
-
-    wei := new(big.Float).Mul(bigFloat, multiplier)
-    weiuint64, _ := wei.Uint64()
-    return weiuint64
 }
 
 func UniqueStrings(input []string) []string {
@@ -136,6 +112,19 @@ func GetRpcConfigByType(SYMBOL string, rpcConfigType string) (rc.RpcConfig, erro
         }
     }
     return rc.RpcConfig{}, errors.New("RpcConfig not found.")
+}
+
+func GetMinuteDiffFromNow(datetime string) (float64, error) {
+    minuteDiff := 0.0
+
+    timeNow := time.Now()
+
+    layout := "2006-01-02 15:04:05"
+    time, err := time.Parse(layout, datetime)
+    if err != nil { return minuteDiff, err }
+
+    minuteDiff = timeNow.Sub(time).Minutes()
+    return minuteDiff, nil
 }
 
 
