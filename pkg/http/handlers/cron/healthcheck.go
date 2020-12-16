@@ -2,6 +2,7 @@ package cron
 
 import(
     "fmt"
+    "time"
     "strconv"
     "net/http"
 
@@ -30,9 +31,12 @@ func NewHealthCheckService(healthCheckRepo hc.HealthCheckRepository, moduleServi
 func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *http.Request) {
     vars := mux.Vars(req)
     ping := vars["ping"]
+    isPing := ping != ""
 
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
+
+    if isPing { time.Sleep(time.Second*5) }
 
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
@@ -46,7 +50,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
 
             if resRpcConfig.RpcConfig.IsHealthCheckEnabled {
 
-                if ping != "" { // if ping, only check if blockount is 0
+                if isPing { // if ping, only check if blockount is 0
                     if nodeBlockCount <= 0 {
                         hcs.sendNotificationEmails(resRpcConfig)
                     }
@@ -65,7 +69,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
                 }
             }
 
-            if ping == "" {
+            if !isPing {
                 hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
             }
         }
