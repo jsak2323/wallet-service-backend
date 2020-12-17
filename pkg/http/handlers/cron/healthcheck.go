@@ -31,6 +31,8 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
 
+    time.Sleep(time.Second*5)
+
     // after 9 or more minutes, save health check to db. otherwise, only ping
     lastHealthCheck, _ := hcs.healthCheckRepo.GetByRpcConfigId(1)
     minuteDiff, err := util.GetMinuteDiffFromNow(lastHealthCheck.LastUpdated)

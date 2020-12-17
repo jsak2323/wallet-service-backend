@@ -1,4 +1,4 @@
 #healthcheck
-*/1 * * * * curl localhost:3000/cron/healthcheck
+*/2 * * * * curl localhost:3000/cron/healthcheck
 
 
