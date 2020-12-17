@@ -67,9 +67,11 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
                 isBlockCountHealthy = _isBlockCountHealthy
                 blockDiff           = _blockDiff
 
-                if !isBlockCountHealthy { // if not healthy, send notification emails
+                if !isBlockCountHealthy && config.FirstHealthCheck { // if not healthy, send notification emails
                     hcs.sendNotificationEmails(resRpcConfig)
                 }
+
+                config.FirstHealthCheck = true
             }
 
             if !isPing {
