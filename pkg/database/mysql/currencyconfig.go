@@ -59,6 +59,7 @@ func (r *currencyConfigRepository) GetBySymbol(symbol string) (*cc.CurrencyConfi
 func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
     var qrCodePrefix    sql.NullString
     var cmcId           sql.NullInt64
+    var parentSymbol    sql.NullString
 
     err := rows.Scan(
         &currConf.Id,
@@ -76,13 +77,14 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.HealthyBlockDiff,
         &currConf.DefaultIdrPrice,
         &cmcId,
-        &currConf.ParentSymbol,
+        &parentSymbol,
         &currConf.LastUpdated,
     )
     if err != nil { return err }
 
     if qrCodePrefix.Valid { currConf.QrCodePrefix = qrCodePrefix.String }
     if cmcId.Valid { currConf.CmcId = int(cmcId.Int64) }
+    if parentSymbol.Valid { currConf.ParentSymbol = parentSymbol.String }
 
     return nil
 }

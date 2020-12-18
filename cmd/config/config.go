@@ -108,9 +108,14 @@ func LoadCurrencyConfigs() {
     }
 
     for _, currencyConfig := range currencyConfigs {
-        rpcConfigs, err := rpcConfigRepo.GetByCurrencyId(currencyConfig.Id)
+        getSymbol := currencyConfig.Symbol        
+        if currencyConfig.ParentSymbol != "" {
+            getSymbol = currencyConfig.ParentSymbol
+        }
+
+        rpcConfigs, err := rpcConfigRepo.GetByCurrencySymbol(getSymbol)
         if err != nil {
-            panic("Unexpected error when executing rpcConfigRepo.GetByCurrencyId(currencyConfig.Id). Error: "+err.Error())
+            panic("Unexpected error when executing rpcConfigRepo.GetByCurrencySymbol(getSymbol). "+getSymbol+" Error: "+err.Error())
         }
 
         CURR[currencyConfig.Symbol] = CurrencyConfiguration{
