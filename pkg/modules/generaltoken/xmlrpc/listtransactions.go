@@ -28,7 +28,7 @@ func (gts *GeneralTokenService) ListTransactions(rpcConfig rc.RpcConfig, limit i
 
     rpcRes := ListTransactionsXmlRpcRes{}
 
-    err := client.XmlRpcCall(gs.ParentSymbol+"Rpc.ListTransactions", &rpcReq, &rpcRes)
+    err := client.XmlRpcCall(gts.ParentSymbol+"Rpc.ListTransactions", &rpcReq, &rpcRes)
 
     if err != nil {
         return &res, err

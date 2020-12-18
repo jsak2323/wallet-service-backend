@@ -27,7 +27,7 @@ func (gts *GeneralTokenService) SendToAddress(rpcConfig rc.RpcConfig, amountInDe
 
     rpcRes := SendToAddressXmlRpcRes{}
 
-    err := client.XmlRpcCall(gs.ParentSymbol+"Rpc.SendToAddress", &rpcReq, &rpcRes)
+    err := client.XmlRpcCall(gts.ParentSymbol+"Rpc.SendToAddress", &rpcReq, &rpcRes)
 
     if err != nil {
         return &res, err

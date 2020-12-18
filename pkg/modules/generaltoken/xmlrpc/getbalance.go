@@ -27,7 +27,7 @@ func (gts *GeneralTokenService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBa
 
     rpcRes := GetBalanceXmlRpcRes{}
 
-    err := client.XmlRpcCall(gs.ParentSymbol+"Rpc.GetBalance", &rpcReq, &rpcRes)
+    err := client.XmlRpcCall(gts.ParentSymbol+"Rpc.GetBalance", &rpcReq, &rpcRes)
 
     if err != nil {
         return &res, err
