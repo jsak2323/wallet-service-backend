@@ -9,7 +9,7 @@ import (
 
 func (gts *GeneralTokenService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
     isBlockCountHealthy := false
-    PARENTSYMBOL        := gts.GetParentSymbol()
+    PARENTSYMBOL        := gts.ParentSymbol
     healthyBlockDiff    := config.CURR[PARENTSYMBOL].Config.HealthyBlockDiff
     blockDiff           := 0
 

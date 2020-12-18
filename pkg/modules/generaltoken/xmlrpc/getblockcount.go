@@ -24,7 +24,7 @@ func (gts *GeneralTokenService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.Ge
 
     rpcRes := GetBlockCountXmlRpcRes{}
 
-    err := client.XmlRpcCall(gts.GetParentSymbol()+"Rpc.GetBlockCount", &rpcReq, &rpcRes)
+    err := client.XmlRpcCall(gts.ParentSymbol+"Rpc.GetBlockCount", &rpcReq, &rpcRes)
 
     if err != nil {
         return &res, err

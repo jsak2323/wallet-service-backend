@@ -1,12 +1,13 @@
 package xmlrpc
 
 import (
-    // "errors"
-    // "strconv"
+    "errors"
+    "strings"
+    "strconv"
 
     rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
     "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
-    // "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
 type ListTransactionsXmlRpcRes struct {
@@ -19,6 +20,27 @@ type ListTransactionsXmlRpcResStruct struct {
 
 func (gts *GeneralTokenService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
     res := model.ListTransactionsRpcRes{}
+
+    token := strings.ToLower(gts.Symbol)
+
+    rpcReq := util.GenerateRpcReq(rpcConfig, strconv.Itoa(limit), token, "")
+    client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+
+    rpcRes := ListTransactionsXmlRpcRes{}
+
+    err := client.XmlRpcCall(gs.ParentSymbol+"Rpc.ListTransactions", &rpcReq, &rpcRes)
+
+    if err != nil {
+        return &res, err
+
+    } else if rpcRes.Content.Error != "" {
+        return &res, errors.New(rpcRes.Content.Error)
+
+    } else if rpcRes.Content.Transactions == "" {
+        return &res, errors.New("Unexpected error occured in Node.")
+    }
+
+    res.Transactions = rpcRes.Content.Transactions
     return &res, nil
 }
 
