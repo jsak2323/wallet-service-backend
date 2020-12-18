@@ -42,7 +42,7 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
 }
 
 func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig, error) {
-    query := "SELECT * FROM "+rpcConfigTable
+    query := "SELECT "+rpcConfigTable+".* FROM "+rpcConfigTable
     query += " LEFT JOIN "+currencyConfigTable+" ON "+rpcConfigTable+".currency_id = "+currencyConfigTable+".id "
     query += " WHERE "+currencyConfigTable+".symbol = '"+symbol+"'"
     rpcConfigs := []rc.RpcConfig{}
