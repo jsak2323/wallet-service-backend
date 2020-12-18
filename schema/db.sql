@@ -17,6 +17,7 @@ CREATE TABLE currency_config (
   healthy_block_diff        INT(11) NOT NULL DEFAULT 0,
   default_idr_price         INT(15) NOT NULL DEFAULT 0,
   cmc_id                    INT(7) NULL DEFAULT NULL,
+  parent_symbol             VARCHAR(50) NULL DEFAULT NULL,
   last_updated              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
   PRIMARY KEY (id)

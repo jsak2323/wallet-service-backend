@@ -76,6 +76,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.HealthyBlockDiff,
         &currConf.DefaultIdrPrice,
         &cmcId,
+        &currConf.ParentSymbol,
         &currConf.LastUpdated,
     )
     if err != nil { return err }

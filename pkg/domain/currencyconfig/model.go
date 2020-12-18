@@ -18,6 +18,7 @@ type CurrencyConfig struct {
     HealthyBlockDiff        int
     DefaultIdrPrice         int
     CmcId                   int
+    ParentSymbol            string
     LastUpdated             string
 }
 
