@@ -33,6 +33,10 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/gethealthcheck", getHealthCheckService.GetHealthCheckHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/gethealthcheck", getHealthCheckService.GetHealthCheckHandler).Methods(http.MethodGet)
 
+    // -- GET log
+    getLogService := h.NewGetLogService(ModuleServices)
+    r.HandleFunc("/log/{rpcconfigid}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet)
+
     // -- GET getbalance (disabled)
     /*
     getBalanceService := h.NewGetBalanceService(ModuleServices)

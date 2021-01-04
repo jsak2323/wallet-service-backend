@@ -55,7 +55,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
 
                 if isPing { // if ping, only check if blockount is 0
                     if nodeBlockCount <= 0 {
-                        hcs.sendNotificationEmails(resRpcConfig)
+                        hcs.sendNotificationEmails(resRpcConfig, -1)
                     }
                     fmt.Println(" -- Healthcheck ping "+resSymbol+" Blocks: "+resRpcConfig.Blocks)
                     continue
@@ -68,7 +68,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
                 blockDiff           = _blockDiff
 
                 if !isBlockCountHealthy && config.FirstHealthCheck { // if not healthy, send notification emails
-                    hcs.sendNotificationEmails(resRpcConfig)
+                    hcs.sendNotificationEmails(resRpcConfig, blockDiff)
                 }
 
                 config.FirstHealthCheck = true
@@ -118,8 +118,13 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
     return nil
 }
 
-func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
+func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes, blockDiff int) {
     logger.Log(" - HealthCheckHandler -- Sending notification email ...")
+
+    blockCount := res.Blocks
+    if blockCount == "" {
+        blockCount = "0"
+    }
 
     subject := "Health Check Failed for "+res.RpcConfig.Symbol+" VM ("+res.RpcConfig.Host+")"
     message := "Health check has failed with following detail: "+
@@ -128,7 +133,8 @@ func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes) {
     "\n Name: "+res.RpcConfig.Name+
     "\n Type: "+res.RpcConfig.Type+
     "\n Node Version: "+res.RpcConfig.NodeVersion+
-    "\n BlockCount: "+res.Blocks
+    "\n BlockCount: "+blockCount+
+    "\n BlockDiff: "+strconv.Itoa(blockDiff)
 
     recipients := config.CONF.NotificationEmails
 
