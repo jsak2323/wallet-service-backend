@@ -1,10 +1,9 @@
 package handlers
 
 import (
-    "fmt"
+    "io"
     "strings"
     "net/http"
-    // "encoding/json"
 
     "github.com/gorilla/mux"
 
@@ -24,17 +23,6 @@ func NewGetLogService(moduleServices *modules.ModuleServiceMap) *GetLogService {
 }
 
 func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request) { 
-    // define response handler
-    handleResponse := func() {
-        resStatus := http.StatusOK
-        // if RES.Error != "" {
-        //     resStatus = http.StatusInternalServerError
-        // }
-        w.WriteHeader(resStatus)
-        // json.NewEncoder(w).Encode(RES)
-    }
-    defer handleResponse()
-
     // define request params
     vars := mux.Vars(req)
     symbol          := vars["symbol"]
@@ -48,36 +36,23 @@ func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request
     rpcConfig, err := util.GetRpcConfigByType(SYMBOL, rpcConfigType)
     if err != nil {
         logger.ErrorLog(" - GetLogHandler util.GetRpcConfigByType(SYMBOL, rpcConfigType) err: "+err.Error())
-        // RES.Error = err.Error()
         return
     }
 
-    fmt.Printf("rpcConfig: %+v\n", rpcConfig)
+    // get log file
+    res, err := http.Get("http://"+rpcConfig.Host+":"+rpcConfig.Port+"/log/"+date)
+    if err != nil { 
+        logger.ErrorLog(" - GetLogHandler http.get err: "+err.Error())
+        return
+    }
+    defer res.Body.Close()
 
-    // RES.RpcConfig = RpcConfigResDetail{
-    //     RpcConfigId             : rpcConfig.Id,
-    //     Symbol                  : SYMBOL,
-    //     Name                    : rpcConfig.Name,
-    //     Host                    : rpcConfig.Host,
-    //     Type                    : rpcConfig.Type,
-    //     NodeVersion             : rpcConfig.NodeVersion,
-    //     NodeLastUpdated         : rpcConfig.NodeLastUpdated,
-    //     IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
-    // }
+    // serve log file
+    w.Header().Set("Content-Disposition", "attachment; filename=app.log")
+    w.Header().Set("Content-Type", "application/octet-stream")
+    w.Header().Set("Content-Length", res.Header.Get("Content-Length"))
 
-    // execute rpc call
-    filepath, err := (*gls.moduleServices)[SYMBOL].GetLog(rpcConfig, date)
-    // if err != nil { 
-    //     logger.ErrorLog(" - GetLogHandler (*gls.moduleServices)[SYMBOL].GetLog(rpcConfig, date), Error: "+err.Error())
-    //     // RES.Error = err.Error()
-    //     return
-    // }
-
-    // handle success response
-    // RES.AddressType = rpcRes.AddressType
-    // RES.Error       = rpcRes.Error
-    // resJson, _ := json.Marshal(RES)
-    // logger.InfoLog(" - AddressTypeHandler Success. Symbol: "+SYMBOL+", Res: "+string(resJson), req)
+    io.Copy(w, res.Body)
 }
 
 

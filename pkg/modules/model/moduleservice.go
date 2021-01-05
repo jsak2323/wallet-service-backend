@@ -40,7 +40,6 @@ type ModuleService interface {
     GetHealthCheckRepo() (hc.HealthCheckRepository)
     IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error)
 
-    GetLog(rpcConfig rc.RpcConfig, date string) (string, error)
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
     GetBalance(rpcConfig rc.RpcConfig) (*GetBalanceRpcRes, error)
     ListTransactions(rpcConfig rc.RpcConfig, limit int) (*ListTransactionsRpcRes, error)
