@@ -4,7 +4,7 @@ import (
     "fmt"
     "strings"
     "net/http"
-    "encoding/json"
+    // "encoding/json"
 
     "github.com/gorilla/mux"
 
@@ -27,32 +27,33 @@ func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request
     // define response handler
     handleResponse := func() {
         resStatus := http.StatusOK
-        if RES.Error != "" {
-            resStatus = http.StatusInternalServerError
-        }
+        // if RES.Error != "" {
+        //     resStatus = http.StatusInternalServerError
+        // }
         w.WriteHeader(resStatus)
-        json.NewEncoder(w).Encode(RES)
+        // json.NewEncoder(w).Encode(RES)
     }
     defer handleResponse()
 
     // define request params
     vars := mux.Vars(req)
-    rpcConfigId := vars["rpcconfigid"]
-    date        := vars["date"]
+    symbol          := vars["symbol"]
+    date            := vars["date"]
+    rpcConfigType   := vars["rpcconfigtype"]
 
-    fmt.Println("rpcConfigId: ", rpcConfigId)
-    fmt.Println("date: ", date)
+    SYMBOL := strings.ToUpper(symbol)
+    logger.InfoLog(" - GetLogHandler For symbol: "+SYMBOL+", date: "+date+", type: "+rpcConfigType+", Requesting ...", req) 
 
-    // SYMBOL := strings.ToUpper(symbol)
-    // logger.InfoLog(" - AddressTypeHandler For symbol: "+SYMBOL+", Requesting ...", req) 
+    // define rpc config
+    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, rpcConfigType)
+    if err != nil {
+        logger.ErrorLog(" - GetLogHandler util.GetRpcConfigByType(SYMBOL, rpcConfigType) err: "+err.Error())
+        // RES.Error = err.Error()
+        return
+    }
 
-    // // define rpc config
-    // rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")
-    // if err != nil {
-    //     logger.ErrorLog(" - AddressTypeHandler util.GetRpcConfigByType(SYMBOL, \"receiver\") err: "+err.Error())
-    //     RES.Error = err.Error()
-    //     return
-    // }
+    fmt.Printf("rpcConfig: %+v\n", rpcConfig)
+
     // RES.RpcConfig = RpcConfigResDetail{
     //     RpcConfigId             : rpcConfig.Id,
     //     Symbol                  : SYMBOL,
@@ -64,11 +65,11 @@ func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request
     //     IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     // }
 
-    // // execute rpc call
-    // rpcRes, err := (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, address)
+    // execute rpc call
+    filepath, err := (*gls.moduleServices)[SYMBOL].GetLog(rpcConfig, date)
     // if err != nil { 
-    //     logger.ErrorLog(" - AddressTypeHandler (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, addressType) address: "+address+", Error: "+err.Error())
-    //     RES.Error = err.Error()
+    //     logger.ErrorLog(" - GetLogHandler (*gls.moduleServices)[SYMBOL].GetLog(rpcConfig, date), Error: "+err.Error())
+    //     // RES.Error = err.Error()
     //     return
     // }
 

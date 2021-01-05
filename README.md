@@ -57,6 +57,7 @@
     git clone git@35.240.159.3:btcid/wallet/wallet-services-backend-go.git
     cd wallet-services-backend-go
     mkdir logs
+    mkdir download
     go mod init
 
     // build app

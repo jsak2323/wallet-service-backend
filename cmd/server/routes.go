@@ -35,7 +35,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
     // -- GET log
     getLogService := h.NewGetLogService(ModuleServices)
-    r.HandleFunc("/log/{rpcconfigid}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet)
+    r.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet)
 
     // -- GET getbalance (disabled)
     /*
