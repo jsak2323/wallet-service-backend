@@ -43,7 +43,6 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
     ghcs.InvokeGetHealthCheck(&RES, symbol)
     
     // handle success response
-    resJson, _ := json.Marshal(RES)
     logger.InfoLog(" - GetHealthCheckHandler Success.", req)
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
