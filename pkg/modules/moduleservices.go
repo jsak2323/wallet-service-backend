@@ -9,7 +9,6 @@ import(
 
     "github.com/btcid/wallet-services-backend-go/pkg/modules/btc/btcxmlrpc"
     "github.com/btcid/wallet-services-backend-go/pkg/modules/eth/ethxmlrpc"
-    // "github.com/btcid/wallet-services-backend-go/pkg/modules/theta/thetaxmlrpc"
 )
 
 type ModuleServiceMap map[string]modules_m.ModuleService
