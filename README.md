@@ -1,23 +1,15 @@
-// INSTALL VM REQUIREMENTS
-
+## Install VM Requirements
     export LANGUAGE=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
 
     sudo apt-get update
     sudo apt-get -y upgrade
-
+    sudo apt-get install mysql-server 
     sudo apt-get install software-properties-common
     sudo apt-get update && sudo apt-get install sqlite3
     sudo apt-get install jq
     sudo apt-get install zip
-
     sudo apt-get install build-essential
-
-    sudo apt-get install mysql-server 
-    mysql_secure_installation
-    // run this query to require root password when connecting to db
-    // USE mysql; UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root' AND host = 'localhost'; UPDATE user set authentication_string=PASSWORD("mynewpassword") where User='root'; FLUSH PRIVILEGES;
-    sudo service mysql restart
 
     // install stackdriver
     curl -sSO https://dl.google.com/cloudagents/add-monitoring-agent-repo.sh && sudo bash add-monitoring-agent-repo.sh && sudo apt-get update && sudo apt-cache madison stackdriver-agent
@@ -27,10 +19,19 @@
     // version check
     dpkg-query --show --showformat '${Package} ${Version} ${Architecture} ${Status}\n' stackdriver-agent
 
+## Setup MySql
+    mysql_secure_installation
+    // run this query to require root password when connecting to db
+    USE mysql; 
+    UPDATE mysql.user SET plugin = 'mysql_native_password' WHERE user = 'root' AND host = 'localhost'; 
+    UPDATE user set authentication_string=PASSWORD("mynewpassword") where User='root'; 
+    FLUSH PRIVILEGES;
+    exit;
+    sudo service mysql restart
 
 
-// INSTALL GO
 
+## Install Go
     cd /tmp
     wget https://dl.google.com/go/go1.14.7.linux-amd64.tar.gz
 
@@ -39,16 +40,15 @@
 
     sudo nano ~/.bashrc
     // add to end of file
-  export GOROOT=/usr/local/go
-  export GOPATH=$HOME/go
-  export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+    export GOROOT=/usr/local/go
+    export GOPATH=$HOME/go
+    export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 
     source ~/.profile
 
     go version
 
-// CLONE APP FROM GIT
-
+## Clone App from Git
     cd $GOPATH
     mkdir src && cd src
     mkdir github.com && cd github.com
@@ -66,7 +66,5 @@
 
     // run app
     ./main
-
-
 
 

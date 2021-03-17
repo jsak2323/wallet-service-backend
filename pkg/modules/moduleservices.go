@@ -14,9 +14,6 @@ import(
 type ModuleServiceMap map[string]modules_m.ModuleService
 
 func NewModuleServices(healthCheckRepo hc.HealthCheckRepository) *ModuleServiceMap {
-
-    generalModules := []string{"ALGO", "CKB", "EGLD", "FIL", "HIVE", "XTZ", "ZIL", "DGB"}
-
     ModuleServices := make(ModuleServiceMap)
 
     // unique modules
@@ -27,7 +24,11 @@ func NewModuleServices(healthCheckRepo hc.HealthCheckRepository) *ModuleServiceM
     ModuleServices["THETA"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "THETA", healthCheckRepo)
     ModuleServices["TFUEL"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "TFUEL", healthCheckRepo)
 
+    // tron modules
+    ModuleServices["TRX"] = generaltokenxmlrpc.NewGeneralTokenService("TRX", "TRX", healthCheckRepo)
+
     // general modules
+    generalModules := []string{"ALGO", "CKB", "EGLD", "FIL", "HIVE", "XTZ", "ZIL", "DGB", "QTUM", "HBAR"}
     for _, SYMBOL := range generalModules {
         ModuleServices[SYMBOL] = generalxmlrpc.NewGeneralService(SYMBOL, healthCheckRepo)
     }
