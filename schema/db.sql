@@ -44,6 +44,13 @@ CREATE TABLE rpc_config (
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
+CREATE TABLE system_config (
+  name    VARCHAR(255) NOT NULL DEFAULT "",
+  value   TEXT NOT NULL,
+
+  UNIQUE KEY name (name)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
 CREATE TABLE health_check (
   id                    INT(11) NOT NULL AUTO_INCREMENT,
   rpc_config_id         INT(11) NOT NULL,
