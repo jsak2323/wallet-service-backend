@@ -15,10 +15,11 @@ import(
 func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
     // REPOSITORIES
-    healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
+    healthCheckRepo  := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
+    systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
     // MODULE SERVICES
-    ModuleServices := modules.NewModuleServices(healthCheckRepo)
+    ModuleServices := modules.NewModuleServices(healthCheckRepo, systemConfigRepo)
 
 
     // API ROUTES
@@ -80,7 +81,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     // CRON ROUTES
 
     // -- GET healthcheck
-    healthCheckService := c.NewHealthCheckService(healthCheckRepo, ModuleServices)
+    healthCheckService := c.NewHealthCheckService(ModuleServices, healthCheckRepo)
     r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
 
 }

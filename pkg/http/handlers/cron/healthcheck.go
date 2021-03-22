@@ -7,6 +7,7 @@ import (
 
     h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+    sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
     "github.com/btcid/wallet-services-backend-go/cmd/config"
     "github.com/btcid/wallet-services-backend-go/pkg/modules"
@@ -14,14 +15,20 @@ import (
 )
 
 type HealthCheckService struct {
-    healthCheckRepo hc.HealthCheckRepository
-    moduleServices *modules.ModuleServiceMap
+    moduleServices  *modules.ModuleServiceMap
+    healthCheckRepo  hc.HealthCheckRepository
+    systemConfigRepo sc.SystemConfigRepository
 }
 
-func NewHealthCheckService(healthCheckRepo hc.HealthCheckRepository, moduleServices *modules.ModuleServiceMap) *HealthCheckService{
+func NewHealthCheckService(
+    moduleServices  *modules.ModuleServiceMap,
+    healthCheckRepo  hc.HealthCheckRepository,
+    systemConfigRepo sc.SystemConfigRepository,
+) *HealthCheckService {
     return &HealthCheckService{
-        healthCheckRepo,
         moduleServices,
+        healthCheckRepo,
+        systemConfigRepo,
     }
 }
 
@@ -40,10 +47,15 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
 
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
-    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , req)
+    logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." )
 
     // get maintenance list
-    
+    // maintenanceList, err := hcs.systemConfigRepo.GetByName(sc.MaintenanceList)
+    // if err != nil {
+    //     logger.ErrorLog(" - HealthCheckHandler hcs.systemConfigRepo.GetByName err: "+err.Error())
+    // }
+    // fmt.Println("maintenanceList: ", maintenanceList)
+    // return
 
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 

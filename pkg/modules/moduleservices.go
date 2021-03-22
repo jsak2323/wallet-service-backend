@@ -16,7 +16,7 @@ type ModuleServiceMap map[string]modules_m.ModuleService
 
 func NewModuleServices(
     healthCheckRepo hc.HealthCheckRepository, 
-    systemConfigRepo sc.SystemConfigRepository
+    systemConfigRepo sc.SystemConfigRepository,
 ) *ModuleServiceMap {
     ModuleServices := make(ModuleServiceMap)
 
