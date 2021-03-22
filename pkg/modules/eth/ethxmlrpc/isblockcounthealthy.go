@@ -33,7 +33,7 @@ func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (
         blockDiff = nodeBlockCount - int(ethBlockNumberUint64)
         blockDiff = int(math.Abs(float64(blockDiff)))
 
-        isBlockCountHealthy = blockDiff <= healthyBlockDiff
+        isBlockCountHealthy = blockDiff > healthyBlockDiff
     }
 
     return isBlockCountHealthy, blockDiff, nil

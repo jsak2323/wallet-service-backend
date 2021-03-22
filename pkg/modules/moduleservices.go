@@ -2,6 +2,7 @@ package modules
 
 import(
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+    sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
     modules_m "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 
     generalxmlrpc "github.com/btcid/wallet-services-backend-go/pkg/modules/general/xmlrpc"
@@ -13,24 +14,27 @@ import(
 
 type ModuleServiceMap map[string]modules_m.ModuleService
 
-func NewModuleServices(healthCheckRepo hc.HealthCheckRepository) *ModuleServiceMap {
+func NewModuleServices(
+    healthCheckRepo hc.HealthCheckRepository, 
+    systemConfigRepo sc.SystemConfigRepository
+) *ModuleServiceMap {
     ModuleServices := make(ModuleServiceMap)
 
     // unique modules
-    ModuleServices["BTC"] = btcxmlrpc.NewBtcService(healthCheckRepo)
-    ModuleServices["ETH"] = ethxmlrpc.NewEthService(healthCheckRepo)
+    ModuleServices["BTC"] = btcxmlrpc.NewBtcService(healthCheckRepo, systemConfigRepo)
+    ModuleServices["ETH"] = ethxmlrpc.NewEthService(healthCheckRepo, systemConfigRepo)
 
     // theta modules
-    ModuleServices["THETA"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "THETA", healthCheckRepo)
-    ModuleServices["TFUEL"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "TFUEL", healthCheckRepo)
+    ModuleServices["THETA"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "THETA", healthCheckRepo, systemConfigRepo)
+    ModuleServices["TFUEL"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "TFUEL", healthCheckRepo, systemConfigRepo)
 
     // tron modules
-    ModuleServices["TRX"] = generaltokenxmlrpc.NewGeneralTokenService("TRX", "TRX", healthCheckRepo)
+    ModuleServices["TRX"] = generaltokenxmlrpc.NewGeneralTokenService("TRX", "TRX", healthCheckRepo, systemConfigRepo)
 
     // general modules
     generalModules := []string{"ALGO", "CKB", "EGLD", "FIL", "HIVE", "XTZ", "ZIL", "DGB", "QTUM", "HBAR"}
     for _, SYMBOL := range generalModules {
-        ModuleServices[SYMBOL] = generalxmlrpc.NewGeneralService(SYMBOL, healthCheckRepo)
+        ModuleServices[SYMBOL] = generalxmlrpc.NewGeneralService(SYMBOL, healthCheckRepo, systemConfigRepo)
     }
 
     return &ModuleServices

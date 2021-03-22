@@ -31,16 +31,19 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
 
-    // after 9 or more minutes, save health check to db. otherwise, only ping
+    // after 11 or more minutes, save health check to db. otherwise, only ping
     lastHealthCheck, _ := hcs.healthCheckRepo.GetByRpcConfigId(1)
     minuteDiff, err := util.GetMinuteDiffFromNow(lastHealthCheck.LastUpdated)
-    if err == nil && lastHealthCheck.Id == 1 && minuteDiff < 9 {
+    if err == nil && lastHealthCheck.Id == 1 && minuteDiff < 11 {
         isPing = true
     }
 
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." , req)
+
+    // get maintenance list
+    
 
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 

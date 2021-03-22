@@ -28,7 +28,7 @@ func (bs *BtcService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (
         blockDiff = nodeBlockCount - getNodeInfoRes.Payload.Blocks
         blockDiff = int(math.Abs(float64(blockDiff)))
 
-        isBlockCountHealthy = blockDiff <= healthyBlockDiff
+        isBlockCountHealthy = blockDiff > healthyBlockDiff
     }
 
     return isBlockCountHealthy, blockDiff, nil

@@ -19,7 +19,7 @@ func (gts *GeneralTokenService) IsBlockCountHealthy(nodeBlockCount int, rpcConfi
     previousBlockCount := previousHealthCheck.BlockCount
 
     blockDiff = nodeBlockCount - previousBlockCount
-    if blockDiff < healthyBlockDiff { 
+    if blockDiff > healthyBlockDiff { 
         isBlockCountHealthy = true
     }
 
