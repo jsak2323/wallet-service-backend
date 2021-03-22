@@ -21,6 +21,6 @@ func (bs *BtcService) GetHealthCheckRepo() hc.HealthCheckRepository {
 func NewBtcService(healthCheckRepo hc.HealthCheckRepository, systemConfigRepo sc.SystemConfigRepository) *BtcService{
     return &BtcService{
         healthCheckRepo,
-        systemConfigRepository,
+        systemConfigRepo,
     }
 }

@@ -28,7 +28,7 @@ func NewGeneralTokenService(
     parentSymbol string, 
     symbol string, 
     healthCheckRepo hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository
+    systemConfigRepo sc.SystemConfigRepository,
 ) *GeneralTokenService {
     return &GeneralTokenService{
         parentSymbol,

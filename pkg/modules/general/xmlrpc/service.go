@@ -8,7 +8,7 @@ import(
 type GeneralService struct {
     Symbol           string
     healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.systemConfigRepository
+    systemConfigRepo sc.SystemConfigRepository
 }
 
 func (gs *GeneralService) GetSymbol() string {
@@ -22,7 +22,7 @@ func (gs *GeneralService) GetHealthCheckRepo() hc.HealthCheckRepository {
 func NewGeneralService(
     symbol string, 
     healthCheckRepo hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository
+    systemConfigRepo sc.SystemConfigRepository,
 ) *GeneralService {
     return &GeneralService{
         symbol,
