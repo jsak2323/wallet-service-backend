@@ -9,6 +9,7 @@ import (
     "github.com/gorilla/mux"
 
     rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+    sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
     "github.com/btcid/wallet-services-backend-go/pkg/modules"
     "github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -17,12 +18,17 @@ import (
 type GetBlockCountHandlerResponseMap map[string][]GetBlockCountRes
 
 type GetBlockCountService struct {
-    moduleServices *modules.ModuleServiceMap
+    moduleServices   *modules.ModuleServiceMap
+    systemConfigRepo sc.SystemConfigRepository
 }
 
-func NewGetBlockCountService(moduleServices *modules.ModuleServiceMap) *GetBlockCountService {
+func NewGetBlockCountService(
+    moduleServices *modules.ModuleServiceMap, 
+    systemConfigRepo sc.SystemConfigRepository,
+) *GetBlockCountService {
     return &GetBlockCountService{
         moduleServices,
+        systemConfigRepo,
     }
 }
 
@@ -52,11 +58,17 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
     rpcConfigCount := 0
     resChannel := make(chan GetBlockCountRes)
 
+    maintenanceList, err := GetMaintenanceList(gbcs.systemConfigRepo)
+    if err != nil { logger.ErrorLog(" - InvokeGetBlockCount h.GetMaintenanceList err: "+err.Error()) }
+
     for SYMBOL, currConfig := range config.CURR {
         SYMBOL = strings.ToUpper(SYMBOL)
 
         // if symbol is defined, only get for that symbol
         if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
+
+        // if maintenance, skip
+        if maintenanceList[SYMBOL] { continue }
 
         for _, rpcConfig := range currConfig.RpcConfigs {
             rpcConfigCount++
@@ -78,7 +90,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
                 rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig)
                 if err != nil { 
-                    logger.Log(" - GetBlockCountHandler (*gbcs.moduleServices)["+SYMBOL+"].GetBlockCount(rpcConfig) Error: "+err.Error())
+                    logger.Log(" - InvokeGetBlockCount (*gbcs.moduleServices)["+SYMBOL+"].GetBlockCount(rpcConfig) Error: "+err.Error())
                     _RES.Error = rpcRes.Error
 
                 } else {

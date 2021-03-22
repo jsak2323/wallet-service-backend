@@ -36,7 +36,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     isPing := false
 
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
-    getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices)
+    getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices, hcs.systemConfigRepo)
 
     // after 11 or more minutes, save health check to db. otherwise, only ping
     lastHealthCheck, _ := hcs.healthCheckRepo.GetByRpcConfigId(1)
@@ -45,17 +45,13 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
         isPing = true
     }
 
+    // get maintenance list
+    maintenanceList, err := h.GetMaintenanceList(hcs.systemConfigRepo)
+    if err != nil { logger.ErrorLog(" - HealthCheckHandler h.GetMaintenanceList err: "+err.Error()) }
+
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
     logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." )
-
-    // get maintenance list
-    // maintenanceList, err := hcs.systemConfigRepo.GetByName(sc.MaintenanceList)
-    // if err != nil {
-    //     logger.ErrorLog(" - HealthCheckHandler hcs.systemConfigRepo.GetByName err: "+err.Error())
-    // }
-    // fmt.Println("maintenanceList: ", maintenanceList)
-    // return
 
     for resSymbol, resRpcConfigs := range gbcRES { 
         for _, resRpcConfig := range resRpcConfigs { 
@@ -64,6 +60,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
             isBlockCountHealthy, blockDiff := false, 0
 
             if !resRpcConfig.RpcConfig.IsHealthCheckEnabled { continue }
+            if maintenanceList[resSymbol] { continue }
 
             if isPing { // if ping, only check if blockount is 0
                 if nodeBlockCount <= 0 {

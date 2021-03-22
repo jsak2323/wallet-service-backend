@@ -25,7 +25,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     // API ROUTES
 
     // -- GET getblockcount
-    getBlockCountService := h.NewGetBlockCountService(ModuleServices)
+    getBlockCountService := h.NewGetBlockCountService(ModuleServices, systemConfigRepo)
     r.HandleFunc("/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
     r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet)
 
@@ -81,7 +81,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     // CRON ROUTES
 
     // -- GET healthcheck
-    healthCheckService := c.NewHealthCheckService(ModuleServices, healthCheckRepo)
+    healthCheckService := c.NewHealthCheckService(ModuleServices, healthCheckRepo, systemConfigRepo)
     r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet)
 
 }
