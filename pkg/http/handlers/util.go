@@ -24,7 +24,7 @@ func DecodeAndLogPostRequest(req *http.Request, output interface{}) error {
 
 func GetMaintenanceList(systemConfigRepo sc.SystemConfigRepository) (map[string]bool, error) {
     maintenanceList := map[string]bool{}
-    maintenanceListObj, err := systemConfigRepo.GetByName(sc.MaintenanceList)
+    maintenanceListObj, err := systemConfigRepo.GetByName(sc.MAINTENANCE_LIST)
     if err != nil { return maintenanceList, err }
 
     maintenanceListSlice := strings.Split(maintenanceListObj.Value, ",")

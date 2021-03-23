@@ -77,6 +77,14 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
         curl --header "Content-Type: application/json" --request POST --data '{"symbol":"btc", "amount":"0.001", "address":"2MtU6EMx37AYrCNj1RcRr6bw66QqHYw4D4R"}' localhost:3000/sendtoaddress | jq
     */
 
+    // -- PUT systemconfig
+    systemConfigService := h.NewSystemConfigService(systemConfigRepo)
+    r.HandleFunc("/systemconfig/maintenancelist/{action}/{value}", systemConfigService.MaintenanceListHandler).Methods(http.MethodPut)
+    /*
+        curl example:
+        
+    */
+
 
     // CRON ROUTES
 

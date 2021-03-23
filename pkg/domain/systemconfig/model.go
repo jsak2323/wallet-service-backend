@@ -5,6 +5,6 @@ type SystemConfig struct {
     Value   string
 }
 
-const MaintenanceList = "maintenance_list"
+const MAINTENANCE_LIST = "maintenance_list"
 
 

@@ -57,4 +57,9 @@ type AddressTypeRes struct {
     Error       string
 }
 
+type StandardRes struct {
+    Success bool
+    Error   string
+}
+
 

@@ -56,6 +56,18 @@ func (r *systemConfigRepository) GetByName(configName string) (*sc.SystemConfig,
     return &sysConf, nil
 }
 
+func (r *systemConfigRepository) Update(sysConf sc.SystemConfig) (error) {
+    query := "UPDATE "+systemConfigTable+" SET "+
+    " `value` = \""+sysConf.Value+"\" "+
+    " WHERE `name` = \""+sysConf.Name+"\""
+
+    rows, err := r.db.Query(query)
+    defer rows.Close()
+    if err != nil { return err }
+
+    return nil
+}
+
 func mapSystemConfig(rows *sql.Rows, sysConf *sc.SystemConfig) error {
     err := rows.Scan(
         &sysConf.Name,
