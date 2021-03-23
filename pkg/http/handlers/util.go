@@ -27,6 +27,10 @@ func GetMaintenanceList(systemConfigRepo sc.SystemConfigRepository) (map[string]
     maintenanceListObj, err := systemConfigRepo.GetByName(sc.MAINTENANCE_LIST)
     if err != nil { return maintenanceList, err }
 
+    if maintenanceListObj.Value == "" {
+        return maintenanceList, nil
+    }
+
     maintenanceListSlice := strings.Split(maintenanceListObj.Value, ",")
     for _, symbol := range maintenanceListSlice {
         maintenanceList[symbol] = true

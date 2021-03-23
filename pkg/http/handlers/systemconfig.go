@@ -9,8 +9,6 @@ import (
 
     sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type SystemConfigService struct {
@@ -69,15 +67,18 @@ func (scs *SystemConfigService) MaintenanceListHandler(w http.ResponseWriter, re
         }
     }
 
-    updateValue := strings.Join(symbolArray, ",")
-    err := scs.systemConfigRepo.Update(sc.SystemConfig{
-        Name  : sc.MAINTENANCE_LIST,
-        Value : updateValue,
-    })
-    if err != nil {
-        logger.ErrorLog(" - MaintenanceListHandler scs.systemConfigRepo.Update err: "+err.Error()) 
-        RES.Error = err.Error()
-        return
+    if (action == "remove" && maintenanceList[value]) || len(symbolArray) > 0 {
+        updateValue := strings.Join(symbolArray, ",")
+        
+        updateErr := scs.systemConfigRepo.Update(sc.SystemConfig{
+            Name  : sc.MAINTENANCE_LIST,
+            Value : updateValue,
+        })
+        if updateErr != nil {
+            logger.ErrorLog(" - MaintenanceListHandler scs.systemConfigRepo.Update err: "+updateErr.Error()) 
+            RES.Error = updateErr.Error()
+            return
+        }
     }
 
     // handle success response

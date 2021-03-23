@@ -82,7 +82,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
     r.HandleFunc("/systemconfig/maintenancelist/{action}/{value}", systemConfigService.MaintenanceListHandler).Methods(http.MethodPut)
     /*
         curl example:
-        
+        curl --request PUT localhost:3000/systemconfig/maintenancelist/add/BTC
     */
 
 
