@@ -8,6 +8,7 @@ import (
     "github.com/gorilla/mux"
 
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+    sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
     "github.com/btcid/wallet-services-backend-go/pkg/modules"
     "github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -16,14 +17,20 @@ import (
 type GetHealthCheckHandlerResponseMap map[string][]GetHealthCheckRes
 
 type GetHealthCheckService struct {
-    moduleServices  *modules.ModuleServiceMap
-    healthCheckRepo hc.HealthCheckRepository
+    moduleServices   *modules.ModuleServiceMap
+    healthCheckRepo  hc.HealthCheckRepository
+    systemConfigRepo sc.SystemConfigRepository
 }
 
-func NewGetHealthCheckService(moduleServices *modules.ModuleServiceMap, healthCheckRepo hc.HealthCheckRepository) *GetHealthCheckService {
+func NewGetHealthCheckService(
+    moduleServices *modules.ModuleServiceMap, 
+    healthCheckRepo hc.HealthCheckRepository,
+    systemConfigRepo sc.SystemConfigRepository,
+) *GetHealthCheckService {
     return &GetHealthCheckService{
         moduleServices,
         healthCheckRepo,
+        systemConfigRepo,
     }
 }
 
@@ -49,6 +56,10 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
 }
 
 func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandlerResponseMap, symbol string) {
+    // get maintenance list
+    maintenanceList, err := GetMaintenanceList(ghcs.systemConfigRepo)
+    if err != nil { logger.ErrorLog(" - InvokeGetHealthCheck GetMaintenanceList err: "+err.Error()) }
+
     // fetch healthcheck data from db
     if symbol != "" { // get by rpc config id
         SYMBOL := strings.ToUpper(symbol)
@@ -78,7 +89,8 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
                 return
             }
 
-            _RES.HealthCheck = healthCheck
+            _RES.HealthCheck   = healthCheck
+            _RES.IsMaintenance = maintenanceList[SYMBOL]
             (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
         }
 
@@ -112,6 +124,7 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
                     IsHealthy    : healthCheck.IsHealthy,
                     LastUpdated  : healthCheck.LastUpdated,
                 },
+                IsMaintenance: maintenanceList[SYMBOL],
             }
 
             (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)

@@ -18,6 +18,7 @@ type RpcConfigResDetail struct {
 type GetHealthCheckRes struct { 
     RpcConfig               RpcConfigResDetail
     HealthCheck             hc.HealthCheck
+    IsMaintenance           bool
     Error                   string
 }
 
