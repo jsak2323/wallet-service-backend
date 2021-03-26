@@ -67,6 +67,9 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
         // if symbol is defined, only get for that symbol
         if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
 
+        // if not parent coin, skip
+        if currConfig.Config.ParentSymbol != "" { continue }
+
         // if maintenance, skip
         if maintenanceList[SYMBOL] { continue }
 
