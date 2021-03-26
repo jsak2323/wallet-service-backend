@@ -13,6 +13,13 @@ func (gs *GeneralService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId in
     healthyBlockDiff    := config.CURR[SYMBOL].Config.HealthyBlockDiff
     blockDiff           := 0
 
+    logMsg := " - "+SYMBOL+" rpcConfigId: "+strconv.Itoa(rpcConfigId)+" nodeBlockCount: "+strconv.Itoa(nodeBlockCount)+", previousBlockCount: "+strconv.Itoa(previousBlockCount)
+
+    if healthyBlockDiff == 0 {
+        logger.Log(logMsg)
+        return true, blockDiff, nil
+    }
+
     previousHealthCheck, err := gs.healthCheckRepo.GetByRpcConfigId(rpcConfigId)
     if err != nil { return isBlockCountHealthy, blockDiff, err }
 
@@ -23,8 +30,7 @@ func (gs *GeneralService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId in
         isBlockCountHealthy = true
     }
 
-    logger.Log(" - "+SYMBOL+" rpcConfigId: "+strconv.Itoa(rpcConfigId)+" nodeBlockCount: "+strconv.Itoa(nodeBlockCount)+", previousBlockCount: "+strconv.Itoa(previousBlockCount))
-
+    logger.Log(logMsg)
     return isBlockCountHealthy, blockDiff, nil
 }
 
