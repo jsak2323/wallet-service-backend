@@ -63,7 +63,7 @@ func ErrorLog(msg string) {
     fmt.Println(msg)
     log.Error(msg)
 
-    // go sendErrorNotificationEmail(msg)
+    go sendErrorNotificationEmail(msg)
 }
 
 func sendErrorNotificationEmail(msg string) {

@@ -39,9 +39,9 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     getBlockCountService := h.NewGetBlockCountService(hcs.moduleServices, hcs.systemConfigRepo)
 
     // after 11 or more minutes, save health check to db. otherwise, only ping
-    lastHealthCheck, _ := hcs.healthCheckRepo.GetByRpcConfigId(1)
-    minuteDiff, err := util.GetMinuteDiffFromNow(lastHealthCheck.LastUpdated)
-    if err == nil && lastHealthCheck.Id == 1 && minuteDiff < 11 {
+    lastUpdatedTime, _ := hcs.healthCheckRepo.GetLastUpdatedTime()
+    minuteDiff, err := util.GetMinuteDiffFromNow(lastUpdatedTime)
+    if err == nil && minuteDiff < 11 {
         isPing = true
     }
 

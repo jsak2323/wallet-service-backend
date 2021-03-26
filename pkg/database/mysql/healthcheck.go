@@ -76,6 +76,22 @@ func (r *healthCheckRepository) GetByRpcConfigId(rpcConfigId int) (hc.HealthChec
     return healthCheck, nil
 }
 
+func (r *healthCheckRepository) GetLastUpdatedTime() (string, error) {
+    query := "SELECT * FROM "+healthCheckTable+" ORDER BY last_updated DESC LIMIT 1"
+    var healthCheck hc.HealthCheck
+
+    rows, err := r.db.Query(query)
+    defer rows.Close()
+    if err != nil { return "", err }
+
+    for rows.Next() { 
+        err = mapHealthCheck(rows, &healthCheck)
+        if err != nil { return "", err }
+    }
+
+    return healthCheck.LastUpdated, nil
+}
+
 func (r *healthCheckRepository) Create(healthCheck *hc.HealthCheck) (error) {
     rows, err := r.db.Prepare("INSERT INTO "+healthCheckTable+
         "(rpc_config_id, blockcount, block_diff, is_healthy) "+
