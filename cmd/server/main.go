@@ -9,18 +9,22 @@ import(
     "github.com/gorilla/mux"
     "github.com/rs/cors"
 
+    "github.com/go-redis/redis/v8"
     logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
-    authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
-    "github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
 func main() {
     mysqlDbConn := config.MysqlDbConn()
     defer mysqlDbConn.Close()
+
+    redis := redis.NewClient(&redis.Options{
+        Addr:     config.CONF.RedisHost,
+    })
     
     r := mux.NewRouter()
 
-    SetRoutes(r, mysqlDbConn)
+	SetRoutes(r, mysqlDbConn, redis)
 
     corsOpts := cors.New(cors.Options{
         AllowedMethods: []string{
@@ -36,8 +40,7 @@ func main() {
         },
     })
 
-    r.Use(logm.LogMiddleware)
-    r.Use(authm.AuthMiddleware)
+	r.Use(logm.LogMiddleware)
 
     server := &http.Server{
         Handler         : corsOpts.Handler(r),
@@ -52,5 +55,3 @@ func main() {
 
     log.Fatal(server.ListenAndServe())
 }
-
-
