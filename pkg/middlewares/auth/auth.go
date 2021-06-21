@@ -2,17 +2,15 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/permission"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/role"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/rolepermission"
-	"github.com/btcid/wallet-services-backend-go/pkg/lib/token"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/jwt"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 )
 
@@ -20,25 +18,31 @@ type authMiddleware struct {
 	roleRepo           role.Repository
 	permissionRepo     permission.Repository
 	rolePermissionRepo rolepermission.Repository
-	redis              *redis.Client
 }
 
 func NewAuthMiddleware(
 	roleRepo role.Repository,
 	permissionRepo permission.Repository,
 	rolePermissionRepo rolepermission.Repository,
-	redis *redis.Client,
 ) *authMiddleware {
-	return &authMiddleware{roleRepo, permissionRepo, rolePermissionRepo, redis}
+	return &authMiddleware{roleRepo, permissionRepo, rolePermissionRepo}
 }
 
 var skippedRouteNames = map[string]bool{
-	"login":    true,
-	"register": true,
+	"login":    	   true,
+	"cronhealthcheck": true,
 }
 
 func skipRoute(name string) bool {
 	if _, ok := skippedRouteNames[name]; ok {
+		return true
+	}
+
+	return false
+}
+
+func skipHost(host string) bool {
+	if strings.Split(host, ":")[0] == "localhost" {
 		return true
 	}
 
@@ -50,7 +54,7 @@ func (am *authMiddleware) Authenticate(hf http.Handler) http.Handler {
 		// to allow access from localhost
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-		if skipRoute(mux.CurrentRoute(req).GetName()) {
+		if skipRoute(mux.CurrentRoute(req).GetName()) && skipHost(req.Host) {
 			hf.ServeHTTP(w, req)
 			return
 		}
@@ -65,18 +69,20 @@ func (am *authMiddleware) Authenticate(hf http.Handler) http.Handler {
 			return
 		}
 
-		claims, valid, err := token.ParseFromRequest(req)
+		accessDetails, valid, err := jwt.ParseFromRequest(req)
 		if valid {
 			logger.InfoLog(" - AUTH -- User is authenticated req: ", req)
 		} else if err != nil {
 			logger.InfoLog(" - AUTH -- User is unauthenticated err: "+err.Error()+" req: ", req)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		} else {
 			logger.InfoLog(" - AUTH -- User is unauthenticated req: ", req)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		hf.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), "claims", claims)))
+		hf.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), "access_details", accessDetails)))
 	})
 }
 
@@ -88,8 +94,7 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 			err        error
 
 			routeName    = mux.CurrentRoute(req).GetName()
-			mapClaims, _ = req.Context().Value("claims").(jwt.MapClaims)
-			ad           token.AccessDetails
+			ad, _ = req.Context().Value("access_details").(jwt.AccessDetails)
 		)
 
 		if skipRoute(mux.CurrentRoute(req).GetName()) {
@@ -103,18 +108,6 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 			}
 		}
 		defer handleResponse()
-
-		if ad, err = token.GetAccessDetails(mapClaims); err != nil {
-			logger.ErrorLog("- AUTH -- User -- extractToken err: " + err.Error())
-			return
-		}
-
-		fmt.Println("TOKEN", token.AccessTokenCachePrefix+ad.AccessUuid)
-
-		if _, err = am.redis.Get(req.Context(), token.AccessTokenCachePrefix+ad.AccessUuid).Result(); err != nil {
-			logger.ErrorLog("- AUTH -- User -- am.redis.Get err: " + err.Error())
-			return
-		}
 
 		if routeRoles, err = am.getRouteRoles(routeName); err != nil {
 			logger.ErrorLog("- AUTH -- User -- am.getRouteRoles err: " + err.Error())
@@ -151,7 +144,7 @@ func (am *authMiddleware) getRouteRoles(routeName string) (routeRoles []string, 
 	}
 
 	for _, rp := range rolePermissions {
-		routeRole, err := am.roleRepo.GetByID(rp.RoleId)
+		routeRole, err := am.roleRepo.GetById(rp.RoleId)
 		if err != nil {
 			return []string{}, err
 		}

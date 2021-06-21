@@ -30,8 +30,6 @@ type Configuration struct {
     MysqlDbPass     string `json:"mysql_db_pass"`
     MysqlDbName     string `json:"mysql_db_name"`
 
-    RedisHost string `json:"redis_host"`
-
     NotificationEmails []string `json:"notification_emails"`
 
     AuthorizedIps []string `json:"authorized_ips"`
@@ -49,7 +47,6 @@ type Configuration struct {
     InfuraProjectId     string `json:"infura_project_id"`
 
     JWTSecret        string `json:"jwt_secret"`
-	JWTRefreshSecret string `json:"jwt_refresh_secret"`
 }
 
 type CurrencyConfiguration struct {

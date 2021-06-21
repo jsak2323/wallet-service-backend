@@ -54,3 +54,21 @@ func (r *userRoleRepository) queryRows(query string, param int) (urs []domain.Us
 
 	return urs, nil
 }
+
+func (r *userRoleRepository) DeleteByUserId(userId int) (err error) {
+	query := "DELETE FROM " + userRoleTable + " WHERE user_id = ?"
+
+	return r.db.QueryRow(query, userId).Err()
+}
+
+func (r *userRoleRepository) DeleteByRoleId(roleId int) (err error) {
+	query := "DELETE FROM " + userRoleTable + " WHERE role_id = ?"
+
+	return r.db.QueryRow(query, roleId).Err()
+}
+
+func (r *userRoleRepository) Delete(userId, roleId int) (err error) {
+	query := "DELETE FROM " + userRoleTable + " WHERE user_id = ? and role_id = ?"
+
+	return r.db.QueryRow(query, userId, roleId).Err()
+}

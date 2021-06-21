@@ -1,9 +1,12 @@
 package user
 
 type User struct {
-	Id        int
-	Username  string
-	Name      string
-	Password  string
-	IPAddress string
+	Id          	int	 	 	`json:"id"`
+	Username    	string 	 	`json:"username"`
+	Name        	string 	 	`json:"name"`
+	Password    	string 	 	`json:"password"`
+	IPAddress   	string 	 	`json:"ip_address"`
+	Roles       	interface{} `json:"roles"`
+	RoleNames 	    []string 	`json:"role_names"`
+	PermissionNames []string 	`json:"permissions"`
 }

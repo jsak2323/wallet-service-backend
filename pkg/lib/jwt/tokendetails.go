@@ -1,4 +1,4 @@
-package token
+package jwt
 
 import (
 	"errors"
@@ -7,9 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/pkg/domain/user"
 )
 
 type TokenDetails struct {
@@ -24,19 +26,16 @@ type TokenDetails struct {
 const AccessTokenCachePrefix = "aToken-"
 const RefreshTokenCachePrefix = "rToken-"
 
-func CreateToken(userId int, roles []string) (td TokenDetails, err error) {
+func CreateToken(user user.User) (td TokenDetails, err error) {
 	td = TokenDetails{
 		AccessUuid:  uuid.NewString(),
-		AtExpires:   time.Now().Add(time.Minute * 15).Unix(),
-		RefreshUuid: uuid.NewString(),
-		RtExpires:   time.Now().Add(time.Hour * 24 * 2).Unix(),
+		AtExpires:   time.Now().Add(time.Hour * 24).Unix(),
 	}
 
-	fmt.Println("UUID", td.AccessUuid)
-
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.MapClaims{
-		"user_id":     userId,
-		"roles":       strings.Join(roles, ","),
+		"user_id":     user.Id,
+		"roles":       strings.Join(user.RoleNames, ","),
+		"permissions": strings.Join(user.PermissionNames, ","),
 		"access_uuid": td.AccessUuid,
 		"exp":         td.AtExpires,
 	})
@@ -45,18 +44,7 @@ func CreateToken(userId int, roles []string) (td TokenDetails, err error) {
 	if err != nil {
 		return TokenDetails{}, err
 	}
-
-	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.MapClaims{
-		"user_id":      userId,
-		"roles":        strings.Join(roles, ","),
-		"refresh_uuid": td.RefreshUuid,
-		"exp":          td.RtExpires,
-	})
-
-	td.RefreshToken, err = rt.SignedString([]byte(config.CONF.JWTRefreshSecret))
-	if err != nil {
-		return TokenDetails{}, err
-	}
+	
 	return td, nil
 }
 
@@ -76,14 +64,14 @@ func getTokenFromHeader(req *http.Request) (token string) {
 	return bearerStrArr[1]
 }
 
-func ParseFromRequest(req *http.Request) (claims jwt.MapClaims, valid bool, err error) {
+func ParseFromRequest(req *http.Request) (ad AccessDetails, valid bool, err error) {
 	var (
 		tokenStr string
 		token    *jwt.Token
 	)
 
 	if tokenStr = getTokenFromHeader(req); tokenStr == "" {
-		return nil, false, errors.New("malformed authorization header")
+		return AccessDetails{}, false, errors.New("malformed authorization header")
 	}
 
 	if token, err = jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -93,17 +81,21 @@ func ParseFromRequest(req *http.Request) (claims jwt.MapClaims, valid bool, err 
 
 		return []byte(config.CONF.JWTSecret), nil
 	}); err != nil {
-		return nil, false, errors.New("jwt.Parse err: " + err.Error())
+		return AccessDetails{}, false, errors.New("jwt.Parse err: " + err.Error())
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, false, errors.New("malformed token claims")
+		return AccessDetails{}, false, errors.New("malformed token claims")
 	}
 
 	if token == nil {
-		return nil, false, errors.New("nil token")
+		return AccessDetails{}, false, errors.New("nil token")
 	}
 
-	return claims, true, nil
+	if ad, err = getAccessDetails(claims); err != nil {
+		return AccessDetails{}, false, err
+	}
+
+	return ad, true, nil
 }

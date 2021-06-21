@@ -5,15 +5,13 @@
     "mysql_db_pass"     : "Pass123@",
     "mysql_db_name"     : "wallet_service",
 
-    "redis_host": "localhost:6379",
-
     "notification_emails" : ["ifan.wijaya@bitcoin.co.id"],
 
     "authorized_ips" : [
         "127.0.0.1",
         "182.253.250.148"
-
         
+
 
     ],
 
@@ -29,6 +27,5 @@
     "crypto_apis_key"       : "b9be86caab68c0b643b607ac619ebd4e053ff688",
     "infura_project_id"     : "00921e2ed6f449ecb52c22e8d585227b",
 
-    "jwt_secret": "709hLeopF8tQzPKWpv0fB2rSk5xRfuHC",
-    "jwt_refresh_secret": "709hLeopF8tQzPKWpv0fB2rSk5xRfuHC"
+    "jwt_secret": "709hLeopF8tQzPKWpv0fB2rSk5xRfuHC"
 }

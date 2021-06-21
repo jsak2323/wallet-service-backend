@@ -8,26 +8,27 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
+	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
+	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
+	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	c "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
 	authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
-	"github.com/go-redis/redis/v8"
 )
 
-func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, redis *redis.Client) {
+func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 	// REPOSITORIES
 	userRepo := mysql.NewMysqlUserRepository(mysqlDbConn)
-	userRoleRepo := mysql.NewMysqlUserRoleRepository(mysqlDbConn)
 	roleRepo := mysql.NewMysqlRoleRepository(mysqlDbConn)
+	urRepo := mysql.NewMysqlUserRoleRepository(mysqlDbConn)
 	permissionRepo := mysql.NewMysqlPermissionRepository(mysqlDbConn)
 	rolePermissionRepo := mysql.NewMysqlRolePermissionRepository(mysqlDbConn)
 
 	healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
-	// -- User
-	userService := h.NewUserService(userRepo, userRoleRepo, roleRepo, redis)
-	r.HandleFunc("/register", userService.RegisterHandler).Methods(http.MethodPost).Name("register")
+	// -- Auth
+	userService := hu.NewUserService(userRepo, roleRepo, urRepo, permissionRepo)
 	r.HandleFunc("/login", userService.LoginHandler).Methods(http.MethodPost).Name("login")
 	r.HandleFunc("/logout", userService.LogoutHandler).Methods(http.MethodPost)
 
@@ -35,6 +36,30 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, redis *redis.Client) {
 	ModuleServices := modules.NewModuleServices(healthCheckRepo, systemConfigRepo)
 
 	// API ROUTES
+
+	// -- User management
+	r.HandleFunc("/user/list", userService.ListUserHandler).Methods(http.MethodGet).Name("listusers")
+	r.HandleFunc("/user", userService.CreateUserHandler).Methods(http.MethodPost).Name("createuser")
+	r.HandleFunc("/user", userService.UpdateUserHandler).Methods(http.MethodPut).Name("updateuser")
+	r.HandleFunc("/user/{id}", userService.DeleteUserHandler).Methods(http.MethodDelete).Name("deleteuser")
+	r.HandleFunc("/user/role", userService.AddRolesHandler).Methods(http.MethodPost).Name("createuserrole")
+	r.HandleFunc("/user/{user_id}/role/{role_id}", userService.DeleteRoleHandler).Methods(http.MethodDelete).Name("deleteuserrole")
+
+	// -- Role management
+	roleService := hr.NewRoleService(roleRepo, permissionRepo, rolePermissionRepo, urRepo)
+	r.HandleFunc("/role/list", roleService.ListRoleHandler).Methods(http.MethodGet).Name("listroles")
+	r.HandleFunc("/role", roleService.CreateRoleHandler).Methods(http.MethodPost).Name("createrole")
+	r.HandleFunc("/role", roleService.UpdateRoleHandler).Methods(http.MethodPut).Name("updaterole")
+	r.HandleFunc("/role/{id}", roleService.DeleteRoleHandler).Methods(http.MethodDelete).Name("deleterole")
+	r.HandleFunc("/role/permission", roleService.CreatePermissionHandler).Methods(http.MethodPost).Name("createrolepermission")
+	r.HandleFunc("/role/{role_id}/permission/{permission_id}", roleService.DeletePermissionHandler).Methods(http.MethodDelete).Name("deleterolepermission")
+
+	// -- Permission management
+	permissionService := hp.NewPermissionService(permissionRepo, rolePermissionRepo)
+	r.HandleFunc("/permission/list", permissionService.ListPermissionHandler).Methods(http.MethodGet).Name("listpermissions")
+	r.HandleFunc("/permission", permissionService.CreatePermissionHandler).Methods(http.MethodPost).Name("createpermission")
+	r.HandleFunc("/permission", permissionService.UpdatePermissionHandler).Methods(http.MethodPut).Name("updatepermission")
+	r.HandleFunc("/permission/{id}", permissionService.DeletePermissionHandler).Methods(http.MethodDelete).Name("deletepermission")
 
 	// -- GET getblockcount
 	getBlockCountService := h.NewGetBlockCountService(ModuleServices, systemConfigRepo)
@@ -103,7 +128,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, redis *redis.Client) {
 	healthCheckService := c.NewHealthCheckService(ModuleServices, healthCheckRepo, systemConfigRepo)
 	r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet).Name("cronhealthcheck")
 
-	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo, redis)
+	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)
 	r.Use(auth.Authenticate)
 	r.Use(auth.Authorize)
 }

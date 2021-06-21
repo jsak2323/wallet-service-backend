@@ -58,28 +58,6 @@ type AddressTypeRes struct {
     Error       string
 }
 
-type RegisterReq struct {
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
-}
-
-type RegisterRes struct {
-	Id    int
-	Error string
-}
-
-type LoginReq struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type LoginRes struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	Error 		 string `json:"error"`
-}
-
 type StandardRes struct {
     Success bool
     Error   string

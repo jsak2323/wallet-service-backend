@@ -54,3 +54,21 @@ func (r *rolePermissionRepository) queryRows(query string, param int) (rps []dom
 
 	return rps, nil
 }
+
+func (r *rolePermissionRepository) DeleteByRoleId(roleId int) (err error) {
+	query := "DELETE FROM " + rolePermissionTable + " WHERE role_id = ?"
+
+	return r.db.QueryRow(query, roleId).Err()
+}
+
+func (r *rolePermissionRepository) DeleteByPermissionId(permissionId int) (err error) {
+	query := "DELETE FROM " + rolePermissionTable + " WHERE permission_id = ?"
+
+	return r.db.QueryRow(query, permissionId).Err()
+}
+
+func (r *rolePermissionRepository) Delete(roleId, permissionId int) (err error) {
+	query := "DELETE FROM " + rolePermissionTable + " WHERE role_id = ? and permission_id = ?"
+
+	return r.db.QueryRow(query, roleId, permissionId).Err()
+}

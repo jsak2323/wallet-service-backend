@@ -1,20 +1,20 @@
-package token
+package jwt
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
 type AccessDetails struct {
-	AccessUuid string
-	UserId     int
-	Roles      []string
+	AccessUuid  string
+	UserId      int
+	Roles       []string
+	Permissions []string
 }
 
-func GetAccessDetails(claims jwt.MapClaims) (ad AccessDetails, err error) {
+func getAccessDetails(claims jwt.MapClaims) (ad AccessDetails, err error) {
 	for key, value := range claims {
 		switch key {
 		case "roles":
@@ -45,8 +45,6 @@ func GetAccessDetails(claims jwt.MapClaims) (ad AccessDetails, err error) {
 			continue
 		}
 	}
-
-	fmt.Println("ACCESS DETAILS", ad, claims)
 
 	return ad, err
 }
