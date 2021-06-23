@@ -18,6 +18,9 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Success = true
+			RES.Message = "Role successfully added to User"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)

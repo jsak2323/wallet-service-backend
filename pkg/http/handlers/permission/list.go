@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *http.Request) {
@@ -17,7 +19,7 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if err != nil {
-			RES.Error = err.Error()
+			resStatus = http.StatusInternalServerError
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -30,6 +32,8 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 	
 	RES.Permissions, err = svc.permissionRepo.GetAll(page, limit)
 	if err != nil {
+		logger.ErrorLog(" - ListPermissionHandler svc.permissionRepo.GetAll err: " + err.Error())
+		RES.Error = errInternalServer
 		return
 	}
 }

@@ -5,5 +5,5 @@ type Repository interface {
 	Update(User) error
 	GetByUsername(username string) (User, error)
 	GetAll(page, limit int) ([]User, error)
-	Delete(userId int) error
+	ToggleActive(userId int, active bool) error
 }

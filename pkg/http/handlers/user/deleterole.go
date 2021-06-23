@@ -20,6 +20,9 @@ func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Success = true
+			RES.Message = "Role successfully removed from User"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)

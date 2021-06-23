@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request) {
@@ -17,7 +19,7 @@ func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if err != nil {
-			RES.Error = err.Error()
+			resStatus = http.StatusInternalServerError
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -36,6 +38,8 @@ func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request
 	for i, user := range roles {
 		roles[i].Permissions, err = svc.permissionRepo.GetByRoleId(user.Id)
 		if err != nil {
+			logger.ErrorLog(" - ListRoleHandler svc.roleRepo.Create err: " + err.Error())
+			RES.Error = errInternalServer
 			return
 		}
 	}

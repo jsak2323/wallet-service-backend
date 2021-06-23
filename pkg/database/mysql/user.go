@@ -22,9 +22,9 @@ func NewMysqlUserRepository(db *sql.DB) domain.Repository {
 }
 
 func (r *userRepository) Create(u domain.User) (id int, err error) {
-	query := "INSERT INTO " + userTable + " (username, name, password, ip_address) VALUES(?, ?, ?, ?)"
+	query := "INSERT INTO " + userTable + " (username, name, email, password, ip_address) VALUES(?, ?, ?, ?, ?)"
 
-	err = r.db.QueryRow(query, u.Username, u.Name, u.Password, u.IPAddress).Err()
+	err = r.db.QueryRow(query, u.Username, u.Name, u.Email, u.Password, u.IPAddress).Err()
 	if err != nil {
 		return 0, err
 	}
@@ -36,8 +36,8 @@ func (r *userRepository) Update(u domain.User) (err error) {
 	var params []interface{}
 	var query  string
 
-	query = "UPDATE " + userTable + " SET name = ?, username = ?, ip_address = ?"
-	params = append(params, u.Name, u.Username, u.IPAddress)
+	query = "UPDATE " + userTable + " SET name = ?, username = ?, email = ?, ip_address = ?"
+	params = append(params, u.Name, u.Username, u.Email, u.IPAddress)
 
 	if u.Password != "" {
 		query = query + ", password = ? "
@@ -55,14 +55,16 @@ func (r *userRepository) Update(u domain.User) (err error) {
 }
 
 func (r *userRepository) GetByUsername(username string) (user domain.User, err error) {
-	query := "SELECT * FROM " + userTable + " where username = ? limit 1"
+	query := "SELECT id, username, name, email, password, ip_address, active FROM " + userTable + " where username = ? limit 1"
 
 	err = r.db.QueryRow(query, username).Scan(
 		&user.Id,
 		&user.Username,
 		&user.Name,
+		&user.Email,
 		&user.Password,
 		&user.IPAddress,
+		&user.Active,
 	)
 	if err != nil {
 		return domain.User{}, err
@@ -72,7 +74,7 @@ func (r *userRepository) GetByUsername(username string) (user domain.User, err e
 }
 
 func (r userRepository) GetAll(page, limit int) (users []domain.User, err error) {
-	query := "SELECT id, username, name, password, ip_address FROM " + userTable
+	query := "SELECT id, username, name, email, password, ip_address, active FROM " + userTable
 	
 	if limit <= 0 {
 		limit = defaultLimit
@@ -95,8 +97,10 @@ func (r userRepository) GetAll(page, limit int) (users []domain.User, err error)
 			&user.Id,
 			&user.Username,
 			&user.Name,
+			&user.Email,
 			&user.Password,
 			&user.IPAddress,
+			&user.Active,
 		); err != nil {
 			return []domain.User{}, err
 		}
@@ -107,8 +111,8 @@ func (r userRepository) GetAll(page, limit int) (users []domain.User, err error)
 	return users, nil
 }
 
-func(r *userRepository) Delete(userId int) error {
-	query := "DELETE FROM " + userTable + " WHERE id = ?"
+func(r *userRepository) ToggleActive(userId int, active bool) error {
+	query := "UPDATE " + userTable + " SET active = ? WHERE id = ?"
 
-	return r.db.QueryRow(query, userId).Err()
+	return r.db.QueryRow(query, active, userId).Err()
 }

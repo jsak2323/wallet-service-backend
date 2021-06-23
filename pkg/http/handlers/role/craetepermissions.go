@@ -18,6 +18,9 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Success = true
+			RES.Message = "Permission successfully added to Role"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -26,7 +29,7 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 
 	if err = json.NewDecoder(req.Body).Decode(&rpReq); err != nil {
 		logger.ErrorLog(" - CreatePermissionHandler json.NewDecoder err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 
@@ -38,7 +41,7 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 
 	if err = svc.rpRepo.Create(rpReq.RoleId, rpReq.PermissionId); err != nil {
 		logger.ErrorLog(" - CreatePermissionHandler svc.rpRepo.Create err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 }

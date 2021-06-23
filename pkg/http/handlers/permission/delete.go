@@ -20,6 +20,9 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Success = true
+			RES.Message = "Permission successfully deleted"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -33,14 +36,14 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 	}
 
 	if err = svc.rpRepo.DeleteByPermissionId(permissionId); err != nil {
-		logger.ErrorLog(" - DeletePermissionHandler svc.rpRepo.DeleteByPermissionId( err: " + err.Error())
-		RES.Error = err.Error()
+		logger.ErrorLog(" - DeletePermissionHandler svc.rpRepo.DeleteByPermissionId err: " + err.Error())
+		RES.Error = errInternalServer
 		return
 	}
 
 	if err = svc.permissionRepo.Delete(permissionId); err != nil {
 		logger.ErrorLog(" - DeletePermissionHandler svc.rpRepo.Create err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 }

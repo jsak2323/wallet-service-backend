@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (svc *UserService) DeleteUserHandler(w http.ResponseWriter, req *http.Request) {
+func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
 		userId int
 		RES   	     StandardRes
@@ -20,6 +20,9 @@ func (svc *UserService) DeleteUserHandler(w http.ResponseWriter, req *http.Reque
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Success = true
+			RES.Message = "User successfully activated"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -28,18 +31,12 @@ func (svc *UserService) DeleteUserHandler(w http.ResponseWriter, req *http.Reque
 
 	vars := mux.Vars(req)
     if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" - DeleteUserHandler invalid request")
+		logger.ErrorLog(" - ActivateUserHandler invalid request")
 		RES.Error = "Invalid request"
 	}
 
-	if err = svc.urRepo.DeleteByUserId(userId); err != nil {
-		logger.ErrorLog(" - DeleteUserHandler svc.userRepo.Delete err: " + err.Error())
-		RES.Error = err.Error()
-		return
-	}
-
-	if err = svc.userRepo.Delete(userId); err != nil {
-		logger.ErrorLog(" - DeleteUserHandler svc.userRepo.Delete err: " + err.Error())
+	if err = svc.userRepo.ToggleActive(userId, true); err != nil {
+		logger.ErrorLog(" - ActivateUserHandler svc.userRepo.ToggleActive err: " + err.Error())
 		RES.Error = err.Error()
 		return
 	}

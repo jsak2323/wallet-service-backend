@@ -18,6 +18,8 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Message = "Permission successfully created"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -26,7 +28,7 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
 		logger.ErrorLog(" - CreatePermissionHandler json.NewDecoder err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 
@@ -38,7 +40,7 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 
 	if RES.Id, err = svc.permissionRepo.Create(createReq.Name); err != nil {
 		logger.ErrorLog(" - CreatePermissionHandler svc.permissionRepo.Create err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 }

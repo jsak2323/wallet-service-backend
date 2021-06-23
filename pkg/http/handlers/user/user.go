@@ -7,6 +7,8 @@ import (
 	urDmn "github.com/btcid/wallet-services-backend-go/pkg/domain/userrole"
 )
 
+const errInternalServer = "Internal server error"
+
 type UserService struct {
 	userRepo     	user.Repository
 	roleRepo     	role.Repository

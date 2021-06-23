@@ -20,6 +20,7 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 			resStatus = http.StatusInternalServerError
 		} else {
 			RES.Success = true
+			RES.Message = "Role successfully updated"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -28,7 +29,7 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
 		logger.ErrorLog(" - UpdateRoleHandler json.NewDecoder err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 
@@ -40,7 +41,7 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 
 	if err = svc.roleRepo.Update(updateReq.Role); err != nil {
 		logger.ErrorLog(" - UpdateRoleHandler svc.roleRepo.Update err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 }

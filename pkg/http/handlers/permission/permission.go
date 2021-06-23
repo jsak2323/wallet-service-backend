@@ -5,6 +5,8 @@ import (
 	rpDmn "github.com/btcid/wallet-services-backend-go/pkg/domain/rolepermission"
 )
 
+const errInternalServer = "Internal server error"
+
 type PermissionService struct {
 	permissionRepo  permission.Repository
 	rpRepo 			rpDmn.Repository

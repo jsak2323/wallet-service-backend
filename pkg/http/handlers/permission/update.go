@@ -20,6 +20,7 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 			resStatus = http.StatusInternalServerError
 		} else {
 			RES.Success = true
+			RES.Message = "Permission successfully updated"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -28,7 +29,7 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
 		logger.ErrorLog(" - UpdatePermissionHandler json.NewDecoder err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 
@@ -40,7 +41,7 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 
 	if err = svc.permissionRepo.Update(updateReq.Permission); err != nil {
 		logger.ErrorLog(" - UpdatePermissionHandler svc.permissionRepo.Update err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 }

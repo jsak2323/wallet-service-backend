@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/gorilla/mux"
+
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (svc *RoleService) DeletePermissionHandler(w http.ResponseWriter, req *http.Request) {
@@ -20,6 +21,9 @@ func (svc *RoleService) DeletePermissionHandler(w http.ResponseWriter, req *http
 		resStatus := http.StatusOK
 		if RES.Error != "" {
 			resStatus = http.StatusInternalServerError
+		} else {
+			RES.Success = true
+			RES.Message = "Permission successfully removed from Role"
 		}
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
@@ -39,7 +43,7 @@ func (svc *RoleService) DeletePermissionHandler(w http.ResponseWriter, req *http
 
 	if err = svc.rpRepo.Delete(roleId, permissionId); err != nil {
 		logger.ErrorLog(" - AddPermissionsHandler svc.rpRepo.Delete err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errInternalServer
 		return
 	}
 }

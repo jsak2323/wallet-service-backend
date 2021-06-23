@@ -10,6 +10,7 @@ type CreateReq struct {
 
 type CreateRes struct {
 	Id 		int 	`json:"id"`
+	Message string  `json:"message"`
 	Error 	string  `json:"error"`
 }
 
@@ -28,5 +29,6 @@ type ListRes struct {
 
 type StandardRes struct {
     Success bool	`json:"success"`
+	Message string  `json:"message"`
     Error   string 	`json:"error"`
 }
