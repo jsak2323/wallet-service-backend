@@ -33,9 +33,9 @@
 
 ## Install Go
     cd /tmp
-    wget https://dl.google.com/go/go1.14.7.linux-amd64.tar.gz
+    wget https://dl.google.com/go/go1.16.3.linux-amd64.tar.gz
 
-    sudo tar -xvf go1.14.7.linux-amd64.tar.gz
+    sudo tar -xvf go1.16.3.linux-amd64.tar.gz
     sudo mv go /usr/local
 
     sudo nano ~/.bashrc

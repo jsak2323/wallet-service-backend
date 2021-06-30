@@ -54,7 +54,7 @@ func (am *authMiddleware) Authenticate(hf http.Handler) http.Handler {
 		// to allow access from localhost
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
-		if skipRoute(mux.CurrentRoute(req).GetName()) && skipHost(req.Host) {
+		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host) {
 			hf.ServeHTTP(w, req)
 			return
 		}
