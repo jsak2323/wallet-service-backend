@@ -98,7 +98,7 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 			ad, _ = req.Context().Value("access_details").(jwt.AccessDetails)
 		)
 
-		if skipRoute(mux.CurrentRoute(req).GetName()) {
+		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host){
 			hf.ServeHTTP(w, req)
 			return
 		}

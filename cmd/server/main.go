@@ -16,10 +16,13 @@ import(
 func main() {
     mysqlDbConn := config.MysqlDbConn()
     defer mysqlDbConn.Close()
+
+    exchangeSlaveMysqlDbConn := config.ExchangeSlaveMysqlDbConn()
+    defer exchangeSlaveMysqlDbConn.Close()
     
     r := mux.NewRouter()
 
-	SetRoutes(r, mysqlDbConn)
+	SetRoutes(r, mysqlDbConn, exchangeSlaveMysqlDbConn)
 
     corsOpts := cors.New(cors.Options{
         AllowedMethods: []string{

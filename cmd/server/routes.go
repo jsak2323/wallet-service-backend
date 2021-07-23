@@ -8,6 +8,8 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
+	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
+	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
 	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
@@ -16,7 +18,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
-func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
+func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql.DB) {
 	// REPOSITORIES
 	userRepo := mysql.NewMysqlUserRepository(mysqlDbConn)
 	roleRepo := mysql.NewMysqlRoleRepository(mysqlDbConn)
@@ -26,6 +28,9 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 
 	healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
+
+	coldbalanceRepo := mysql.NewMysqlColdBalanceRepository(mysqlDbConn)
+	userBalanceRepo := mysql.NewMysqlUserBalanceRepository(exchangeSlaveMysqlDbConn)
 
 	// -- Auth
 	userService := hu.NewUserService(userRepo, roleRepo, urRepo, permissionRepo)
@@ -77,12 +82,21 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 	r.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet).Name("getlog")
 
 	// -- GET getbalance (disabled)
-	/*
-	   getBalanceService := h.NewGetBalanceService(ModuleServices)
-	   r.HandleFunc("/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
-	   r.HandleFunc("/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
-	*/
 
+	getBalanceService := h.NewGetBalanceService(ModuleServices)
+	r.HandleFunc("/nodes/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
+	r.HandleFunc("/nodes/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
+
+	coldWalletService := hcw.NewColdWalletService(coldbalanceRepo)
+	r.HandleFunc("/coldwallet/getbalance", coldWalletService.GetBalanceHandler).Methods(http.MethodGet)
+	r.HandleFunc("/coldwallet/{symbol}/getbalance", coldWalletService.GetBalanceHandler).Methods(http.MethodGet)
+	r.HandleFunc("/coldwallet/sendToAddress", coldWalletService.SendToAddressHandler).Methods(http.MethodPost)
+	r.HandleFunc("/coldwallet/update", coldWalletService.SendToAddressHandler).Methods(http.MethodPost)
+
+	userWalletService := huw.NewUserWalletService(userBalanceRepo)
+	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
+
+	
 	// -- GET listtransactions (disabled)
 	/*
 	   listTransactionsService := h.NewListTransactionsService(ModuleServices)

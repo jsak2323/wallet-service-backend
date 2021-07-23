@@ -60,6 +60,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
     var qrCodePrefix    sql.NullString
     var cmcId           sql.NullInt64
     var parentSymbol    sql.NullString
+    var fireblocksName  sql.NullString
 
     err := rows.Scan(
         &currConf.Id,
@@ -78,6 +79,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.DefaultIdrPrice,
         &cmcId,
         &parentSymbol,
+        &fireblocksName,
         &currConf.LastUpdated,
     )
     if err != nil { return err }
@@ -85,6 +87,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
     if qrCodePrefix.Valid { currConf.QrCodePrefix = qrCodePrefix.String }
     if cmcId.Valid { currConf.CmcId = int(cmcId.Int64) }
     if parentSymbol.Valid { currConf.ParentSymbol = parentSymbol.String }
+    if fireblocksName.Valid { currConf.FireblocksName = fireblocksName.String }
 
     return nil
 }
