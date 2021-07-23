@@ -10,7 +10,6 @@ import(
     "github.com/rs/cors"
 
     logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
-    authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
     "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
@@ -20,7 +19,7 @@ func main() {
     
     r := mux.NewRouter()
 
-    SetRoutes(r, mysqlDbConn)
+	SetRoutes(r, mysqlDbConn)
 
     corsOpts := cors.New(cors.Options{
         AllowedMethods: []string{
@@ -36,8 +35,7 @@ func main() {
         },
     })
 
-    r.Use(logm.LogMiddleware)
-    r.Use(authm.AuthMiddleware)
+	r.Use(logm.LogMiddleware)
 
     server := &http.Server{
         Handler         : corsOpts.Handler(r),
@@ -52,5 +50,3 @@ func main() {
 
     log.Fatal(server.ListenAndServe())
 }
-
-

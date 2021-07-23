@@ -1,4 +1,4 @@
-CREATE DATABASE wallet_service;
+
 USE wallet_service;
 
 CREATE TABLE currency_config (
@@ -62,5 +62,3 @@ CREATE TABLE health_check (
   PRIMARY KEY (id),
   FOREIGN KEY (rpc_config_id) REFERENCES rpc_config(id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
-
-

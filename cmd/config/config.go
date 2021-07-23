@@ -45,6 +45,8 @@ type Configuration struct {
 
     CryptoApisKey       string `json:"crypto_apis_key"`
     InfuraProjectId     string `json:"infura_project_id"`
+
+    JWTSecret        string `json:"jwt_secret"`
 }
 
 type CurrencyConfiguration struct {
