@@ -10,18 +10,19 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
-	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/fireblocks"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
-type GetBalanceResponse struct {
+type GetBalanceRes struct {
 	Currency cc.CurrencyConfig
 	Balances []cb.ColdBalance
 }
 
-type GetBalanceHandlerResponseMap map[string]GetBalanceResponse
+type GetBalanceHandlerResponseMap map[string]GetBalanceRes
 
 func (s *ColdWalletService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
@@ -53,23 +54,25 @@ func (s *ColdWalletService) invokeGetBalance(RES *GetBalanceHandlerResponseMap, 
 			go func(currConfig cc.CurrencyConfig, _SYMBOL string) {
 				defer wg.Done()
 				
-				(*RES)[_SYMBOL] = GetBalanceResponse{
+				(*RES)[_SYMBOL] = GetBalanceRes{
 					Currency: currConfig,
-					Balances: s.getBalance(_SYMBOL, currConfig),
+					Balances: s.GetBalance(_SYMBOL),
 				}
 			}(curr.Config, SYMBOL)
 		}
 
 		wg.Wait()
     } else {
-		(*RES)[symbol] = GetBalanceResponse{
+		(*RES)[symbol] = GetBalanceRes{
 			Currency: config.CURR[symbol].Config,
-			Balances: s.getBalance(symbol, config.CURR[symbol].Config),
+			Balances: s.GetBalance(symbol),
 		}
 	}
 }
 
-func (s *ColdWalletService) getBalance(symbol string, currency cc.CurrencyConfig) (coldBalances []cb.ColdBalance) {
+func (s *ColdWalletService) GetBalance(symbol string) (coldBalances []cb.ColdBalance) {
+	currency := config.CURR[symbol].Config
+
 	if currency.FireblocksName != "" {
 		if res, err := fireblocks.GetVaultAccountAsset(fireblocks.GetVaultAccountAssetReq{
 			VaultAccountId: config.CONF.FireblocksColdVaultId,
@@ -81,10 +84,9 @@ func (s *ColdWalletService) getBalance(symbol string, currency cc.CurrencyConfig
 				Name: currency.Symbol + " Cold",
 				Type: "cold",
 				CurrencyId: currency.Id,
+				Balance: res.Balance,
 			}
-			if coldBalance.Balance, err = strconv.ParseFloat(res.Balance, 64); err != nil {
-				logger.ErrorLog("- cold.getBalance strconv.ParseFloat("+currency.FireblocksName+") error: "+err.Error())
-			}
+			
 			coldBalances = append(coldBalances, coldBalance)
 		}
 	}
@@ -92,6 +94,12 @@ func (s *ColdWalletService) getBalance(symbol string, currency cc.CurrencyConfig
 	if cbs, err := s.cbRepo.GetByCurrencyId(currency.Id); err != nil {
 		logger.ErrorLog("- cold.getBalance s.cbRepo.GetByCurrencyId("+strconv.Itoa(currency.Id)+") error: "+err.Error())
 	} else if len(cbs) > 0 {
+		// TODO convert raw to coin
+		for i := range cbs {
+			if cbs[i].Balance, err = util.RawToCoin(cbs[i].Balance, 8); err != nil {
+				logger.ErrorLog("- cold.getBalance RawToCoin("+strconv.Itoa(currency.Id)+","+cbs[i].Balance+") error: "+err.Error())
+			}
+		}
 		coldBalances = append(coldBalances, cbs...)
 	}
 

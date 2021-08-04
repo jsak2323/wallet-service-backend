@@ -8,11 +8,13 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
+	hb "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/balance"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
 	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
 	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
+	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	c "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
 	authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
@@ -30,7 +32,10 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
 	coldbalanceRepo := mysql.NewMysqlColdBalanceRepository(mysqlDbConn)
+	hotLimitRepo := mysql.NewMysqlHotLimitRepository(mysqlDbConn)
+
 	userBalanceRepo := mysql.NewMysqlUserBalanceRepository(exchangeSlaveMysqlDbConn)
+	marketRepo := mysql.NewMarketMysqlRepository(exchangeSlaveMysqlDbConn)
 
 	// -- Auth
 	userService := hu.NewUserService(userRepo, roleRepo, urRepo, permissionRepo)
@@ -39,6 +44,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	// MODULE SERVICES
 	ModuleServices := modules.NewModuleServices(healthCheckRepo, systemConfigRepo)
+	MarketService := h.NewMarketService(marketRepo)
 
 	// API ROUTES
 
@@ -90,27 +96,31 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	coldWalletService := hcw.NewColdWalletService(coldbalanceRepo)
 	r.HandleFunc("/coldwallet/getbalance", coldWalletService.GetBalanceHandler).Methods(http.MethodGet)
 	r.HandleFunc("/coldwallet/{symbol}/getbalance", coldWalletService.GetBalanceHandler).Methods(http.MethodGet)
-	r.HandleFunc("/coldwallet/sendToAddress", coldWalletService.SendToAddressHandler).Methods(http.MethodPost)
-	r.HandleFunc("/coldwallet/update", coldWalletService.SendToAddressHandler).Methods(http.MethodPost)
+	r.HandleFunc("/coldwallet/sendtohot", coldWalletService.SendToHotHandler).Methods(http.MethodPost).Name("sendcoldwallet")
+	r.HandleFunc("/coldwallet/update", coldWalletService.UpdateBalanceHandler).Methods(http.MethodPost).Name("updatecoldwallet")
 
 	userWalletService := huw.NewUserWalletService(userBalanceRepo)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
+	WalletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, userBalanceRepo)
+
+	balanceService := hb.NewBalanceService(WalletService)
+	r.HandleFunc("/balance/list", balanceService.ListBalanceHandler).Methods(http.MethodGet).Name("listbalances")
 	
 	// -- GET listtransactions (disabled)
 	/*
-	   listTransactionsService := h.NewListTransactionsService(ModuleServices)
-	   r.HandleFunc("/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
-	   r.HandleFunc("/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
-	   r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
-	   r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+	listTransactionsService := h.NewListTransactionsService(ModuleServices)
+	r.HandleFunc("/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+	r.HandleFunc("/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+	r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+	r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
 	*/
-
+	
 	// -- GET getnewaddress (disabled)
 	/*
-	   getNewAddressService := h.NewGetNewAddressService(ModuleServices)
-	   r.HandleFunc("/{symbol}/getnewaddress", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
-	   r.HandleFunc("/{symbol}/getnewaddress/{type}", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
+	getNewAddressService := h.NewGetNewAddressService(ModuleServices)
+	r.HandleFunc("/{symbol}/getnewaddress", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
+	r.HandleFunc("/{symbol}/getnewaddress/{type}", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
 	*/
 
 	// -- GET addresstype (disabled)
@@ -120,10 +130,8 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	*/
 
 	// -- POST sendtoaddress (disabled)
-	/*
-	   sendToAddressService := h.NewSendToAddressService(ModuleServices)
-	   r.HandleFunc("/sendtoaddress", sendToAddressService.SendToAddressHandler).Methods(http.MethodPost)
-	*/
+	sendToAddressService := h.NewSendToAddressService(ModuleServices)
+	r.HandleFunc("/sendtoaddress", sendToAddressService.SendToAddressHandler).Methods(http.MethodPost)
 	/*
 	   curl example:
 	   curl --header "Content-Type: application/json" --request POST --data '{"symbol":"btc", "amount":"0.001", "address":"2MtU6EMx37AYrCNj1RcRr6bw66QqHYw4D4R"}' localhost:3000/sendtoaddress | jq
@@ -142,6 +150,10 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	// -- GET healthcheck
 	healthCheckService := c.NewHealthCheckService(ModuleServices, healthCheckRepo, systemConfigRepo)
 	r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet).Name("cronhealthcheck")
+
+	// -- GET checkbalance
+	checkBalanceService := c.NewCheckBalanceService(WalletService, coldWalletService, MarketService, *ModuleServices, hotLimitRepo)
+	r.HandleFunc("/cron/checkbalance", checkBalanceService.CheckBalanceHandler).Methods(http.MethodGet)
 
 	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)
 	r.Use(auth.Authenticate)

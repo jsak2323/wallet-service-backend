@@ -27,12 +27,13 @@ func NewModuleServices(
     // theta modules
     ModuleServices["THETA"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "THETA", healthCheckRepo, systemConfigRepo)
     ModuleServices["TFUEL"] = generaltokenxmlrpc.NewGeneralTokenService("THETA", "TFUEL", healthCheckRepo, systemConfigRepo)
+    ModuleServices["ZIL"] = generaltokenxmlrpc.NewGeneralTokenService("ZIL", "ZIL", healthCheckRepo, systemConfigRepo)
 
     // tron modules
     ModuleServices["TRX"] = generaltokenxmlrpc.NewGeneralTokenService("TRX", "TRX", healthCheckRepo, systemConfigRepo)
 
     // general modules
-    generalModules := []string{"ALGO", "CKB", "EGLD", "FIL", "HIVE", "XTZ", "ZIL", "DGB", "QTUM", "HBAR"}
+    generalModules := []string{"ALGO", "CKB", "EGLD", "FIL", "HIVE", "XTZ", "DGB", "QTUM", "HBAR"}
     for _, SYMBOL := range generalModules {
         ModuleServices[SYMBOL] = generalxmlrpc.NewGeneralService(SYMBOL, healthCheckRepo, systemConfigRepo)
     }

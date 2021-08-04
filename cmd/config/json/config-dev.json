@@ -5,6 +5,11 @@
     "mysql_db_pass"     : "Pass123@",
     "mysql_db_name"     : "wallet_service",
 
+    "exchange_slave_mysql_db_host" : "localhost:3306",
+    "exchange_slave_mysql_db_user" : "root",
+    "exchange_slave_mysql_db_pass" : "",
+    "exchange_slave_mysql_db_name" : "btcid",
+
     "notification_emails" : ["ifan.wijaya@bitcoin.co.id"],
 
     "authorized_ips" : [
@@ -33,5 +38,7 @@
     "fireblocks_callback_ssl_cert": "cert.pem",
     "fireblocks_callback_ssl_key": "key.pem",
 
-    "fireblocks_hot_vault_id": "315878c3-fcfd-f7f6-2046-058d04334b7e"
+    "fireblocks_host"          : "http://localhost:3200",
+    "fireblocks_cold_vault_id" : "1",
+    "fireblocks_hot_vault_id"  : "315878c3-fcfd-f7f6-2046-058d04334b7e"
 }

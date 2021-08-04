@@ -1,7 +1,7 @@
 package fireblocks
 
 type GetVaultAccountAssetReq struct {
-	VaultAccountId 	int 	`json:"vault_account_id"`
+	VaultAccountId 	string 	`json:"vault_account_id"`
 	AssetId 		string 	`json:"asset_id"`
 }
 
@@ -13,7 +13,7 @@ type GetVaultAccountAssetRes struct {
 type CreateTransactionReq struct {
 	AssetId 	string 				`json:"asset_id"`
 	Source 		TransactionAccount 	`json:"source"`
-	Amount 		float64 			`json:"amount"`
+	Amount 		string 				`json:"amount"`
 	Destination TransactionAccount 	`json:"destination"`
 }
 

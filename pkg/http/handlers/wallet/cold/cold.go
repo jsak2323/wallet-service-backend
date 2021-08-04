@@ -4,6 +4,8 @@ import (
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 )
 
+const errInternalServer = "Internal server error"
+
 type ColdWalletService struct {
 	cbRepo  cb.Repository
 }

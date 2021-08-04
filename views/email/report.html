@@ -1,0 +1,20 @@
+<html>
+    <body>
+        Cold
+        <ul>
+           {{range $cold := .WalletBalance.ColdBalances}} 
+           <li>{{$cold.Name}}: {{$cold.Coin}} ({{$cold.Idr}})</li>
+           {{end}}
+        </ul>
+        Hot
+        <ul>
+           {{range $hot := .WalletBalance.HotBalances}} 
+           <li>{{$hot.Name}}: {{$hot.Coin}} ({{$hot.Idr}})</li>
+           {{end}}
+        </ul>
+        User
+        <ul>
+           <li>{{.WalletBalance.TotalUserCoin}} ({{.WalletBalance.TotalUserIdr}})</li>
+        </ul>
+    </body>
+</html>

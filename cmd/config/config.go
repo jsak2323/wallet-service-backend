@@ -30,6 +30,7 @@ type Configuration struct {
 	MysqlDbPass string `json:"mysql_db_pass"`
 	MysqlDbName string `json:"mysql_db_name"`
 
+	ExchangeSlaveMysqlDbHost string `json:"exchange_slave_mysql_db_host"`
 	ExchangeSlaveMysqlDbUser string `json:"exchange_slave_mysql_db_user"`
 	ExchangeSlaveMysqlDbPass string `json:"exchange_slave_mysql_db_pass"`
 	ExchangeSlaveMysqlDbName string `json:"exchange_slave_mysql_db_name"`
@@ -57,7 +58,7 @@ type Configuration struct {
     FireblocksCallbackSSLKey  string `json:"fireblocks_callback_ssl_key"`
 
 	FireblocksHost        string `json:"fireblocks_host"`
-	FireblocksColdVaultId int    `json:"fireblocks_cold_vault_id"`
+	FireblocksColdVaultId string `json:"fireblocks_cold_vault_id"`
 	FireblocksHotVaultId  string `json:"fireblocks_hot_vault_id"`
 }
 
@@ -113,11 +114,12 @@ func MysqlDbConn() (db *sql.DB) {
 
 func ExchangeSlaveMysqlDbConn() (db *sql.DB) {
 	dbDriver := "mysql"
+	dbHost := CONF.ExchangeSlaveMysqlDbHost
 	dbUser := CONF.ExchangeSlaveMysqlDbUser
 	dbPass := CONF.ExchangeSlaveMysqlDbPass
 	dbName := CONF.ExchangeSlaveMysqlDbName
 
-	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
+	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName)
 	if err != nil {
 		panic(err.Error())
 	}
