@@ -47,19 +47,23 @@ func TestFormatCurrency(t *testing.T) {
 	}{
 		{
 			args: args{value: "12345678", symbol: "IDR"},
-			wantResult: "12.345.678 IDR",
+			wantResult: "12,345,678 IDR",
 		},
 		{
 			args: args{value: "1234567", symbol: "IDR"},
-			wantResult: "1.234.567 IDR",
+			wantResult: "1,234,567 IDR",
 		},
 		{
 			args: args{value: "123456", symbol: "IDR"},
-			wantResult: "123.456 IDR",
+			wantResult: "123,456 IDR",
 		},
 		{
 			args: args{value: "1234", symbol: "BTC"},
-			wantResult: "1.234 BTC",
+			wantResult: "1,234 BTC",
+		},
+		{
+			args: args{value: "1234.222", symbol: "BTC"},
+			wantResult: "1,234.222 BTC",
 		},
 	}
 	for _, tt := range tests {

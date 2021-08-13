@@ -9,12 +9,15 @@ import (
 )
 
 func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*model.SendToAddressRpcRes, error) {
+    txRes := struct {Value string}{}
     res := model.SendToAddressRpcRes{}
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, address, amountInDecimal, "")
+    rpcReq := util.GenerateRpcReq(rpcConfig, rpcConfig.Password, address, amountInDecimal)
     xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    err := xmlrpc.XmlRpcCall("EthRpc.SendTransaction", &rpcReq, &res)
+    err := xmlrpc.XmlRpcCall("send_transaction", &rpcReq, &txRes)
+
+    res.TxHash = txRes.Value
 
     if err == nil {
         return &res, nil

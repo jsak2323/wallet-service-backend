@@ -23,6 +23,7 @@ type TransactionAccount struct {
 }
 
 type CreateTransactionRes struct {
+	Id		string `json:"id"`
 	Status	string `json:"status"`
 	Error 	string `json:"message"`
 }

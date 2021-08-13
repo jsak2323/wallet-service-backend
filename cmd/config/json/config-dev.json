@@ -10,6 +10,8 @@
     "exchange_slave_mysql_db_pass" : "",
     "exchange_slave_mysql_db_name" : "btcid",
 
+    "exchange_host" : "https://indodax.com",
+
     "notification_emails" : ["ifan.wijaya@bitcoin.co.id"],
 
     "authorized_ips" : [
@@ -40,5 +42,6 @@
 
     "fireblocks_host"          : "http://localhost:3200",
     "fireblocks_cold_vault_id" : "1",
+    "fireblocks_warm_vault_id" : "0",
     "fireblocks_hot_vault_id"  : "315878c3-fcfd-f7f6-2046-058d04334b7e"
 }

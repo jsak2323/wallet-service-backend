@@ -1,20 +1,42 @@
 <html>
+   <head>
+      <style>
+         table, th, td { border: 1px solid black; }
+         table { border-collapse: collapse; }
+         td { padding: 5px; }
+         ul { list-style-type: none; padding-left: 0;}
+      </style>
+   </head>
     <body>
-        Cold
-        <ul>
-           {{range $cold := .WalletBalance.ColdBalances}} 
-           <li>{{$cold.Name}}: {{$cold.Coin}} ({{$cold.Idr}})</li>
-           {{end}}
-        </ul>
-        Hot
-        <ul>
-           {{range $hot := .WalletBalance.HotBalances}} 
-           <li>{{$hot.Name}}: {{$hot.Coin}} ({{$hot.Idr}})</li>
-           {{end}}
-        </ul>
-        User
-        <ul>
-           <li>{{.WalletBalance.TotalUserCoin}} ({{.WalletBalance.TotalUserIdr}})</li>
-        </ul>
+         <table>
+            <tr style="text-align: center; font-weight: bold;">
+               <td>Symbol</td>
+               <td>Cold</td>
+               <td>Hot</td>
+               <td>Exchange</td>
+            </tr>
+            {{range $currency := .WalletBalances}}
+            <tr>
+               <td style="text-align: center;">{{$currency.Nama}}</td>
+               <td>
+                  <ul>
+                     {{range $cold := $currency.ColdBalances}}
+                     <li>{{$cold.Name}}: {{$cold.Coin}} ({{$cold.Idr}})</li>
+                     {{end}}
+                  </ul>
+               </td>
+               <td>
+                  <ul>
+                     {{range $hot := $currency.HotBalances}}
+                     <li>{{$hot.Name}}: {{$hot.Coin}} ({{$hot.Idr}})</li>
+                     {{end}}
+                  </ul>
+               </td>
+               <td>
+                  <li>{{$currency.TotalUserCoin}} ({{$currency.TotalUserIdr}})</li>
+               </td>
+            </tr>
+            {{end}}
+         </table>
     </body>
 </html>

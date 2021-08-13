@@ -6,9 +6,4 @@ const TargetType = "target"
 const BottomSoftType = "bottom_soft"
 const BottomHardType = "bottom_hard"
 
-type HotLimit struct {
-	Id 			int 	`json:"id"`
-	CurrencyId 	int 	`json:"currency_id"`
-	Type 		string 	`json:"type"`
-	Amount 		string 	`json:"amount"`
-}
+type HotLimit map[string]string

@@ -34,16 +34,31 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // LastPriceBySymbol mocks base method.
-func (m *MockRepository) LastPriceBySymbol(symbol string) (int64, error) {
+func (m *MockRepository) LastPriceBySymbol(symbol, trade string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LastPriceBySymbol", symbol)
-	ret0, _ := ret[0].(int64)
+	ret := m.ctrl.Call(m, "LastPriceBySymbol", symbol, trade)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // LastPriceBySymbol indicates an expected call of LastPriceBySymbol.
-func (mr *MockRepositoryMockRecorder) LastPriceBySymbol(symbol interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) LastPriceBySymbol(symbol, trade interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastPriceBySymbol", reflect.TypeOf((*MockRepository)(nil).LastPriceBySymbol), symbol)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastPriceBySymbol", reflect.TypeOf((*MockRepository)(nil).LastPriceBySymbol), symbol, trade)
+}
+
+// VolumeBySymbol mocks base method.
+func (m *MockRepository) VolumeBySymbol(symbol, trade string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VolumeBySymbol", symbol, trade)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VolumeBySymbol indicates an expected call of VolumeBySymbol.
+func (mr *MockRepositoryMockRecorder) VolumeBySymbol(symbol, trade interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VolumeBySymbol", reflect.TypeOf((*MockRepository)(nil).VolumeBySymbol), symbol, trade)
 }

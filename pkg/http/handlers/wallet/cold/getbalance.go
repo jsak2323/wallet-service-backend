@@ -73,31 +73,25 @@ func (s *ColdWalletService) invokeGetBalance(RES *GetBalanceHandlerResponseMap, 
 func (s *ColdWalletService) GetBalance(symbol string) (coldBalances []cb.ColdBalance) {
 	currency := config.CURR[symbol].Config
 
-	if currency.FireblocksName != "" {
-		if res, err := fireblocks.GetVaultAccountAsset(fireblocks.GetVaultAccountAssetReq{
-			VaultAccountId: config.CONF.FireblocksColdVaultId,
-			AssetId: currency.FireblocksName,
-		}); err != nil {
-			logger.ErrorLog("- cold.getBalance fireblocks.GetVaultAccountAsset("+currency.FireblocksName+") error: "+err.Error())
-		} else {
-			coldBalance := cb.ColdBalance{
-				Name: currency.Symbol + " Cold",
-				Type: "cold",
-				CurrencyId: currency.Id,
-				Balance: res.Balance,
-			}
-			
-			coldBalances = append(coldBalances, coldBalance)
-		}
-	}
-
 	if cbs, err := s.cbRepo.GetByCurrencyId(currency.Id); err != nil {
 		logger.ErrorLog("- cold.getBalance s.cbRepo.GetByCurrencyId("+strconv.Itoa(currency.Id)+") error: "+err.Error())
 	} else if len(cbs) > 0 {
-		// TODO convert raw to coin
+		logger.ErrorLog(cbs[0].Name + " " + cbs[0].Type + " " + cbs[0].FireblocksName)
 		for i := range cbs {
-			if cbs[i].Balance, err = util.RawToCoin(cbs[i].Balance, 8); err != nil {
-				logger.ErrorLog("- cold.getBalance RawToCoin("+strconv.Itoa(currency.Id)+","+cbs[i].Balance+") error: "+err.Error())
+			if cbs[i].Type == cb.FbWarmType || cbs[i].Type == cb.FbColdType {
+				if res, err := fireblocks.GetVaultAccountAsset(fireblocks.GetVaultAccountAssetReq{
+					VaultAccountId: FireblocksVaultAccountId(cbs[i].Type),
+					AssetId: cbs[i].FireblocksName,
+				}); err != nil {
+					logger.ErrorLog("- cold.getBalance fireblocks.GetVaultAccountAsset("+cbs[i].FireblocksName+") error: "+err.Error())
+				} else {
+					cbs[i].Balance = res.Balance
+				}
+			} else {
+				// non fireblocks balance are stored in raw in db
+				if cbs[i].Balance, err = util.RawToCoin(cbs[i].Balance, 8); err != nil {
+					logger.ErrorLog("- cold.getBalance RawToCoin("+strconv.Itoa(currency.Id)+","+cbs[i].Balance+") error: "+err.Error())
+				}
 			}
 		}
 		coldBalances = append(coldBalances, cbs...)

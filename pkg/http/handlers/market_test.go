@@ -17,7 +17,7 @@ func TestMarketService_ConvertCoinToIdr(t *testing.T) {
 		LastPrices map[string]string
 	}
 	type args struct {
-		amount float64
+		amount string
 		symbol string
 	}
 	tests := []struct {
@@ -25,17 +25,17 @@ func TestMarketService_ConvertCoinToIdr(t *testing.T) {
 		fields     fields
 		args       args
 		mock 	   func()
-		wantResult int64
+		wantResult string
 		wantErr    bool
 	}{
 		{
 			name: "ok",
 			fields: fields{ marketRepo: marketMock },
-			args: args{ amount: 1.2, symbol: "btc" },
+			args: args{ amount: "1.2", symbol: "btc" },
 			mock: func() {
-				marketMock.EXPECT().LastPriceBySymbol("btcidr").Return(int64(10), nil)
+				marketMock.EXPECT().LastPriceBySymbol("btc","idr").Return("10", nil)
 			},
-			wantResult: 12,
+			wantResult: "12",
 		},
 	}
 	for _, tt := range tests {

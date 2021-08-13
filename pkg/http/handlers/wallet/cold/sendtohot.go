@@ -36,16 +36,24 @@ func (s *ColdWalletService) SendToHotHandler(w http.ResponseWriter, req *http.Re
 	res, err := fireblocks.CreateTransaction(fireblocks.CreateTransactionReq{
 		AssetId: sendToHotReq.FireblocksName,
 		Amount: sendToHotReq.Amount,
-		Source: fireblocks.TransactionAccount{Type: fireblocks.VaultAccountType, Id: config.CONF.FireblocksColdVaultId},
-		Destination: fireblocks.TransactionAccount{Type: fireblocks.InternalWalletType, Id: config.CONF.FireblocksHotVaultId},
+		Source: fireblocks.TransactionAccount{
+			Type: fireblocks.VaultAccountType,
+			Id: FireblocksVaultAccountId(sendToHotReq.FireblocksType),
+		},
+		Destination: fireblocks.TransactionAccount{
+			Type: fireblocks.InternalWalletType,
+			Id: config.CONF.FireblocksHotVaultId,
+		},
 	})
 	if err != nil {
 		logger.ErrorLog(" - SendToHotHandler fireblocks.CreateTransaction err: " + err.Error())
 		RES.Error = errInternalServer
+		return
 	}
 
 	if res.Error != "" {
 		logger.ErrorLog(" - SendToHotHandler fireblocks.CreateTransaction err: " + res.Error)
 		RES.Error = errInternalServer
+		return
 	}
 }

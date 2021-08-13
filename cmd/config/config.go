@@ -35,6 +35,8 @@ type Configuration struct {
 	ExchangeSlaveMysqlDbPass string `json:"exchange_slave_mysql_db_pass"`
 	ExchangeSlaveMysqlDbName string `json:"exchange_slave_mysql_db_name"`
 
+	ExchangeHost string `json:"exchange_host"`
+
 	NotificationEmails []string `json:"notification_emails"`
 
 	AuthorizedIps []string `json:"authorized_ips"`
@@ -59,6 +61,7 @@ type Configuration struct {
 
 	FireblocksHost        string `json:"fireblocks_host"`
 	FireblocksColdVaultId string `json:"fireblocks_cold_vault_id"`
+	FireblocksWarmVaultId string `json:"fireblocks_warm_vault_id"`
 	FireblocksHotVaultId  string `json:"fireblocks_hot_vault_id"`
 }
 

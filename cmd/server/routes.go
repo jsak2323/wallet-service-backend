@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
 	hb "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/balance"
@@ -32,10 +33,10 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
 	coldbalanceRepo := mysql.NewMysqlColdBalanceRepository(mysqlDbConn)
-	hotLimitRepo := mysql.NewMysqlHotLimitRepository(mysqlDbConn)
+	hotLimitRepo := exchange.NewExchangeHotLimitRepository()
 
 	userBalanceRepo := mysql.NewMysqlUserBalanceRepository(exchangeSlaveMysqlDbConn)
-	marketRepo := mysql.NewMarketMysqlRepository(exchangeSlaveMysqlDbConn)
+	marketRepo := exchange.NewExchangeMarketRepository()
 
 	// -- Auth
 	userService := hu.NewUserService(userRepo, roleRepo, urRepo, permissionRepo)

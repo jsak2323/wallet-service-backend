@@ -18,8 +18,6 @@ CREATE TABLE currency_config (
   default_idr_price         INT(15) NOT NULL DEFAULT 0,
   cmc_id                    INT(7) NULL DEFAULT NULL,
   parent_symbol             VARCHAR(50) NULL DEFAULT NULL,
-  fireblocks_name           VARCHAR(50) NULL DEFAULT "",
-  fireblocks_address        VARCHAR(255) NULL DEFAULT "",
   last_updated              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
   PRIMARY KEY (id)
@@ -70,6 +68,7 @@ CREATE TABLE cold_balance (
   currency_id           INT(11) NOT NULL,
   name                  VARCHAR(50) NOT NULL DEFAULT "",
   type                  VARCHAR(20) NOT NULL DEFAULT "",
+  fireblocks_name       VARCHAR(50) NOT NULL DEFAULT "",
   balance               NUMERIC NOT NULL DEFAULT 0,
   address               VARCHAR(255) NOT NULL DEFAULT "",
   last_updated          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
@@ -87,4 +86,4 @@ CREATE TABLE cold_balance (
 
    PRIMARY KEY (id),
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)
- )
+ ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;

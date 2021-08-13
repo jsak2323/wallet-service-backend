@@ -2,6 +2,7 @@ package cold
 
 type SendToHotReq struct {
 	FireblocksName  string  `json:"fireblocks_name"`
+	FireblocksType 	string 	`json:"fireblocks_type"`
 	Amount  		string  `json:"amount"`
 	Memo 			string  `json:"memo"`
 }

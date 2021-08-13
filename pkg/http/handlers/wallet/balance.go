@@ -12,6 +12,8 @@ import (
 )
 
 type WalletBalance struct {
+	Nama string `json:"nama"`
+
 	ColdBalances []BalanceDetail `json:"cold_balances"`
 	HotBalances  []BalanceDetail `json:"hot_balances"`
 	UserBalances []BalanceDetail `json:"user_balances"`
@@ -23,10 +25,11 @@ type WalletBalance struct {
 }
 
 type BalanceDetail struct {
-	Id 	 int 	 `json:"id"`
-	Name string	 `json:"name"`
-	Coin string  `json:"coin"`
-	Idr  string	 `json:"idr"`
+	Id 	 	int 	 `json:"id"`
+	Name 	string	 `json:"name"`
+	Address string 	 `json:"address"`
+	Coin 	string   `json:"coin"`
+	Idr  	string	 `json:"idr"`
 }
 
 func (s *WalletService) SetColdBalanceDetails(symbol string, walletBalance *WalletBalance) {
@@ -36,20 +39,21 @@ func (s *WalletService) SetColdBalanceDetails(symbol string, walletBalance *Wall
 	)
 	
 	for _, cb := range cbs {
-		var coldBalanceDetail = BalanceDetail{ Id: cb.Id, Name: cb.Type }
+		var coldBalanceDetail = BalanceDetail{ Id: cb.Id, Name: cb.Name }
 
 		coldBalanceDetail.Coin = cb.Balance
+		coldBalanceDetail.Address = cb.Address
 		
 		if coldBalanceDetail.Idr, err = s.marketService.ConvertCoinToIdr(coldBalanceDetail.Coin, symbol); err != nil {
-			logger.ErrorLog(" - SetColdBalanceDetails ConvertCoinToIdr("+cb.Name+", "+cb.Balance+") err: "+err.Error())
+			logger.ErrorLog(" - SetColdBalanceDetails ConvertCoinToIdr("+cb.Type+", "+cb.Balance+") err: "+err.Error())
 		}
 
 		if walletBalance.TotalColdCoin, err = util.AddCoin(walletBalance.TotalColdCoin, coldBalanceDetail.Coin); err != nil {
-			logger.ErrorLog(" - SetColdBalanceDetails AddCoin("+cb.Name+", "+cb.Balance+") err: "+err.Error())
+			logger.ErrorLog(" - SetColdBalanceDetails AddCoin("+cb.Type+", "+cb.Balance+") err: "+err.Error())
 		}
 
 		if walletBalance.TotalColdIdr, err = util.AddIdr(walletBalance.TotalColdIdr, coldBalanceDetail.Idr); err != nil {
-			logger.ErrorLog(" - SetColdBalanceDetails AddIdr("+cb.Name+", "+cb.Balance+") err: "+err.Error())
+			logger.ErrorLog(" - SetColdBalanceDetails AddIdr("+cb.Type+", "+cb.Balance+") err: "+err.Error())
 		}
 
 		walletBalance.ColdBalances = append(walletBalance.ColdBalances, coldBalanceDetail)
@@ -60,7 +64,7 @@ func (s *WalletService) SetHotBalanceDetails(symbol string, rpcConfigs []rc.RpcC
 	var err error
 	
 	for _, rpcConfig := range rpcConfigs {
-		var hotBalanceDetail BalanceDetail = BalanceDetail{ Name: rpcConfig.Type }
+		var hotBalanceDetail BalanceDetail = BalanceDetail{ Name: rpcConfig.Name }
 		var res 			 *modulesm.GetBalanceRpcRes
 
 		if res, err = (*s.moduleServices)[symbol].GetBalance(rpcConfig); err != nil {
@@ -88,8 +92,8 @@ func (s *WalletService) SetHotBalanceDetails(symbol string, rpcConfigs []rc.RpcC
 func (s *WalletService) SetUserBalanceDetails(symbol string, walletBalance *WalletBalance) {
 	var tcb    ub.TotalCoinBalance
 	var err    error
-	var frozenBalanceDetail BalanceDetail = BalanceDetail{ Name: "frozen" }
-	var liquidBalanceDetail BalanceDetail = BalanceDetail{ Name: "liquid" }
+	var frozenBalanceDetail BalanceDetail = BalanceDetail{ Name: "Frozen" }
+	var liquidBalanceDetail BalanceDetail = BalanceDetail{ Name: "Liquid" }
 	
 	if tcb, err = s.userBalanceRepo.GetTotalCoinBalance(symbol); err != nil {
 		logger.ErrorLog(" - SetUserBalanceDetails ub.GetTotalCoinBalance("+symbol+") err: "+err.Error())
@@ -129,25 +133,25 @@ func (s *WalletService) FormatWalletBalanceCurrency(symbol string, walletBalance
 
 	for i := range walletBalance.ColdBalances {
 		walletBalance.ColdBalances[i].Idr = util.FormatCurrency(walletBalance.ColdBalances[i].Idr, "IDR")
-		// walletBalance.ColdBalances[i].Coin = util.FormatCurrency(walletBalance.ColdBalances[i].Coin, symbol)
+		walletBalance.ColdBalances[i].Coin = util.FormatCurrency(walletBalance.ColdBalances[i].Coin, symbol)
 	}
 
-	// walletBalance.TotalColdCoin = util.FormatCurrency(walletBalance.TotalColdCoin, symbol)
+	walletBalance.TotalColdCoin = util.FormatCurrency(walletBalance.TotalColdCoin, symbol)
 	walletBalance.TotalColdIdr = util.FormatCurrency(walletBalance.TotalColdIdr, "IDR")
 
 	for i := range walletBalance.HotBalances {
 		walletBalance.HotBalances[i].Idr = util.FormatCurrency(walletBalance.HotBalances[i].Idr, "IDR")
-		// walletBalance.HotBalances[i].Coin = util.FormatCurrency(walletBalance.HotBalances[i].Coin, symbol)
+		walletBalance.HotBalances[i].Coin = util.FormatCurrency(walletBalance.HotBalances[i].Coin, symbol)
 	}
 
-	// walletBalance.TotalNodeCoin = util.FormatCurrency(walletBalance.TotalNodeCoin, symbol)
+	walletBalance.TotalNodeCoin = util.FormatCurrency(walletBalance.TotalNodeCoin, symbol)
 	walletBalance.TotalNodeIdr = util.FormatCurrency(walletBalance.TotalNodeIdr, "IDR")
 
 	for i := range walletBalance.UserBalances {
 		walletBalance.UserBalances[i].Idr = util.FormatCurrency(walletBalance.UserBalances[i].Idr, "IDR")
-		// walletBalance.UserBalances[i].Coin = util.FormatCurrency(walletBalance.UserBalances[i].Coin, symbol)
+		walletBalance.UserBalances[i].Coin = util.FormatCurrency(walletBalance.UserBalances[i].Coin, symbol)
 	}
 
-	// walletBalance.TotalUserCoin = util.FormatCurrency(walletBalance.TotalUserCoin, symbol)
+	walletBalance.TotalUserCoin = util.FormatCurrency(walletBalance.TotalUserCoin, symbol)
 	walletBalance.TotalUserIdr = util.FormatCurrency(walletBalance.TotalUserIdr, "IDR")
 }

@@ -22,7 +22,7 @@ func NewMysqlColdBalanceRepository(db *sql.DB) domain.Repository {
 func(r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, error) {
 	var params []interface{}
 	
-	query := "SELECT id, currency_id, name, balance, last_updated FROM " + coldBalanceTable
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, last_updated FROM " + coldBalanceTable
 
 	if limit <= 0 {
 		limit = coldBalanceDefaultLimit
@@ -40,13 +40,14 @@ func(r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, er
 }
 
 func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalance, err error) {
-	query := "SELECT id, currency_id, name, type balance, address, last_updated FROM " + coldBalanceTable + " where name = ?"
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, last_updated FROM " + coldBalanceTable + " where name = ?"
 
 	if err = r.db.QueryRow(query, name).Scan(
 		&balance.Id,
 		&balance.CurrencyId,
 		&balance.Name,
 		&balance.Type,
+		&balance.FireblocksName,
 		&balance.Balance,
 		&balance.Address,
 		&balance.LastUpdated,
@@ -58,7 +59,7 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 }
 
 func (r *coldBalanceRepository) GetByCurrencyId(currencyId int) (balances []domain.ColdBalance, err error) {
-	query := "SELECT id, currency_id, name, type, balance, address, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
 	
 	return r.queryRows(query, currencyId)
 }
@@ -78,6 +79,7 @@ func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (
 			&balance.CurrencyId,
 			&balance.Name,
 			&balance.Type,
+			&balance.FireblocksName,
 			&balance.Balance,
 			&balance.Address,
 			&balance.LastUpdated,
@@ -89,16 +91,6 @@ func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (
 	}
 
 	return balances, nil
-}
-
-func (r *coldBalanceRepository) GetDepositAddress(currencyId int, coldType string) (address string, err error) {
-	query := "SELECT address FROM " + coldBalanceTable + " where currency_id = ? and type = ?"
-
-	if err = r.db.QueryRow(query, currencyId, coldType).Scan(&address); err != nil {
-		return "", err
-	}
-
-	return address, nil
 }
 
 func (r *coldBalanceRepository) UpdateBalance(id int, balance string) (err error) {

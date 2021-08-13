@@ -3,7 +3,8 @@ package util
 import (
 	"errors"
 	"math"
-    "math/big"
+	"math/big"
+	"strings"
 )
 
 func CoinToRaw(value string, decimal int) (string, error) {
@@ -83,14 +84,20 @@ func CmpBig(a, b string) (int, error) {
 }
 
 func FormatCurrency(value string, symbol string) (result string) {
-    for i := len(value); i > 0; i-- {
-        j := len(value) - i
-        if (j+1)%3 == 0 && j < len(value) - 1 {
-            result = "," + string(value[i-1]) + result
+	parts := strings.Split(value, ".")
+	intPart := parts[0]
+	decPart := ""
+
+	if len(parts) > 1 { decPart = "." + parts[1] }
+	
+    for i := len(intPart); i > 0; i-- {
+        j := len(intPart) - i
+        if (j+1)%3 == 0 && j < len(intPart) - 1 {
+            result = "," + string(intPart[i-1]) + result
         } else {
-            result = string(value[i-1]) + result
+            result = string(intPart[i-1]) + result
         }
     }
 
-    return result + " " + symbol
+    return result + decPart + " " + symbol
 }
