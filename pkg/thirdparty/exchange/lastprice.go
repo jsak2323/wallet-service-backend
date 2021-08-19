@@ -1,7 +1,7 @@
 package exchange
 
 import (
-	"errors"
+	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/market"
 )
 
 func (r *exchangeMarketRepository) LastPriceBySymbol(symbol, trade string) (price string, err error) {
@@ -10,10 +10,10 @@ func (r *exchangeMarketRepository) LastPriceBySymbol(symbol, trade string) (pric
 		return "0", err
 	}
 
-	ticker, ok := sumRes.Tickers[symbol+"_"+trade]
+	price24H, ok := sumRes.Prices24H[symbol+trade]
 	if !ok {
-		return "0", errors.New("market trade not found")
+		return "0", domain.ErrMarketTradeNotFound
 	}
 	
-	return ticker.Last, nil
+	return price24H, nil
 }

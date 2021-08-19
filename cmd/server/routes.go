@@ -9,7 +9,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
-	hb "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/balance"
+	hc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/currency"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
 	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
 	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
@@ -29,6 +29,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	permissionRepo := mysql.NewMysqlPermissionRepository(mysqlDbConn)
 	rolePermissionRepo := mysql.NewMysqlRolePermissionRepository(mysqlDbConn)
 
+	currencyConfigRepo := mysql.NewMysqlCurrencyConfigRepository(mysqlDbConn)
 	healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
@@ -36,6 +37,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	hotLimitRepo := exchange.NewExchangeHotLimitRepository()
 
 	userBalanceRepo := mysql.NewMysqlUserBalanceRepository(exchangeSlaveMysqlDbConn)
+	withdrawRepo := mysql.NewMysqlWithdrawRepository(exchangeSlaveMysqlDbConn)
 	marketRepo := exchange.NewExchangeMarketRepository()
 
 	// -- Auth
@@ -88,8 +90,11 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	getLogService := h.NewGetLogService(ModuleServices)
 	r.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet).Name("getlog")
 
-	// -- GET getbalance (disabled)
-
+	// -- GET currencyconfig
+	currencyConfigService := hc.NewCurrencyConfigService(currencyConfigRepo)
+	r.HandleFunc("/currency/list", currencyConfigService.GetCurrencyConfigHandler).Methods(http.MethodGet).Name("listcurrency")
+	
+	// -- GET getbalance
 	getBalanceService := h.NewGetBalanceService(ModuleServices)
 	r.HandleFunc("/nodes/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 	r.HandleFunc("/nodes/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
@@ -103,10 +108,10 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	userWalletService := huw.NewUserWalletService(userBalanceRepo)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
-	WalletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, userBalanceRepo)
+	WalletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, userBalanceRepo)
 
-	balanceService := hb.NewBalanceService(WalletService)
-	r.HandleFunc("/balance/list", balanceService.ListBalanceHandler).Methods(http.MethodGet).Name("listbalances")
+	r.HandleFunc("/wallet/getbalance", WalletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
+	r.HandleFunc("/wallet/{symbol}/getbalance", WalletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebysymbol")
 	
 	// -- GET listtransactions (disabled)
 	/*

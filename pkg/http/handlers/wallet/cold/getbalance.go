@@ -76,7 +76,6 @@ func (s *ColdWalletService) GetBalance(symbol string) (coldBalances []cb.ColdBal
 	if cbs, err := s.cbRepo.GetByCurrencyId(currency.Id); err != nil {
 		logger.ErrorLog("- cold.getBalance s.cbRepo.GetByCurrencyId("+strconv.Itoa(currency.Id)+") error: "+err.Error())
 	} else if len(cbs) > 0 {
-		logger.ErrorLog(cbs[0].Name + " " + cbs[0].Type + " " + cbs[0].FireblocksName)
 		for i := range cbs {
 			if cbs[i].Type == cb.FbWarmType || cbs[i].Type == cb.FbColdType {
 				if res, err := fireblocks.GetVaultAccountAsset(fireblocks.GetVaultAccountAssetReq{

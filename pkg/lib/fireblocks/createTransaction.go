@@ -1,10 +1,10 @@
 package fireblocks
 
 import (
-	"bytes"
+	"errors"
 	"encoding/json"
-	"net/http"
-	"time"
+	
+	"gopkg.in/resty.v0"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 )
@@ -14,23 +14,26 @@ const VaultAccountType = "VAULT_ACCOUNT"
 const InternalWalletType = "INTERNAL_WALLET"
 
 func CreateTransaction(req CreateTransactionReq) (RES CreateTransactionRes, err error) {
-	httpClient := &http.Client{
-        Timeout: 120 * time.Second,
-    }
-
 	body, err := json.Marshal(req)
 	if err != nil {
 		return CreateTransactionRes{}, err
 	}
 	
-	res, err := httpClient.Post(config.CONF.FireblocksHost+"/"+createTxEndpoint+"/", "application/json", bytes.NewBuffer(body))
+	res, err := resty.R().
+		SetHeader("Authorization", "Basic " + auth()).
+		SetBody(body).
+		Post(config.CONF.FireblocksHost+"/"+createTxEndpoint+"/")
+
     if err != nil {
         return CreateTransactionRes{}, err
     }
-    defer res.Body.Close()
 
-	if err = json.NewDecoder(res.Body).Decode(&RES); err != nil {
+	if err = json.Unmarshal(res.Body, &RES); err != nil {
 		return CreateTransactionRes{}, err
+	}
+
+	if RES.Error != "" {
+		return CreateTransactionRes{}, errors.New(RES.Error)
 	}
 
 	return RES, nil

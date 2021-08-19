@@ -64,7 +64,7 @@ func (xr *XmlRpc) XmlRpcCall(method string, args *RpcReq, reply interface{}) err
 }
 
 func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 string) RpcReq {
-    hashkey, nonce := generateHashkey(rpcConfig)
+    hashkey, nonce := GenerateHashkey(rpcConfig.Password, rpcConfig.Hashkey)
     
     return RpcReq{
         RpcUser : rpcConfig.User,
@@ -76,7 +76,7 @@ func GenerateRpcReq(rpcConfig rc.RpcConfig, arg1 string, arg2 string, arg3 strin
     }
 }
 
-func generateHashkey(rpcConfig rc.RpcConfig) (digestSha256String string, nonce string) {
+func GenerateHashkey(pass, hashkey string) (digestSha256String string, nonce string) {
     mt    := Microtime()
     nonce = strings.ReplaceAll(strconv.FormatFloat(mt, 'f', 9, 64), ".", "")
 
@@ -84,8 +84,8 @@ func generateHashkey(rpcConfig rc.RpcConfig) (digestSha256String string, nonce s
     this15m  := unixTime / 60
 
     // todo: implement encryption
-    pass    := rpcConfig.Password
-    hashkey := rpcConfig.Hashkey
+    // pass    := rpcConfig.Password
+    // hashkey := rpcConfig.Hashkey
 
     digest := pass + strconv.FormatInt(this15m, 10) + hashkey + nonce
     digestMd5       := md5.Sum([]byte(digest))

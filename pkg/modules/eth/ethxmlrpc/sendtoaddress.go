@@ -12,7 +12,8 @@ func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal stri
     txRes := struct {Value string}{}
     res := model.SendToAddressRpcRes{}
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, rpcConfig.Password, address, amountInDecimal)
+    // TODO config eth_encrypt_key into first args
+    rpcReq := util.GenerateRpcReq(rpcConfig, "eth_encrypt_key", address, amountInDecimal)
     xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("send_transaction", &rpcReq, &txRes)

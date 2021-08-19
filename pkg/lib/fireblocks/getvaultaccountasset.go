@@ -1,9 +1,10 @@
 package fireblocks
 
 import (
+	"errors"
 	"encoding/json"
-	"net/http"
-	"time"
+	
+	"gopkg.in/resty.v0"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 )
@@ -11,18 +12,25 @@ import (
 const getAssetEndpoint = "getVaultAccountAsset"
 
 func GetVaultAccountAsset(req GetVaultAccountAssetReq) (RES GetVaultAccountAssetRes, err error) {
-	httpClient := &http.Client{
-        Timeout: 120 * time.Second,
-    }
+	res, err := resty.R().
+		SetHeaders(
+			map[string]string{
+				"Content-type": "application/json",
+				"Authorization": "Basic " + auth(),
+			},
+		).
+		Get(config.CONF.FireblocksHost+"/"+getAssetEndpoint+"/"+req.VaultAccountId+"/"+req.AssetId)
 
-	res, err := httpClient.Get(config.CONF.FireblocksHost+"/"+getAssetEndpoint+"/"+req.VaultAccountId+"/"+req.AssetId)
     if err != nil {
         return GetVaultAccountAssetRes{}, err
     }
-    defer res.Body.Close()
 
-	if err = json.NewDecoder(res.Body).Decode(&RES); err != nil {
+	if err = json.Unmarshal(res.Body, &RES); err != nil {
 		return GetVaultAccountAssetRes{}, err
+	}
+
+	if RES.Error != "" {
+		return GetVaultAccountAssetRes{}, errors.New(RES.Error)
 	}
 
 	return RES, nil

@@ -59,10 +59,13 @@ type Configuration struct {
     FireblocksCallbackSSLCert string `json:"fireblocks_callback_ssl_cert"`
     FireblocksCallbackSSLKey  string `json:"fireblocks_callback_ssl_key"`
 
-	FireblocksHost        string `json:"fireblocks_host"`
-	FireblocksColdVaultId string `json:"fireblocks_cold_vault_id"`
-	FireblocksWarmVaultId string `json:"fireblocks_warm_vault_id"`
-	FireblocksHotVaultId  string `json:"fireblocks_hot_vault_id"`
+	FireblocksHost          string `json:"fireblocks_host"`
+	FireblocksServeruser    string `json:"fireblocks_serveruser"`
+	FireblocksServerpass    string `json:"fireblocks_serverpass"`
+	FireblocksServerhashkey string `json:"fireblocks_serverhashkey"`
+	FireblocksColdVaultId   string `json:"fireblocks_cold_vault_id"`
+	FireblocksWarmVaultId   string `json:"fireblocks_warm_vault_id"`
+	FireblocksHotVaultId    string `json:"fireblocks_hot_vault_id"`
 }
 
 type CurrencyConfiguration struct {

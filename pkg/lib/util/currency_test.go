@@ -38,7 +38,6 @@ func TestRawToCoin(t *testing.T) {
 func TestFormatCurrency(t *testing.T) {
 	type args struct {
 		value  string
-		symbol string
 	}
 	tests := []struct {
 		name       string
@@ -46,29 +45,29 @@ func TestFormatCurrency(t *testing.T) {
 		wantResult string
 	}{
 		{
-			args: args{value: "12345678", symbol: "IDR"},
+			args: args{value: "12345678"},
 			wantResult: "12,345,678 IDR",
 		},
 		{
-			args: args{value: "1234567", symbol: "IDR"},
+			args: args{value: "1234567"},
 			wantResult: "1,234,567 IDR",
 		},
 		{
-			args: args{value: "123456", symbol: "IDR"},
+			args: args{value: "123456"},
 			wantResult: "123,456 IDR",
 		},
 		{
-			args: args{value: "1234", symbol: "BTC"},
+			args: args{value: "1234"},
 			wantResult: "1,234 BTC",
 		},
 		{
-			args: args{value: "1234.222", symbol: "BTC"},
+			args: args{value: "1234.222"},
 			wantResult: "1,234.222 BTC",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if gotResult := FormatCurrency(tt.args.value, tt.args.symbol); gotResult != tt.wantResult {
+			if gotResult := FormatCurrency(tt.args.value); gotResult != tt.wantResult {
 				t.Errorf("FormatCurrency() = %v, want %v", gotResult, tt.wantResult)
 			}
 		})

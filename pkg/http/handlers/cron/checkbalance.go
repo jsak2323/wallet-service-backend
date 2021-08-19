@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"text/template"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -47,27 +46,13 @@ func NewCheckBalanceService(
 }
 
 func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *http.Request) {
-	var walletBalances []hw.WalletBalance
+	var walletBalances []hw.GetBalanceRes
 
-	for SYMBOL, curr := range config.CURR {	
-		var walletBalance hw.WalletBalance = hw.WalletBalance{ 
-			Nama: SYMBOL,
-			TotalColdCoin: "0", TotalColdIdr: "0",
-			TotalNodeCoin: "0", TotalNodeIdr: "0",
-			TotalUserCoin: "0", TotalUserIdr: "0",
-		}
-		var wg sync.WaitGroup
+	for _, curr := range config.CURR {	
+		walletBalance := s.walletService.GetBalance(curr)
 		
-		wg.Add(3)
-		go func() { defer wg.Done(); s.walletService.SetColdBalanceDetails(SYMBOL, &walletBalance) }()
-		go func() { defer wg.Done(); s.walletService.SetHotBalanceDetails(SYMBOL, curr.RpcConfigs, &walletBalance) }()
-		go func() { defer wg.Done(); s.walletService.SetUserBalanceDetails(SYMBOL, &walletBalance) }()
-		wg.Wait()
-
-		// s.sendExchangeAlertEmail(SYMBOL, walletBalance)
+		// s.sendExchangeAlertEmail(walletBalance)
 		// s.checkHotLimit(curr.Config, walletBalance)
-
-		s.walletService.FormatWalletBalanceCurrency(SYMBOL, &walletBalance)
 
 		walletBalances = append(walletBalances, walletBalance)
 	}
@@ -75,7 +60,7 @@ func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *ht
 	s.sendReportEmail(walletBalances)
 }
 
-func (s *CheckBalanceService) sendExchangeAlertEmail(symbol string, walletBalance hw.WalletBalance) {
+func (s *CheckBalanceService) sendExchangeAlertEmail(symbol string, walletBalance hw.GetBalanceRes) {
 	logger.Log(" - CheckBalanceService -- Sending balance report email ...")
 
     subject := "Balance Alert: "+symbol
@@ -87,7 +72,7 @@ func (s *CheckBalanceService) sendExchangeAlertEmail(symbol string, walletBalanc
 	if err != nil { logger.ErrorLog(err.Error()) }
 
 	fmt.Println(walletBalance)
-	err = t.Execute(buf, struct {WalletBalance hw.WalletBalance}{WalletBalance: walletBalance})
+	err = t.Execute(buf, struct {WalletBalance hw.GetBalanceRes}{WalletBalance: walletBalance})
 
 	message = message + buf.String()
 
@@ -98,7 +83,7 @@ func (s *CheckBalanceService) sendExchangeAlertEmail(symbol string, walletBalanc
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 
-func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.WalletBalance) {
+func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.GetBalanceRes) {
 	logger.Log(" - CheckBalanceService -- Sending balance report email ...")
 
     subject := "Balance Report "
@@ -109,7 +94,7 @@ func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.WalletBalance)
 	t, err := template.ParseFiles("views/email/report.html")
 	if err != nil { logger.ErrorLog(err.Error()) }
 
-	err = t.Execute(buf, struct {WalletBalances []hw.WalletBalance}{WalletBalances: walletBalances})
+	err = t.Execute(buf, struct {WalletBalances []hw.GetBalanceRes}{WalletBalances: walletBalances})
 
 	message = message + buf.String()
 
@@ -120,7 +105,7 @@ func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.WalletBalance)
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 
-func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalance hw.WalletBalance, limits hl.HotLimit) {
+func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalance hw.GetBalanceRes, limits hl.HotLimit) {
 	logger.Log(" - CheckBalanceService -- Sending hot limit report email ...")
 
     subject := "Hot Limit Alert: "+symbol
@@ -133,7 +118,7 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
 
 	err = t.Execute(buf, struct {
 			Symbol string
-			WalletBalance hw.WalletBalance
+			WalletBalance hw.GetBalanceRes
 			Limits hl.HotLimit
 		}{
 			Symbol: symbol,
@@ -150,7 +135,7 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 
-func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBalance hw.WalletBalance) {
+func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBalance hw.GetBalanceRes) {
 	limits, err := s.hotLimitRepo.GetBySymbol(currency.Symbol)
 	if err != nil {
 		logger.ErrorLog("checkHotLimit("+currency.Symbol+") GetByCurrencyId err: "+err.Error())
@@ -170,11 +155,11 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 	}
 
 	// check if hot storage is greater than bottom soft limit
-	if compare, err := util.CmpBig(walletBalance.TotalNodeIdr, limits[hl.TopSoftType]); err != nil {
+	if compare, err := util.CmpBig(walletBalance.TotalHotIdr, limits[hl.TopSoftType]); err != nil {
 		logger.ErrorLog("checkHotLimit("+currency.Symbol+") CmpBig err: "+err.Error())
 		return
 	} else if compare == 1 {
-		amount, err := util.SubIdr(walletBalance.TotalNodeIdr, limits[hl.TargetType])
+		amount, err := util.SubIdr(walletBalance.TotalHotIdr, limits[hl.TargetType])
 		if err != nil {
 			logger.ErrorLog("checkHotLimit("+currency.Symbol+") SubIdr err: "+err.Error())
 			return
@@ -202,11 +187,11 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 	}
 
 	// check if hot storage is less than bottom soft limit
-	if compare, err := util.CmpBig(walletBalance.TotalNodeIdr, limits[hl.BottomSoftType]); err != nil {
+	if compare, err := util.CmpBig(walletBalance.TotalHotIdr, limits[hl.BottomSoftType]); err != nil {
 		logger.ErrorLog("checkHotLimit("+currency.Symbol+") CmpBig err: "+err.Error())
 		return
 	} else if compare == -1 {
-		amount, err := util.SubIdr(limits[hl.TargetType], walletBalance.TotalNodeIdr)
+		amount, err := util.SubIdr(limits[hl.TargetType], walletBalance.TotalHotIdr)
 		if err != nil {
 			logger.ErrorLog("checkHotLimit("+currency.Symbol+") SubIdr err: "+err.Error())
 			return

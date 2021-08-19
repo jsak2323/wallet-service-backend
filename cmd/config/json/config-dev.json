@@ -41,6 +41,9 @@
     "fireblocks_callback_ssl_key": "key.pem",
 
     "fireblocks_host"          : "http://localhost:3200",
+    "fireblocks_serveruser"    : "fireblocks",
+    "fireblocks_serverpass"    : "h+3CaJE*",
+    "fireblocks_serverhashkey" : "ds9FntYP55",
     "fireblocks_cold_vault_id" : "1",
     "fireblocks_warm_vault_id" : "0",
     "fireblocks_hot_vault_id"  : "315878c3-fcfd-f7f6-2046-058d04334b7e"

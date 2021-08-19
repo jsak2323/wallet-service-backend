@@ -25,7 +25,6 @@ func SendEmail(subject string, message string, recipients []string) (bool, error
 
     contents := []byte("To: "+strings.Join(recipients, ",")+"\r\n" +
         "Subject: "+subject+"\r\n" +
-        "\r\n" +
         message+"\r\n")
 
     err = smtp.SendMail(host+":"+port, auth, from, recipients, contents)

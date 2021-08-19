@@ -59,7 +59,7 @@ func (s *MarketService) getLastPrice(symbol string) (price string, err error) {
 		// check symbolusdt table,
 		// assuming that no symbolidr table actually means symbol is not in idr market
 		// TODO make sure the assumption is right
-		if strings.Contains(err.Error(), "1146") {
+		if err == market.ErrMarketTradeNotFound {
 			if price, err = s.marketRepo.LastPriceBySymbol(strings.ToLower(symbol), "usdt"); err != nil {
 				return "0", err
 			}

@@ -83,7 +83,7 @@ func CmpBig(a, b string) (int, error) {
     return aBig.Cmp(bBig), nil
 }
 
-func FormatCurrency(value string, symbol string) (result string) {
+func FormatCurrency(value string) (result string) {
 	parts := strings.Split(value, ".")
 	intPart := parts[0]
 	decPart := ""
@@ -99,5 +99,5 @@ func FormatCurrency(value string, symbol string) (result string) {
         }
     }
 
-    return result + decPart + " " + symbol
+    return result + decPart
 }

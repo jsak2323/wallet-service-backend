@@ -9,7 +9,8 @@ import (
 )
 
 type SummariesRes struct {
-	Tickers map[string]Ticker `json:"tickers"`
+	Tickers 	map[string]Ticker 	`json:"tickers"`
+	Prices24H	map[string]string	`json:"prices_24h"`
 }
 
 type Ticker struct {
@@ -26,7 +27,7 @@ func summaries() (RES SummariesRes, err error) {
 		return SummariesRes{}, err
 	}
 
-	if err = json.NewDecoder(res.RawResponse.Body).Decode(&RES); err != nil {
+	if err = json.Unmarshal(res.Body, &RES); err != nil {
 		return SummariesRes{}, err
 	}
 
