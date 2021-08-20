@@ -46,5 +46,8 @@
     "fireblocks_serverhashkey" : "ds9FntYP55",
     "fireblocks_cold_vault_id" : "1",
     "fireblocks_warm_vault_id" : "0",
-    "fireblocks_hot_vault_id"  : "315878c3-fcfd-f7f6-2046-058d04334b7e"
+    "fireblocks_hot_vault_id"  : "315878c3-fcfd-f7f6-2046-058d04334b7e",
+
+    "eth_encrypt_key_encrypted": "6e2e11c38e31e6d365e2d2fa03b5232f1bbba296f600a73bc7fe04cbd625ffdc443cbec67a6f237baadea0d6c4a9641ffdeea2609a7fcecdaa602a137e01485e568845779a91e933cd61ded9815b6e00190e9028f4158f3ce7cc35421fce514448ea13b2fc1e606d5230835e72f635d796a32b87",
+    "eth_encrypt_key_key": "tujDoivCitCiHaccoujhomyudrevPidd"
 }

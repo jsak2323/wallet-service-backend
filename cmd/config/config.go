@@ -66,6 +66,9 @@ type Configuration struct {
 	FireblocksColdVaultId   string `json:"fireblocks_cold_vault_id"`
 	FireblocksWarmVaultId   string `json:"fireblocks_warm_vault_id"`
 	FireblocksHotVaultId    string `json:"fireblocks_hot_vault_id"`
+
+	EthEncryptKeyEncrypted string `json:"eth_encrypt_key_encrypted"`
+	EthEncryptKeyKey       string `json:"eth_encrypt_key_key"`
 }
 
 type CurrencyConfiguration struct {

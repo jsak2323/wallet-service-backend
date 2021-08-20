@@ -12,7 +12,7 @@ func (es *EthService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRe
     balanceRes := struct {Value string}{}
     res := model.GetBalanceRpcRes{ Balance: "0" }
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, "FASeoS97udPLyIvzOSiqDCG5TRJIzliGUaVS8gYHbCunaID9DUbmKy5YqjVZy2IGu791xjwFVWuFf1rjIIMMLQ==", "", "")
+    rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
     xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
     err := xmlrpc.XmlRpcCall("balance", &rpcReq, &balanceRes)
