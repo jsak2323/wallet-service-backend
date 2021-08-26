@@ -108,7 +108,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	userWalletService := huw.NewUserWalletService(userBalanceRepo)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
-	WalletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, userBalanceRepo)
+	WalletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
 
 	r.HandleFunc("/wallet/getbalance", WalletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
 	r.HandleFunc("/wallet/{symbol}/getbalance", WalletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebysymbol")
@@ -137,7 +137,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	// -- POST sendtoaddress (disabled)
 	sendToAddressService := h.NewSendToAddressService(ModuleServices)
-	r.HandleFunc("/sendtoaddress", sendToAddressService.SendToAddressHandler).Methods(http.MethodPost)
+	r.HandleFunc("/sendtoaddress", sendToAddressService.SendToAddressHandler).Methods(http.MethodPost).Name("sendhotwallet")
 	/*
 	   curl example:
 	   curl --header "Content-Type: application/json" --request POST --data '{"symbol":"btc", "amount":"0.001", "address":"2MtU6EMx37AYrCNj1RcRr6bw66QqHYw4D4R"}' localhost:3000/sendtoaddress | jq

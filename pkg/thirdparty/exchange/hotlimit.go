@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"errors"
+	"strings"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/hotlimit"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
@@ -14,6 +15,7 @@ func NewExchangeHotLimitRepository() domain.Repository {
 }
 
 func (r *exchangeHotLimitRepository) GetBySymbol(symbol string) (result domain.HotLimit, err error) {
+	symbol = strings.ToLower(symbol)
 	result = make(domain.HotLimit, 5)
 	
 	if symbol == "btc" {
@@ -32,6 +34,8 @@ func (r *exchangeHotLimitRepository) GetBySymbol(symbol string) (result domain.H
 		result["target"] = "20000000000";
 		result["top_soft"] = "25000000000";
 		result["top_hard"] = "30000000000";
+
+		return result, nil
 	}
 	
 	sumRes, err := summaries()

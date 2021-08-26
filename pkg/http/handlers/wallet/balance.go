@@ -64,11 +64,12 @@ func (s *WalletService) GetBalance(currConfig config.CurrencyConfiguration) GetB
 	var wg sync.WaitGroup
 	var res GetBalanceRes =  GetBalanceRes{CurrencyConfig: currConfig.Config}
 	
-	wg.Add(4)
+	wg.Add(5)
 	go func() { defer wg.Done(); s.SetColdBalanceDetails(&res) }()
 	go func() { defer wg.Done(); s.SetHotBalanceDetails(currConfig.RpcConfigs, &res) }()
 	go func() { defer wg.Done(); s.SetUserBalanceDetails(&res) }()
 	go func() { defer wg.Done(); s.SetPendingWithdraw(&res) }()
+	go func() { defer wg.Done(); s.SetHotLimits(&res) }()
 	wg.Wait()
 	
 	return res
@@ -170,12 +171,24 @@ func (s *WalletService) SetUserBalanceDetails(res *GetBalanceRes) {
 func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
 	var err error
 	var symbol string = res.CurrencyConfig.Symbol
+	var pendingWDRaw string
 
-	if res.PendingWD, err = s.withdrawRepo.GetPendingWithdraw(symbol); err != nil {
+	if pendingWDRaw, err = s.withdrawRepo.GetPendingWithdraw(symbol); err != nil {
 		logger.ErrorLog(" - SetPendingWithdraw GetPendingWithdraw("+symbol+") err: "+err.Error())
+		return
 	}
 
-	if res.PendingWD, err = util.RawToCoin(res.PendingWD, 8); err != nil {
-		logger.ErrorLog(" - SetPendingWithdraw RawToCoin("+symbol+", "+res.PendingWD+") err: "+err.Error())
+	if res.PendingWDCoin, err = util.RawToCoin(pendingWDRaw, 8); err != nil {
+		logger.ErrorLog(" - SetPendingWithdraw RawToCoin("+symbol+", "+pendingWDRaw+") err: "+err.Error())
+	} else if res.PendingWDIdr, err = s.marketService.ConvertCoinToIdr(res.PendingWDCoin, symbol); err != nil {
+		logger.ErrorLog(" - SetPendingWithdraw ConvertCoinToIdr("+symbol+") err: "+err.Error())
+	}
+}
+
+func (s *WalletService) SetHotLimits(res *GetBalanceRes) {
+	var err error
+	
+	if res.HotLimits, err = s.hotLimitRepo.GetBySymbol(res.CurrencyConfig.Symbol); err != nil {
+		logger.ErrorLog(" - SetHotLimits hotLimitRepo.GetBySymbol("+res.CurrencyConfig.Symbol+") err: "+err.Error())	
 	}
 }

@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	hl "github.com/btcid/wallet-services-backend-go/pkg/domain/hotlimit"
 	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 )
 
@@ -17,7 +18,10 @@ type GetBalanceRes struct {
 	TotalHotIdr 	string `json:"total_hot_idr"`
 	TotalUserIdr 	string `json:"total_user_idr"`
 	TotalUserCoin 	string `json:"total_user_coin"`
-	PendingWD		string `json:"pending_wd"`
+	PendingWDCoin	string `json:"pending_wd_coin"`
+	PendingWDIdr	string `json:"pending_wd_idr"`
+
+	HotLimits 		hl.HotLimit	`json:"hot_limits"`
 
 	Error string `json:"error"`
 }
