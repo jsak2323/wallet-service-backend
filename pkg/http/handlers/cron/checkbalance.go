@@ -2,9 +2,9 @@ package cron
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -16,6 +16,7 @@ import (
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/fireblocks"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/telegram"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
@@ -51,7 +52,7 @@ func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *ht
 	for _, curr := range config.CURR {	
 		walletBalance := s.walletService.GetBalance(curr)
 		
-		// s.sendExchangeAlertEmail(walletBalance)
+		s.checkUserBalance(walletBalance)
 		// s.checkHotLimit(curr.Config, walletBalance)
 
 		walletBalances = append(walletBalances, walletBalance)
@@ -60,19 +61,57 @@ func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *ht
 	s.sendReportEmail(walletBalances)
 }
 
-func (s *CheckBalanceService) sendExchangeAlertEmail(symbol string, walletBalance hw.GetBalanceRes) {
-	logger.Log(" - CheckBalanceService -- Sending balance report email ...")
+func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
+	var err error
+	var total string = "0"
+	var cmpResult int
 
-    subject := "Balance Alert: "+symbol
-    message := `Content-Type: text/html; charset=UTF-8 \r\n`
+	total, err = util.AddCoin(total, walletBalance.TotalColdCoin)
+	total, err = util.AddCoin(total, walletBalance.TotalHotCoin)
+
+	if cmpResult, err = util.CmpBig(total, walletBalance.TotalUserCoin); err != nil {
+		// TODO log error
+	} else if cmpResult == -1 {
+		s.walletService.FormatWalletBalanceCurrency(&walletBalance)
+		s.sendUserBalanceAlertTelegram(walletBalance, total)
+		s.sendUserBalanceAlertEmail(walletBalance, total)
+	}
+}
+
+func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetBalanceRes, total string) {
+	logger.Log(" - CheckBalanceService -- Sending user balance alert telegram ...")
+
+	var symbol string = walletBalance.CurrencyConfig.Symbol
+	var unit string = walletBalance.CurrencyConfig.Unit
+	var sb strings.Builder
+
+	sb.WriteString("User Balance Alert: "+ symbol + "\n")
+	sb.WriteString("Total Hot: " + walletBalance.TotalHotCoin + " " + unit + "\n")
+	sb.WriteString("Total Cold: " + walletBalance.TotalColdCoin + " " + unit + "\n")
+	sb.WriteString("Total Wallet: " + total + " " + unit + "\n")
+	sb.WriteString("User Balance: " + walletBalance.TotalUserCoin + " " + unit)
+	
+	telegram.SendMessage(sb.String())
+}
+
+func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBalanceRes, total string) {
+	logger.Log(" - CheckBalanceService -- Sending user balance alert email ...")
+
+	subject := "User Balance Alert: "+walletBalance.CurrencyConfig.Symbol
+    message := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 
 	buf := &bytes.Buffer{}
 	
-	t, err := template.ParseFiles("views/email/exchange_alert.html")
+	t, err := template.ParseFiles("views/email/user_balance_alert.html")
 	if err != nil { logger.ErrorLog(err.Error()) }
 
-	fmt.Println(walletBalance)
-	err = t.Execute(buf, struct {WalletBalance hw.GetBalanceRes}{WalletBalance: walletBalance})
+	err = t.Execute(buf, struct {
+			WalletBalance hw.GetBalanceRes
+			Total string
+		}{
+			WalletBalance: walletBalance,
+			Total: total,
+		})
 
 	message = message + buf.String()
 
@@ -93,6 +132,10 @@ func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.GetBalanceRes)
 	
 	t, err := template.ParseFiles("views/email/report.html")
 	if err != nil { logger.ErrorLog(err.Error()) }
+
+	for i := range walletBalances {
+		s.walletService.FormatWalletBalanceCurrency(&walletBalances[i])
+	}
 
 	err = t.Execute(buf, struct {WalletBalances []hw.GetBalanceRes}{WalletBalances: walletBalances})
 

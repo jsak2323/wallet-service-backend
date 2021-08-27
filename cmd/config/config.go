@@ -69,6 +69,9 @@ type Configuration struct {
 
 	EthEncryptKeyEncrypted string `json:"eth_encrypt_key_encrypted"`
 	EthEncryptKeyKey       string `json:"eth_encrypt_key_key"`
+
+	TelegramBotToken    string `json:"telegram_bot_token"`
+	TelegramAlertChatId string `json:"telegram_alert_chat_id"`
 }
 
 type CurrencyConfiguration struct {

@@ -13,27 +13,27 @@
                <td>Symbol</td>
                <td>Cold</td>
                <td>Hot</td>
-               <td>Exchange</td>
+               <td>User</td>
             </tr>
-            {{range $currency := .WalletBalances}}
+            {{range $balance := .WalletBalances}}
             <tr>
-               <td style="text-align: center;">{{$currency.Nama}}</td>
+               <td style="text-align: center;">{{$balance.CurrencyConfig.Name}}</td>
                <td>
                   <ul>
-                     {{range $cold := $currency.ColdBalances}}
-                     <li>{{$cold.Name}}: {{$cold.Coin}} ({{$cold.Idr}})</li>
+                     {{range $cold := $balance.ColdBalances}}
+                     <li>{{$cold.Name}}: {{$cold.Coin}} {{$balance.CurrencyConfig.Unit}} ({{$cold.Idr}} IDR)</li>
                      {{end}}
                   </ul>
                </td>
                <td>
                   <ul>
-                     {{range $hot := $currency.HotBalances}}
-                     <li>{{$hot.Name}}: {{$hot.Coin}} ({{$hot.Idr}})</li>
+                     {{range $hot := $balance.HotBalances}}
+                     <li>{{$hot.Name}}: {{$hot.Coin}} {{$balance.CurrencyConfig.Unit}} ({{$hot.Idr}} IDR)</li>
                      {{end}}
                   </ul>
                </td>
                <td>
-                  <li>{{$currency.TotalUserCoin}} ({{$currency.TotalUserIdr}})</li>
+                  <li>{{$balance.TotalUserCoin}} {{$balance.CurrencyConfig.Unit}} ({{$balance.TotalUserIdr}} IDR)</li>
                </td>
             </tr>
             {{end}}
