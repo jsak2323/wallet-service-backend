@@ -4,28 +4,43 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
-func (s *WalletService) FormatWalletBalanceCurrency(walletBalance *GetBalanceRes) {
+func (s *WalletService) FormatWalletBalanceCurrency(walletBalance GetBalanceRes) (result GetBalanceRes) {
+
+	result.CurrencyConfig = walletBalance.CurrencyConfig
+	result.ColdBalances = make([]BalanceDetail, len(walletBalance.ColdBalances))
+	result.HotBalances = make([]BalanceDetail, len(walletBalance.HotBalances))
+	result.UserBalances = make([]BalanceDetail, len(walletBalance.UserBalances))
+
 	for i := range walletBalance.ColdBalances {
-		walletBalance.ColdBalances[i].Idr = util.FormatCurrency(walletBalance.ColdBalances[i].Idr)
-		walletBalance.ColdBalances[i].Coin = util.FormatCurrency(walletBalance.ColdBalances[i].Coin)
+		result.ColdBalances[i] = walletBalance.ColdBalances[i]
+		result.ColdBalances[i].Idr = util.FormatCurrency(walletBalance.ColdBalances[i].Idr)
+		result.ColdBalances[i].Coin = util.FormatCurrency(walletBalance.ColdBalances[i].Coin)
 	}
 
-	walletBalance.TotalColdCoin = util.FormatCurrency(walletBalance.TotalColdCoin)
-	walletBalance.TotalColdIdr = util.FormatCurrency(walletBalance.TotalColdIdr)
+	result.TotalColdCoin = util.FormatCurrency(walletBalance.TotalColdCoin)
+	result.TotalColdIdr = util.FormatCurrency(walletBalance.TotalColdIdr)
 
 	for i := range walletBalance.HotBalances {
-		walletBalance.HotBalances[i].Idr = util.FormatCurrency(walletBalance.HotBalances[i].Idr)
-		walletBalance.HotBalances[i].Coin = util.FormatCurrency(walletBalance.HotBalances[i].Coin)
+		result.HotBalances[i] = walletBalance.HotBalances[i]
+		result.HotBalances[i].Idr = util.FormatCurrency(walletBalance.HotBalances[i].Idr)
+		result.HotBalances[i].Coin = util.FormatCurrency(walletBalance.HotBalances[i].Coin)
 	}
 
-	walletBalance.TotalHotCoin = util.FormatCurrency(walletBalance.TotalHotCoin)
-	walletBalance.TotalHotIdr = util.FormatCurrency(walletBalance.TotalHotIdr)
-
+	result.TotalHotCoin = util.FormatCurrency(walletBalance.TotalHotCoin)
+	result.TotalHotIdr = util.FormatCurrency(walletBalance.TotalHotIdr)
+	
 	for i := range walletBalance.UserBalances {
-		walletBalance.UserBalances[i].Idr = util.FormatCurrency(walletBalance.UserBalances[i].Idr)
-		walletBalance.UserBalances[i].Coin = util.FormatCurrency(walletBalance.UserBalances[i].Coin)
+		result.UserBalances[i] = walletBalance.UserBalances[i]
+		result.UserBalances[i].Idr = util.FormatCurrency(walletBalance.UserBalances[i].Idr)
+		result.UserBalances[i].Coin = util.FormatCurrency(walletBalance.UserBalances[i].Coin)
 	}
 
-	walletBalance.TotalUserCoin = util.FormatCurrency(walletBalance.TotalUserCoin)
-	walletBalance.TotalUserIdr = util.FormatCurrency(walletBalance.TotalUserIdr)
+	result.TotalUserCoin = util.FormatCurrency(walletBalance.TotalUserCoin)
+	result.TotalUserIdr = util.FormatCurrency(walletBalance.TotalUserIdr)
+	result.PendingWDCoin = util.FormatCurrency(walletBalance.PendingWDCoin)
+	result.PendingWDIdr = util.FormatCurrency(walletBalance.PendingWDIdr)
+	result.HotPercent = walletBalance.HotPercent
+	result.HotColdPercent = walletBalance.HotColdPercent
+
+	return result
 }

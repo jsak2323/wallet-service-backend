@@ -20,6 +20,8 @@ type GetBalanceRes struct {
 	TotalUserCoin 	string `json:"total_user_coin"`
 	PendingWDCoin	string `json:"pending_wd_coin"`
 	PendingWDIdr	string `json:"pending_wd_idr"`
+	HotPercent		string `json:"hot_percent"`
+	HotColdPercent	string `json:"hot_cold_percent"`
 
 	HotLimits 		hl.HotLimit	`json:"hot_limits"`
 

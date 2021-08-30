@@ -71,6 +71,8 @@ func (s *WalletService) GetBalance(currConfig config.CurrencyConfiguration) GetB
 	go func() { defer wg.Done(); s.SetPendingWithdraw(&res) }()
 	go func() { defer wg.Done(); s.SetHotLimits(&res) }()
 	wg.Wait()
+
+	s.SetPercent(&res)
 	
 	return res
 }
@@ -182,6 +184,23 @@ func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
 		logger.ErrorLog(" - SetPendingWithdraw RawToCoin("+symbol+", "+pendingWDRaw+") err: "+err.Error())
 	} else if res.PendingWDIdr, err = s.marketService.ConvertCoinToIdr(res.PendingWDCoin, symbol); err != nil {
 		logger.ErrorLog(" - SetPendingWithdraw ConvertCoinToIdr("+symbol+") err: "+err.Error())
+	}
+}
+
+func (s *WalletService) SetPercent(res *GetBalanceRes) {
+	var err 	error
+	var hotCold string
+	
+	if res.HotPercent, err = util.PercentBig(res.TotalHotCoin, res.TotalUserCoin); err != nil {
+		logger.ErrorLog(" - SetPercent PercentBig("+res.CurrencyConfig.Symbol+") err: "+err.Error())
+	}
+
+	if hotCold, err = util.AddCoin(res.TotalColdCoin, res.TotalHotCoin); err != nil {
+		logger.ErrorLog(" - SetPercent AddCoin("+res.CurrencyConfig.Symbol+") err: "+err.Error())
+	}
+
+	if res.HotColdPercent, err = util.PercentBig(hotCold, res.TotalUserCoin); err != nil {
+		logger.ErrorLog(" - SetPercent PercentBig("+res.CurrencyConfig.Symbol+") err: "+err.Error())
 	}
 }
 

@@ -2,7 +2,7 @@ package util
 
 import (
 	"errors"
-	"math"
+    "math"
 	"math/big"
 	"strings"
 )
@@ -81,6 +81,21 @@ func CmpBig(a, b string) (int, error) {
     if !ok { return -2, errors.New("fail big.SetString("+b+")") }
 
     return aBig.Cmp(bBig), nil
+}
+
+func PercentBig(a, b string) (string, error) {
+    if a == "" { a = "0" }
+    if b == "" { b = "0" }
+
+    aBig, ok := big.NewFloat(0).SetString(a)
+    if !ok { return "0", errors.New("fail big.SetString("+a+")") }
+
+    bBig, ok := big.NewFloat(0).SetString(b)
+    if !ok { return "0", errors.New("fail big.SetString("+b+")") }
+
+    aBig.Mul(aBig.Quo(aBig,bBig), big.NewFloat(100))
+
+    return aBig.Text('f', 2), nil
 }
 
 func FormatCurrency(value string) (result string) {

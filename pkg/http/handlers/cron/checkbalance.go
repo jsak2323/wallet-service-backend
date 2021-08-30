@@ -63,22 +63,25 @@ func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *ht
 
 func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
 	var err error
-	var total string = "0"
+	var totalCoin string = "0"
 	var cmpResult int
 
-	total, err = util.AddCoin(total, walletBalance.TotalColdCoin)
-	total, err = util.AddCoin(total, walletBalance.TotalHotCoin)
+	totalCoin, err = util.AddCoin(totalCoin, walletBalance.TotalColdCoin)
+	if err != nil { logger.ErrorLog("checkUserBalance("+walletBalance.CurrencyConfig.Symbol+") AddCoin err: "+err.Error()) }
+	
+	totalCoin, err = util.AddCoin(totalCoin, walletBalance.TotalHotCoin)
+	if err != nil { logger.ErrorLog("checkUserBalance("+walletBalance.CurrencyConfig.Symbol+") AddCoin err: "+err.Error()) }
 
-	if cmpResult, err = util.CmpBig(total, walletBalance.TotalUserCoin); err != nil {
-		// TODO log error
+	if cmpResult, err = util.CmpBig(totalCoin, walletBalance.TotalUserCoin); err != nil {
+		if err != nil { logger.ErrorLog("checkUserBalance("+walletBalance.CurrencyConfig.Symbol+") CmpBig err: "+err.Error()) }
 	} else if cmpResult == -1 {
-		s.walletService.FormatWalletBalanceCurrency(&walletBalance)
-		s.sendUserBalanceAlertTelegram(walletBalance, total)
-		s.sendUserBalanceAlertEmail(walletBalance, total)
+		walletBalanceFormatted := s.walletService.FormatWalletBalanceCurrency(walletBalance)
+		s.sendUserBalanceAlertTelegram(walletBalanceFormatted, totalCoin)
+		s.sendUserBalanceAlertEmail(walletBalanceFormatted, totalCoin)
 	}
 }
 
-func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetBalanceRes, total string) {
+func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetBalanceRes, totalCoin string) {
 	logger.Log(" - CheckBalanceService -- Sending user balance alert telegram ...")
 
 	var symbol string = walletBalance.CurrencyConfig.Symbol
@@ -88,13 +91,13 @@ func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetB
 	sb.WriteString("User Balance Alert: "+ symbol + "\n")
 	sb.WriteString("Total Hot: " + walletBalance.TotalHotCoin + " " + unit + "\n")
 	sb.WriteString("Total Cold: " + walletBalance.TotalColdCoin + " " + unit + "\n")
-	sb.WriteString("Total Wallet: " + total + " " + unit + "\n")
+	sb.WriteString("Total Wallet: " + totalCoin + " " + unit + "\n")
 	sb.WriteString("User Balance: " + walletBalance.TotalUserCoin + " " + unit)
 	
 	telegram.SendMessage(sb.String())
 }
 
-func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBalanceRes, total string) {
+func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBalanceRes, totalCoin string) {
 	logger.Log(" - CheckBalanceService -- Sending user balance alert email ...")
 
 	subject := "User Balance Alert: "+walletBalance.CurrencyConfig.Symbol
@@ -103,14 +106,14 @@ func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBala
 	buf := &bytes.Buffer{}
 	
 	t, err := template.ParseFiles("views/email/user_balance_alert.html")
-	if err != nil { logger.ErrorLog(err.Error()) }
+	if err != nil { logger.ErrorLog("sendUserBalanceAlertEmail("+walletBalance.CurrencyConfig.Symbol+") ParseFiles err: "+err.Error()) }
 
 	err = t.Execute(buf, struct {
 			WalletBalance hw.GetBalanceRes
-			Total string
+			TotalCoin string
 		}{
 			WalletBalance: walletBalance,
-			Total: total,
+			TotalCoin: totalCoin,
 		})
 
 	message = message + buf.String()
@@ -118,7 +121,7 @@ func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBala
 	recipients := config.CONF.NotificationEmails // TODO user email with certain role
 
     isEmailSent, err := util.SendEmail(subject, message, recipients)
-    if err != nil { logger.ErrorLog(err.Error()) }
+	if err != nil { logger.ErrorLog("sendUserBalanceAlertEmail("+walletBalance.CurrencyConfig.Symbol+") SendEmail err: "+err.Error()) }
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 
@@ -131,20 +134,22 @@ func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.GetBalanceRes)
 	buf := &bytes.Buffer{}
 	
 	t, err := template.ParseFiles("views/email/report.html")
-	if err != nil { logger.ErrorLog(err.Error()) }
-
+    if err != nil { logger.ErrorLog("sendReportEmail err: "+err.Error()) }
+	
+	walletBalancesFormatted := []hw.GetBalanceRes{}
 	for i := range walletBalances {
-		s.walletService.FormatWalletBalanceCurrency(&walletBalances[i])
+		walletBalanceFormatted := s.walletService.FormatWalletBalanceCurrency(walletBalances[i])
+		walletBalancesFormatted = append(walletBalancesFormatted, walletBalanceFormatted)
 	}
 
-	err = t.Execute(buf, struct {WalletBalances []hw.GetBalanceRes}{WalletBalances: walletBalances})
+	err = t.Execute(buf, struct {WalletBalances []hw.GetBalanceRes}{WalletBalances: walletBalancesFormatted})
 
 	message = message + buf.String()
 
     recipients := config.CONF.NotificationEmails // TODO user email with certain role
 
     isEmailSent, err := util.SendEmail(subject, message, recipients)
-    if err != nil { logger.ErrorLog(err.Error()) }
+    if err != nil { logger.ErrorLog("sendReportEmail err: "+err.Error()) }
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 
@@ -157,7 +162,7 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
 	buf := &bytes.Buffer{}
 	
 	t, err := template.ParseFiles("views/email/hot_limit_alert.html")
-	if err != nil { logger.ErrorLog(err.Error()) }
+	if err != nil { logger.ErrorLog("sendHotLimitAlertEmail("+symbol+") ParseFiles err: "+err.Error()) }
 
 	err = t.Execute(buf, struct {
 			Symbol string
@@ -174,7 +179,7 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
 	recipients := config.CONF.NotificationEmails // TODO user email with certain role
 
     isEmailSent, err := util.SendEmail(subject, message, recipients)
-    if err != nil { logger.ErrorLog(err.Error()) }
+    if err != nil { logger.ErrorLog("sendHotLimitAlertEmail("+symbol+") SendEmail err: "+err.Error()) }
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 

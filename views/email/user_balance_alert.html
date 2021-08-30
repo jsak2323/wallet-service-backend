@@ -12,8 +12,8 @@
            <li>{{$hot.Name}}: {{$hot.Coin}} ({{$hot.Idr}} IDR)</li>
            {{end}}
         </ul>
-        Hot+Cold: {{.Total}} IDR <br>
-        User IDR: {{.WalletBalance.TotalUserIdr}} IDR <br>
-        User Coin: {{.WalletBalance.TotalUserCoin}} {{.WalletBalance.CurrencyConfig.Unit}}
+        Hot+Cold Coin: <b>{{.TotalCoin}}</b> {{.WalletBalance.CurrencyConfig.Unit}} <br>
+        User Coin: <b>{{.WalletBalance.TotalUserCoin}}</b> {{.WalletBalance.CurrencyConfig.Unit}} <br>
+        User IDR: {{.WalletBalance.TotalUserIdr}} IDR
     </body>
 </html>

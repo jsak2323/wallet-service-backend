@@ -11,30 +11,22 @@
          <table>
             <tr style="text-align: center; font-weight: bold;">
                <td>Symbol</td>
-               <td>Cold</td>
                <td>Hot</td>
-               <td>User</td>
+               <td>Cold</td>
+               <td>Pending WD</td>
+               <td>%Hot</td>
+               <td>%Hot+Cold</td>
+               <td>User Balance</td>
             </tr>
             {{range $balance := .WalletBalances}}
             <tr>
                <td style="text-align: center;">{{$balance.CurrencyConfig.Name}}</td>
-               <td>
-                  <ul>
-                     {{range $cold := $balance.ColdBalances}}
-                     <li>{{$cold.Name}}: {{$cold.Coin}} {{$balance.CurrencyConfig.Unit}} ({{$cold.Idr}} IDR)</li>
-                     {{end}}
-                  </ul>
-               </td>
-               <td>
-                  <ul>
-                     {{range $hot := $balance.HotBalances}}
-                     <li>{{$hot.Name}}: {{$hot.Coin}} {{$balance.CurrencyConfig.Unit}} ({{$hot.Idr}} IDR)</li>
-                     {{end}}
-                  </ul>
-               </td>
-               <td>
-                  <li>{{$balance.TotalUserCoin}} {{$balance.CurrencyConfig.Unit}} ({{$balance.TotalUserIdr}} IDR)</li>
-               </td>
+               <td>{{$balance.TotalHotCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.TotalColdCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.PendingWDCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.HotPercent}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.HotColdPercent}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.TotalUserCoin}} {{$balance.CurrencyConfig.Unit}}</td>
             </tr>
             {{end}}
          </table>
