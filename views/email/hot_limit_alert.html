@@ -1,6 +1,7 @@
 <html>
     <body>
          <h3>{{.Symbol}}</h3>
+         <h4>Hot balance is less than bottom soft limit</h4>
          Hot: {{.WalletBalance.TotalHotIdr}} IDR
          <ul>
             {{range $hot := .WalletBalance.HotBalances}} 
@@ -9,8 +10,8 @@
          </ul>
          Limits
          <ul>
-            {{range $limit := .Limits}}
-            <li>{{$limit.Type}}: {{$limit.Amount}}</li>
+            {{range $key, $limit := .Limits}}
+            <li>{{$key}}: {{$limit}}</li>
             {{end}}
          </ul>
     </body>

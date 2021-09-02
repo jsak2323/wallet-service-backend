@@ -158,7 +158,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet).Name("cronhealthcheck")
 
 	// -- GET checkbalance
-	checkBalanceService := c.NewCheckBalanceService(WalletService, coldWalletService, MarketService, *ModuleServices, hotLimitRepo)
+	checkBalanceService := c.NewCheckBalanceService(WalletService, coldWalletService, MarketService, *ModuleServices, hotLimitRepo, userRepo)
 	r.HandleFunc("/cron/checkbalance", checkBalanceService.CheckBalanceHandler).Methods(http.MethodGet)
 
 	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)

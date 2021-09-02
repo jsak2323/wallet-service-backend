@@ -7,6 +7,7 @@ import (
 )
 
 const userRoleTable = "user_role"
+const userRoleTableAlias = "ur"
 
 type userRoleRepository struct {
 	db *sql.DB

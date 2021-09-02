@@ -32,15 +32,22 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 		return
 	}
 
-	balanceRaw, err := util.CoinToRaw(updateReq.Balance, 8)
-	if err != nil {
-		logger.ErrorLog(" - UpdateBalanceHandler CoinToRaw err: " + err.Error())
-		return
-	}
-
-	if err = s.cbRepo.UpdateBalance(updateReq.Id, balanceRaw); err != nil {
-		logger.ErrorLog(" - UpdateBalanceHandler cbRepo.UpdateBalance err: " + err.Error())
+	if err = s.UpdateBalance(updateReq.Id, updateReq.Balance); err != nil {
+		logger.ErrorLog(" - UpdateBalanceHandler s.UpdateBalance err: " + err.Error())
 		RES.Error = errInternalServer
 		return
 	}
+}
+
+func (s *ColdWalletService) UpdateBalance(id int, balance string) error {
+	balanceRaw, err := util.CoinToRaw(balance, 8)
+	if err != nil {
+		return err
+	}
+
+	if err = s.cbRepo.UpdateBalance(id, balanceRaw); err != nil {
+		return err
+	}
+
+	return nil
 }

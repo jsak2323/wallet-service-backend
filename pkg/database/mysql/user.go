@@ -73,6 +73,33 @@ func (r *userRepository) GetByUsername(username string) (user domain.User, err e
 	return user, nil
 }
 
+func (r userRepository) GetEmailsByRole(role string) (emails []string, err error) {
+	query := "SELECT email FROM " + userTable + " as " +userTableAlias
+	query += " JOIN "+userRoleTable+" as "+userRoleTableAlias+" on "+userRoleTableAlias+".user_id = "+userTableAlias+".id"
+	query += " JOIN "+roleTable+" as "+roleTableAlias+" on "+roleTableAlias+".id = "+userRoleTableAlias+".role_id"
+	query += " WHERE "+roleTableAlias+".name = ?"
+
+	rows, err := r.db.Query(query, role)
+	if err != nil {
+		return []string{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		email := ""
+
+		if err = rows.Scan(
+			&email,
+		); err != nil {
+			return []string{}, err
+		}
+
+		emails = append(emails, email)
+	}
+
+	return emails, nil
+}
+
 func (r userRepository) GetAll(page, limit int) (users []domain.User, err error) {
 	query := "SELECT id, username, name, email, password, ip_address, active FROM " + userTable
 	
