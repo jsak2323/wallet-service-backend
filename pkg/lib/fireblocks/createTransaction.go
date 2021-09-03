@@ -20,7 +20,12 @@ func CreateTransaction(req CreateTransactionReq) (RES CreateTransactionRes, err 
 	}
 	
 	res, err := resty.R().
-		SetHeader("Authorization", "Basic " + auth()).
+		SetHeaders(
+			map[string]string{
+				"Content-type": "application/json",
+				"Authorization": "Basic " + auth(),
+			},
+		).
 		SetBody(body).
 		Post(config.CONF.FireblocksHost+"/"+createTxEndpoint+"/")
 

@@ -51,6 +51,7 @@ func NewCheckBalanceService(
 }
 
 const adminRoleName = "admin"
+const defaultMemo = "0000"
 
 func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *http.Request) {
 	var walletBalances []hw.GetBalanceRes
@@ -172,15 +173,19 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
 	t, err := template.ParseFiles("views/email/hot_limit_alert.html")
 	if err != nil { logger.ErrorLog("sendHotLimitAlertEmail("+symbol+") ParseFiles err: "+err.Error()) }
 
+	limitsFormatted := make(map[string]string, len(limits))
+	for key, limit := range limits {
+		limitsFormatted[key] = util.FormatCurrency(limit) + " IDR"
+	}
+
 	err = t.Execute(buf, struct {
 			Symbol string
 			WalletBalance hw.GetBalanceRes
 			Limits hl.HotLimit
 		}{
 			Symbol: symbol,
-			WalletBalance: walletBalance,
-			// TODO format limits currency
-			Limits: limits,
+			WalletBalance: s.walletService.FormatWalletBalanceCurrency(walletBalance),
+			Limits: limitsFormatted,
 		})
 
 	message = message + buf.String()
@@ -234,8 +239,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		}
 
 		address := coldWallet.Address
-		// TODO get memo
-		memo := ""
+		memo := defaultMemo
 
 		logger.Log(" - CheckBalanceService -- Sending "+currency.Symbol+" from hot to cold...")
 		if res, err := s.moduleServices[currency.Symbol].SendToAddress(senderRpc, amount, address, memo); err != nil {
