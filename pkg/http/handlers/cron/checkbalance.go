@@ -286,22 +286,26 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 			s.sendHotLimitAlertEmail(currency.Symbol, walletBalance, limits)
 		} else if coldWallet.Type == cb.FbWarmType || coldWallet.Type == cb.FbColdType {
 			logger.InfoLog("Sending "+currency.Symbol+" from fireblocks cold to hot...", &http.Request{})
+			
+			vaultAccountId, err := hcw.FireblocksVaultAccountId(coldWallet.Type)
+			if err != nil { logger.ErrorLog(" - checkHotLimit fireblocks.FireblocksVaultAccountId err: " + err.Error()) }
+
 			if res, err := fireblocks.CreateTransaction(fireblocks.CreateTransactionReq{
 				AssetId: coldWallet.FireblocksName,
 				Amount: amount,
 				Source: fireblocks.TransactionAccount{
 					Type: fireblocks.VaultAccountType, 
-					Id: hcw.FireblocksVaultAccountId(coldWallet.Type),
+					Id: vaultAccountId,
 				},
 				Destination: fireblocks.TransactionAccount{
 					Type: fireblocks.InternalWalletType, 
 					Id: config.CONF.FireblocksHotVaultId,
 				},
 			}); err != nil {
-				logger.ErrorLog(" - SendToHotHandler fireblocks.CreateTransaction err: " + err.Error())
+				logger.ErrorLog(" - checkHotLimit fireblocks.CreateTransaction err: " + err.Error())
 				return
 			} else if res.Error != "" {
-				logger.ErrorLog(" - SendToHotHandler fireblocks.CreateTransaction err: " + res.Error)
+				logger.ErrorLog(" - checkHotLimit fireblocks.CreateTransaction err: " + res.Error)
 				return
 			} else { logger.InfoLog("checkHotLimit("+currency.Symbol+") Sent from fireblocks res: "+res.Id, &http.Request{}) }
 		}		

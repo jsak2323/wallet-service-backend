@@ -4,7 +4,7 @@ import (
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 )
 
-func(s *ColdWalletService) SettlementWallet(currencyId int) (result domain.ColdBalance, err error) {
+func (s *ColdWalletService) SettlementWallet(currencyId int) (result domain.ColdBalance, err error) {
 	cbs, err := s.cbRepo.GetByCurrencyId(currencyId)
 	if err != nil {
 		return domain.ColdBalance{}, err

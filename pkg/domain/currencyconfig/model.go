@@ -19,8 +19,9 @@ type CurrencyConfig struct {
     DefaultIdrPrice         int
     CmcId                   int
     ParentSymbol            string
-    FireblocksName          string
     LastUpdated             string
+
+    Active                  bool
 }
 
 

@@ -1,10 +1,16 @@
 package currency
 
 import (
-    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 )
 
 type ListRes struct {
-    CurrencyConfigs  	[]cc.CurrencyConfig `json:"currency_configs"`
-    Error           	string				`json:"error"`
+	CurrencyConfigs []domain.CurrencyConfig `json:"currency_configs"`
+	Error           string                  `json:"error"`
+}
+
+type StandardRes struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
 }

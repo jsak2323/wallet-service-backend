@@ -6,5 +6,5 @@ type Repository interface {
 	GetByUsername(username string) (User, error)
 	GetEmailsByRole(role string) ([]string, error)
 	GetAll(page, limit int) ([]User, error)
-	ToggleActive(userId int, active bool) error
+	ToggleActive(Id int, active bool) error
 }

@@ -2,7 +2,7 @@ package fireblocks
 
 import (
 	"encoding/base64"
-
+	
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )

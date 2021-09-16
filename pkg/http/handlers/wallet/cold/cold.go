@@ -1,25 +1,37 @@
 package cold
 
 import (
-	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
+	"errors"
+
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 )
 
 const errInternalServer = "Internal server error"
 
 type ColdWalletService struct {
-	cbRepo  cb.Repository
+	cbRepo domain.Repository
 }
 
-func NewColdWalletService(cbRepo cb.Repository) *ColdWalletService {
+func NewColdWalletService(cbRepo domain.Repository) *ColdWalletService {
 	return &ColdWalletService{cbRepo: cbRepo}
 }
 
-func FireblocksVaultAccountId(cbType string) string {
+func FireblocksVaultAccountId(cbType string) (string, error) {
 	switch cbType {
-		case cb.FbColdType: return config.CONF.FireblocksColdVaultId
-		case cb.FbWarmType: return config.CONF.FireblocksWarmVaultId
+	case domain.FbColdType:
+		return config.CONF.FireblocksColdVaultId, nil
+	case domain.FbWarmType:
+		return config.CONF.FireblocksWarmVaultId, nil
 	}
 
-	return config.CONF.FireblocksColdVaultId
+	return "", errors.New("invalid fireblocks type: " + cbType)
+}
+
+func isFireblocksCold(cbType string) bool {
+	if cbType == domain.FbColdType || cbType == domain.FbWarmType {
+		return true
+	}
+
+	return false
 }

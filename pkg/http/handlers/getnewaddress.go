@@ -63,8 +63,13 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
         IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
 
+    module, ok := (*gnas.moduleServices)[SYMBOL]
+    if !ok {
+        logger.ErrorLog(" - GetNewAddressHandler module not implemented symbol: "+SYMBOL)
+    }
+    
     // execute rpc call
-    rpcRes, err := (*gnas.moduleServices)[SYMBOL].GetNewAddress(rpcConfig, addressType)
+    rpcRes, err := module.GetNewAddress(rpcConfig, addressType)
     if err != nil { 
         logger.ErrorLog(" - GetNewAddressHandler (*gnas.moduleServices)[SYMBOL].GetNewAddress(rpcConfig, addressType) addressType: "+addressType+", Error: "+err.Error())
         RES.Error = err.Error()

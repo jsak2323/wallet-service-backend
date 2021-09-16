@@ -14,6 +14,7 @@ import (
 	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
 	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
+	hrc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcconfig"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	c "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
@@ -30,6 +31,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	rolePermissionRepo := mysql.NewMysqlRolePermissionRepository(mysqlDbConn)
 
 	currencyConfigRepo := mysql.NewMysqlCurrencyConfigRepository(mysqlDbConn)
+	rpcConfigRepo := mysql.NewMysqlRpcConfigRepository(mysqlDbConn)
 	healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
@@ -90,28 +92,44 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	getLogService := h.NewGetLogService(ModuleServices)
 	r.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet).Name("getlog")
 
-	// -- GET currencyconfig
+	// -- Currency Config management
 	currencyConfigService := hc.NewCurrencyConfigService(currencyConfigRepo)
-	r.HandleFunc("/currency/list", currencyConfigService.GetCurrencyConfigHandler).Methods(http.MethodGet).Name("listcurrency")
-	
+	r.HandleFunc("/currency/list", currencyConfigService.ListHandler).Methods(http.MethodGet).Name("listcurrency")
+	r.HandleFunc("/currency", currencyConfigService.CreateHandler).Methods(http.MethodPost).Name("createcurrency")
+	r.HandleFunc("/currency", currencyConfigService.UpdateHandler).Methods(http.MethodPut).Name("updatecurrency")
+	r.HandleFunc("/currency/deactivate/{id}", currencyConfigService.DeactivateHandler).Methods(http.MethodPost).Name("deactivatecurrency")
+	r.HandleFunc("/currency/activate/{id}", currencyConfigService.ActivateHandler).Methods(http.MethodPost).Name("activatecurrency")
 	// -- GET getbalance
 	getBalanceService := h.NewGetBalanceService(ModuleServices)
 	r.HandleFunc("/nodes/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 	r.HandleFunc("/nodes/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 
+	// -- Rpc Config management
+	rpcConfigService := hrc.NewRpcConfigService(rpcConfigRepo)
+	r.HandleFunc("/rpcconfig/{id}", rpcConfigService.GetByIdHandler).Methods(http.MethodGet).Name("getrpcconfigbyid")
+	r.HandleFunc("/rpcconfig/getbycurrency/{currency_id}", rpcConfigService.GetByCurrencyHandler).Methods(http.MethodGet).Name("getrpcconfigbycurrency")
+	r.HandleFunc("/rpcconfig", rpcConfigService.CreateHandler).Methods(http.MethodPost).Name("createrpcconfig")
+	r.HandleFunc("/rpcconfig", rpcConfigService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcconfig")
+	r.HandleFunc("/rpcconfig/deactivate/{id}", rpcConfigService.DeactivateHandler).Methods(http.MethodPost).Name("deactivaterpcconfig")
+	r.HandleFunc("/rpcconfig/activate/{id}", rpcConfigService.ActivateHandler).Methods(http.MethodPost).Name("activaterpcconfig")
+	
+	// -- Cold Wallet management
 	coldWalletService := hcw.NewColdWalletService(coldbalanceRepo)
-	r.HandleFunc("/coldwallet/getbalance", coldWalletService.GetBalanceHandler).Methods(http.MethodGet)
-	r.HandleFunc("/coldwallet/{symbol}/getbalance", coldWalletService.GetBalanceHandler).Methods(http.MethodGet)
+	r.HandleFunc("/coldwallet", coldWalletService.UpdateBalanceHandler).Methods(http.MethodPost).Name("createcoldwallet")
+	// TODO get by currency
+	r.HandleFunc("/coldwallet", coldWalletService.ListHandler).Methods(http.MethodGet).Name("listcoldwallet")
 	r.HandleFunc("/coldwallet/sendtohot", coldWalletService.SendToHotHandler).Methods(http.MethodPost).Name("sendcoldwallet")
-	r.HandleFunc("/coldwallet/update", coldWalletService.UpdateBalanceHandler).Methods(http.MethodPost).Name("updatecoldwallet")
+	r.HandleFunc("/coldwallet", coldWalletService.UpdateHandler).Methods(http.MethodPut).Name("updatecoldwallet")
+	r.HandleFunc("/coldwallet/updatebalance", coldWalletService.UpdateBalanceHandler).Methods(http.MethodPut).Name("updatecoldwalletbalance")
+	r.HandleFunc("/coldwallet/deactivate/{id}", coldWalletService.DeactivateHandler).Methods(http.MethodPost).Name("deactivatecoldwallet")
+	r.HandleFunc("/coldwallet/activate/{id}", coldWalletService.ActivateHandler).Methods(http.MethodPost).Name("activatecoldwallet")
 
 	userWalletService := huw.NewUserWalletService(userBalanceRepo)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
-	WalletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
-
-	r.HandleFunc("/wallet/getbalance", WalletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
-	r.HandleFunc("/wallet/{symbol}/getbalance", WalletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebysymbol")
+	walletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
+	r.HandleFunc("/wallet/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
+	r.HandleFunc("/wallet/{symbol}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebysymbol")
 	
 	// -- GET listtransactions (disabled)
 	/*
@@ -158,7 +176,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet).Name("cronhealthcheck")
 
 	// -- GET checkbalance
-	checkBalanceService := c.NewCheckBalanceService(WalletService, coldWalletService, MarketService, *ModuleServices, hotLimitRepo, userRepo)
+	checkBalanceService := c.NewCheckBalanceService(walletService, coldWalletService, MarketService, *ModuleServices, hotLimitRepo, userRepo)
 	r.HandleFunc("/cron/checkbalance", checkBalanceService.CheckBalanceHandler).Methods(http.MethodGet)
 
 	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)

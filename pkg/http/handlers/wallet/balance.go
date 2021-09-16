@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"sync"
-
+	
     "github.com/gorilla/mux"
 
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
@@ -112,8 +112,15 @@ func (s *WalletService) SetHotBalanceDetails(rpcConfigs []rc.RpcConfig, res *Get
 		var hotBalanceDetail BalanceDetail = BalanceDetail{ Name: rpcConfig.Name, Type: rpcConfig.Type }
 		var rpcRes 			 *modulesm.GetBalanceRpcRes
 
-		if rpcRes, err = (*s.moduleServices)[symbol].GetBalance(rpcConfig); err != nil {
+		module, ok := (*s.moduleServices)[symbol];
+		if !ok {
+			logger.ErrorLog(" - SetHotBalanceDetails module not implemented symbol: "+symbol)
+			continue
+		}
+
+		if rpcRes, err = module.GetBalance(rpcConfig); err != nil {
 			logger.ErrorLog(" - SetHotBalanceDetails node.GetBalance("+symbol+", "+rpcConfig.Name+") err: "+err.Error())
+			continue
 		}
 
 		hotBalanceDetail.Coin = rpcRes.Balance

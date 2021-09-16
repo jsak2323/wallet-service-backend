@@ -19,10 +19,35 @@ func NewMysqlColdBalanceRepository(db *sql.DB) domain.Repository {
     }
 }
 
+func (r *coldBalanceRepository) Create(coldBalance domain.ColdBalance) (id int, err error) {
+	query := `
+		INSERT INTO ` + coldBalanceTable + ` (currency_id, name, type, fireblocks_name, balance, address, last_updated) 
+		VALUES(?, ?, ?, ?, ?, ?, now())
+	`
+
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return 0, err
+	}
+    defer stmt.Close()
+
+	res, err := stmt.Exec(query, coldBalance.CurrencyId, coldBalance.Name, coldBalance.Type, coldBalance.FireblocksName, coldBalance.Address); 
+	if err != nil {
+        return 0, err
+	}
+
+	lastInsertId, err := res.LastInsertId()
+    if err != nil {
+        return 0, err
+    }
+
+	return int(lastInsertId), nil
+}
+
 func(r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, error) {
 	var params []interface{}
 	
-	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, last_updated FROM " + coldBalanceTable
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable
 
 	if limit <= 0 {
 		limit = coldBalanceDefaultLimit
@@ -40,7 +65,7 @@ func(r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, er
 }
 
 func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalance, err error) {
-	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, last_updated FROM " + coldBalanceTable + " where name = ?"
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where name = ?"
 
 	if err = r.db.QueryRow(query, name).Scan(
 		&balance.Id,
@@ -50,6 +75,7 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 		&balance.FireblocksName,
 		&balance.Balance,
 		&balance.Address,
+		&balance.Active,
 		&balance.LastUpdated,
 	); err != nil {
 		return domain.ColdBalance{}, err
@@ -59,7 +85,7 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 }
 
 func (r *coldBalanceRepository) GetByCurrencyId(currencyId int) (balances []domain.ColdBalance, err error) {
-	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
 	
 	return r.queryRows(query, currencyId)
 }
@@ -82,6 +108,7 @@ func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (
 			&balance.FireblocksName,
 			&balance.Balance,
 			&balance.Address,
+			&balance.Active,
 			&balance.LastUpdated,
 		); err != nil {
 			return []domain.ColdBalance{}, err
@@ -93,8 +120,33 @@ func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (
 	return balances, nil
 }
 
-func (r *coldBalanceRepository) UpdateBalance(id int, balance string) (err error) {
-	query := "UPDATE cold_balance SET balance = ? WHERE id = ?"
+// not updating balance
+func (r *coldBalanceRepository) Update(coldBalance domain.ColdBalance) (err error) {
+	return r.db.QueryRow(`
+        UPDATE ` + coldBalanceTable + `
+        SET 
+            currency_id = ?,
+            name = ?,
+            type = ?,
+            fireblocks_name = ?,
+            address = ?,
+            last_updated = now()
+        WHERE id = ?`,
+        coldBalance.CurrencyId,
+        coldBalance.Name,
+        coldBalance.Type,
+        coldBalance.FireblocksName,
+        coldBalance.Address,
+        coldBalance.Id,
+    ).Err()
+}
 
-	return r.db.QueryRow(query, balance, id).Err()
+func (r *coldBalanceRepository) UpdateBalance(id int, balance string) (err error) {
+	return r.db.QueryRow("UPDATE cold_balance SET balance = ? WHERE id = ?", balance, id).Err()
+}
+
+func(r *coldBalanceRepository) ToggleActive(userId int, active bool) error {
+	query := "UPDATE " + coldBalanceTable + " SET active = ? WHERE id = ?"
+
+	return r.db.QueryRow(query, active, userId).Err()
 }

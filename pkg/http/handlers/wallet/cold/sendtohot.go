@@ -11,8 +11,8 @@ import (
 
 func (s *ColdWalletService) SendToHotHandler(w http.ResponseWriter, req *http.Request) {
 	var sendToHotReq SendToHotReq
-	var RES       	 StandardRes
-	var err       	 error
+	var RES StandardRes
+	var err error
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
@@ -33,16 +33,23 @@ func (s *ColdWalletService) SendToHotHandler(w http.ResponseWriter, req *http.Re
 		return
 	}
 
+	vaultAccountId, err := FireblocksVaultAccountId(sendToHotReq.FireblocksType)
+	if err != nil {
+		logger.ErrorLog(" - SendToHotHandler FireblocksVaultAccountId err: " + err.Error())
+		RES.Error = "Invalid Param: Cold Wallet Type"
+		return
+	}
+
 	res, err := fireblocks.CreateTransaction(fireblocks.CreateTransactionReq{
 		AssetId: sendToHotReq.FireblocksName,
-		Amount: sendToHotReq.Amount,
+		Amount:  sendToHotReq.Amount,
 		Source: fireblocks.TransactionAccount{
 			Type: fireblocks.VaultAccountType,
-			Id: FireblocksVaultAccountId(sendToHotReq.FireblocksType),
+			Id:   vaultAccountId,
 		},
 		Destination: fireblocks.TransactionAccount{
 			Type: fireblocks.InternalWalletType,
-			Id: config.CONF.FireblocksHotVaultId,
+			Id:   config.CONF.FireblocksHotVaultId,
 		},
 	})
 	if err != nil {

@@ -2,7 +2,7 @@ package mysql
 
 import (
     "database/sql"
-
+    
     _ "github.com/go-sql-driver/mysql"
 
     cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
@@ -20,13 +20,72 @@ func NewMysqlCurrencyConfigRepository(db *sql.DB) cc.CurrencyConfigRepository {
     }
 }
 
+func (r *currencyConfigRepository) Create(currencyConfig cc.CurrencyConfig) error {
+    return r.db.QueryRow(`
+        INSERT INTO ` + currencyConfigTable + `(
+            symbol,
+            name,
+            unit,
+            token_type,
+            is_finance_enabled,
+            is_single_address,
+            is_using_memo,
+            is_qrcode_enabled,
+            is_address_notice_enabled,
+            qrcode_prefix,
+            withdraw_fee,
+            healthy_block_diff,
+            default_idr_price,
+            cmc_id,
+            parent_symbol,
+            last_updated)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now());
+        `,
+        currencyConfig.Symbol,
+        currencyConfig.Name,
+        currencyConfig.Unit,
+        currencyConfig.TokenType,
+        currencyConfig.IsFinanceEnabled,
+        currencyConfig.IsSingleAddress,
+        currencyConfig.IsUsingMemo,
+        currencyConfig.IsQrCodeEnabled,
+        currencyConfig.IsAddressNoticeEnabled,
+        currencyConfig.QrCodePrefix,
+        currencyConfig.WithdrawFee,
+        currencyConfig.HealthyBlockDiff,
+        currencyConfig.DefaultIdrPrice,
+        currencyConfig.CmcId,
+        currencyConfig.ParentSymbol,
+    ).Err()
+}
+
 func (r *currencyConfigRepository) GetAll() ([]cc.CurrencyConfig, error) {
-    query := "SELECT * FROM "+currencyConfigTable
+    query := `
+        SELECT 
+            id,
+            symbol,
+            name,
+            unit,
+            token_type,
+            is_finance_enabled,
+            is_single_address,
+            is_using_memo,
+            is_qrcode_enabled,
+            is_address_notice_enabled,
+            qrcode_prefix,
+            withdraw_fee,
+            healthy_block_diff,
+            default_idr_price,
+            cmc_id,
+            parent_symbol,
+            active,
+            last_updated
+        FROM `+currencyConfigTable
     currencyConfigs := []cc.CurrencyConfig{}
 
     rows, err := r.db.Query(query)
-    defer rows.Close()
     if err != nil { return currencyConfigs, err }
+    defer rows.Close()
 
     for rows.Next() { 
         var currConf cc.CurrencyConfig
@@ -40,13 +99,33 @@ func (r *currencyConfigRepository) GetAll() ([]cc.CurrencyConfig, error) {
 }
 
 func (r *currencyConfigRepository) GetBySymbol(symbol string) (*cc.CurrencyConfig, error) {
-    query := "SELECT * FROM "+currencyConfigTable
-    query += " WHERE symbol = \""+symbol+"\" "
+    query := `
+        SELECT 
+            id,
+            symbol,
+            name,
+            unit,
+            token_type,
+            is_finance_enabled,
+            is_single_address,
+            is_using_memo,
+            is_qrcode_enabled,
+            is_address_notice_enabled,
+            qrcode_prefix,
+            withdraw_fee,
+            healthy_block_diff,
+            default_idr_price,
+            cmc_id,
+            parent_symbol,
+            active,
+            last_updated
+        FROM `+currencyConfigTable+`
+        WHERE symbol = ?`
     var currConf cc.CurrencyConfig
 
-    rows, err := r.db.Query(query)
-    defer rows.Close()
+    rows, err := r.db.Query(query, symbol)
     if err != nil { return &currConf, err }
+    defer rows.Close()
 
     for rows.Next() {
         err = mapCurrencyConfig(rows, &currConf)
@@ -60,7 +139,6 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
     var qrCodePrefix    sql.NullString
     var cmcId           sql.NullInt64
     var parentSymbol    sql.NullString
-    var fireblocksName  sql.NullString
 
     err := rows.Scan(
         &currConf.Id,
@@ -79,7 +157,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.DefaultIdrPrice,
         &cmcId,
         &parentSymbol,
-        &fireblocksName,
+        &currConf.Active,
         &currConf.LastUpdated,
     )
     if err != nil { return err }
@@ -87,9 +165,53 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
     if qrCodePrefix.Valid { currConf.QrCodePrefix = qrCodePrefix.String }
     if cmcId.Valid { currConf.CmcId = int(cmcId.Int64) }
     if parentSymbol.Valid { currConf.ParentSymbol = parentSymbol.String }
-    if fireblocksName.Valid { currConf.FireblocksName = fireblocksName.String }
 
     return nil
 }
 
+func (r *currencyConfigRepository) Update(currencyConfig cc.CurrencyConfig) (err error) {
+    return r.db.QueryRow(`
+        UPDATE ` + currencyConfigTable + `
+        SET 
+            symbol = ?,
+            name = ?,
+            unit = ?,
+            token_type = ?,
+            is_finance_enabled = ?,
+            is_single_address = ?,
+            is_using_memo = ?,
+            is_qrcode_enabled = ?,
+            is_address_notice_enabled = ?,
+            qrcode_prefix = ?,
+            withdraw_fee = ?,
+            healthy_block_diff = ?,
+            default_idr_price = ?,
+            cmc_id = ?,
+            parent_symbol = ?,
+            last_updated = now()
+        WHERE id = ?`,
+        currencyConfig.Symbol,
+        currencyConfig.Name,
+        currencyConfig.Unit,
+        currencyConfig.TokenType,
+        currencyConfig.IsFinanceEnabled,
+        currencyConfig.IsSingleAddress,
+        currencyConfig.IsUsingMemo,
+        currencyConfig.IsQrCodeEnabled,
+        currencyConfig.IsAddressNoticeEnabled,
+        currencyConfig.QrCodePrefix,
+        currencyConfig.WithdrawFee,
+        currencyConfig.HealthyBlockDiff,
+        currencyConfig.DefaultIdrPrice,
+        currencyConfig.CmcId,
+        currencyConfig.ParentSymbol,
+        currencyConfig.Id,
+    ).Err()
+}
+
+func(r *currencyConfigRepository) ToggleActive(userId int, active bool) error {
+	query := "UPDATE " + currencyConfigTable + " SET active = ? WHERE id = ?"
+
+	return r.db.QueryRow(query, active, userId).Err()
+}
 

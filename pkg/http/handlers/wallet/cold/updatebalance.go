@@ -9,9 +9,9 @@ import (
 )
 
 func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *http.Request) {
-	var updateReq UpdateReq
-	var RES       StandardRes
-	var err       error
+	var updateReq UpdateBalanceReq
+	var RES StandardRes
+	var err error
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
@@ -27,7 +27,7 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
-		logger.ErrorLog(" - UpdateBalanceHandler json.NewDecoder err: " + err.Error())
+		logger.ErrorLog(" - UpdateBalance json.NewDecoder err: " + err.Error())
 		RES.Error = errInternalServer
 		return
 	}

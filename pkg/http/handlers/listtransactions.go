@@ -77,7 +77,12 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
 
             // execute concurrent rpc calls
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit)
+                module, ok := (*lts.moduleServices)[SYMBOL]
+                if !ok {
+                    logger.ErrorLog(" - ListTransactionsHandler module not implemented symbol: "+SYMBOL)
+                }
+                
+                rpcRes, err := module.ListTransactions(rpcConfig, limit)
                 if err != nil { 
                     logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit) Error: "+err.Error())
                     _RES.Error = rpcRes.Error

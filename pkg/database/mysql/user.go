@@ -8,7 +8,6 @@ import (
 )
 
 const userTable = "users"
-const userTableAlias = "u"
 const defaultLimit = 10
 
 type userRepository struct {
@@ -74,10 +73,10 @@ func (r *userRepository) GetByUsername(username string) (user domain.User, err e
 }
 
 func (r userRepository) GetEmailsByRole(role string) (emails []string, err error) {
-	query := "SELECT email FROM " + userTable + " as " +userTableAlias
-	query += " JOIN "+userRoleTable+" as "+userRoleTableAlias+" on "+userRoleTableAlias+".user_id = "+userTableAlias+".id"
-	query += " JOIN "+roleTable+" as "+roleTableAlias+" on "+roleTableAlias+".id = "+userRoleTableAlias+".role_id"
-	query += " WHERE "+roleTableAlias+".name = ?"
+	query := "SELECT email FROM " + userTable
+	query += " JOIN "+userRoleTable+" on "+userRoleTable+".user_id = "+userTable+".id"
+	query += " JOIN "+roleTable+" on "+roleTable+".id = "+userRoleTable+".role_id"
+	query += " WHERE "+roleTable+".name = ?"
 
 	rows, err := r.db.Query(query, role)
 	if err != nil {
