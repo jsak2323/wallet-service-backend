@@ -29,8 +29,9 @@ func NewAuthMiddleware(
 }
 
 var skippedRouteNames = map[string]bool{
-	"login":    	   true,
+	"login": true,
 	"cronhealthcheck": true,
+	"fireblockscallback": true,
 }
 
 func skipRoute(name string) bool {
