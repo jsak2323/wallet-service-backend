@@ -30,7 +30,7 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.RejectionReason != "" {
+		if RES.RejectionReason == errInternalServer {
 			resStatus = http.StatusInternalServerError
 		} else {
 			logger.InfoLog(" -- fireblocks.CallbackHandler Success!", req)
@@ -45,12 +45,11 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 
 	if err = json.NewDecoder(req.Body).Decode(&SignReq); err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler json.NewDecoder err: " + err.Error())
-		RES.RejectionReason = "errInternalServer"
+		RES.RejectionReason = errInternalServer
 		return
 	}
 
 	RES.Action = RejectTransaction
-	RES.RejectionReason = InvalidDestAddressReason
 
 	if err = SignReq.Validate(); err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler SignReq.Validate err: " + err.Error())
@@ -58,16 +57,18 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if receiverWallet, err := rc.GetReceiverFromList(config.CURR[SignReq.Asset].RpcConfigs); err != nil {
+	RES.RejectionReason = InvalidDestAddressReason
+	
+	receiverWallet, err := rc.GetReceiverFromList(config.CURR[SignReq.Asset].RpcConfigs)
+	if err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetReceiverFromList err: " + err.Error())
 		RES.RejectionReason = errInternalServer
 		return
-	} else {
-		if receiverWallet.Address == SignReq.DestAddress {
-			RES.Action = ApproveTransaction
-			RES.RejectionReason = ""
-			return
-		}
+	}
+	
+	if receiverWallet.Address == SignReq.DestAddress {
+		RES.Action = ApproveTransaction
+		RES.RejectionReason = ""
 	}
 }
 
