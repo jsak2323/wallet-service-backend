@@ -4,6 +4,8 @@ import (
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 )
 
+const errInternalServer = "Internal server error"
+
 type RpcConfigResDetail struct { 
     RpcConfigId          int
     Symbol               string
@@ -56,6 +58,16 @@ type AddressTypeRes struct {
     RpcConfig   RpcConfigResDetail
     AddressType string
     Error       string
+}
+
+type FireblocksSignReq struct {
+	Asset       string `json:"asset"`
+	DestAddress string `json:"destAddress"`
+}
+
+type FireblocksSignRes struct {
+	Action          string `json:"action"`
+	RejectionReason string `json:"rejectionReason"`
 }
 
 type StandardRes struct {

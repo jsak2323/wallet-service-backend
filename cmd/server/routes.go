@@ -123,6 +123,9 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB) {
 	   curl --request PUT localhost:3000/systemconfig/maintenancelist/add/BTC
 	*/
 
+	fireblocksService := h.NewFireblocksService()
+	r.HandleFunc("/fireblocks/tx_sign_request", fireblocksService.CallbackHandler).Methods(http.MethodPost).Name("fireblockscallback")
+
 	// CRON ROUTES
 
 	// -- GET healthcheck

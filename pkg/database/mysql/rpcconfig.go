@@ -1,12 +1,12 @@
 package mysql
 
 import (
-    "strconv"
-    "database/sql"
+	"database/sql"
+	"strconv"
 
-    _ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 )
 
 const rpcConfigTable = "rpc_config"
@@ -21,8 +21,61 @@ func NewMysqlRpcConfigRepository(db *sql.DB) rc.RpcConfigRepository {
     }
 }
 
+func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
+    query := `
+        SELECT
+            id,
+            currency_id,
+            type,
+            name,
+            platform,
+            host,
+            port,
+            path,
+            user,
+            password,
+            hashkey,
+            node_version,
+            node_last_updated,
+            is_health_check_enabled,
+            atom_feed,
+            address
+        FROM ` + rpcConfigTable
+    query += " WHERE id = ?"
+    rpcConfig := rc.RpcConfig{}
+
+    rows, err := r.db.Query(query, id)
+    if err != nil { return rc.RpcConfig{}, err }
+    defer rows.Close()
+
+    for rows.Next() {
+        err = mapRpcConfig(rows, &rpcConfig)
+        if err != nil { return rc.RpcConfig{}, err }
+    }
+
+    return rpcConfig, nil
+}
+
 func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, error) {
-    query := "SELECT * FROM "+rpcConfigTable
+    query := `
+        SELECT
+            id,
+            currency_id,
+            type,
+            name,
+            platform,
+            host,
+            port,
+            path,
+            user,
+            password,
+            hashkey,
+            node_version,
+            node_last_updated,
+            is_health_check_enabled,
+            atom_feed,
+            address
+        FROM ` + rpcConfigTable
     query += " WHERE currency_id = "+strconv.Itoa(currency_id)
     rpcConfigs := []rc.RpcConfig{}
 
@@ -42,7 +95,25 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
 }
 
 func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig, error) {
-    query := "SELECT "+rpcConfigTable+".* FROM "+rpcConfigTable
+    query := `
+        SELECT
+            `+rpcConfigTable+`.id,
+            currency_id,
+            type,
+            `+rpcConfigTable+`.name,
+            platform,
+            host,
+            port,
+            path,
+            user,
+            password,
+            hashkey,
+            node_version,
+            node_last_updated,
+            is_health_check_enabled,
+            atom_feed,
+            address
+        FROM ` + rpcConfigTable
     query += " LEFT JOIN "+currencyConfigTable+" ON "+rpcConfigTable+".currency_id = "+currencyConfigTable+".id "
     query += " WHERE "+currencyConfigTable+".symbol = '"+symbol+"'"
     rpcConfigs := []rc.RpcConfig{}
@@ -79,6 +150,7 @@ func mapRpcConfig(rows *sql.Rows, rpcConf *rc.RpcConfig) error {
         &rpcConf.NodeLastUpdated,
         &rpcConf.IsHealthCheckEnabled,
         &rpcConf.AtomFeed,
+        &rpcConf.Address,
     )
 
     if err != nil { return err }
