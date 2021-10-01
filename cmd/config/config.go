@@ -47,6 +47,8 @@ type Configuration struct {
     InfuraProjectId     string `json:"infura_project_id"`
 
     JWTSecret        string `json:"jwt_secret"`
+
+    FireblocksHotVaultId string `json:"fireblocks_hot_vault_id"`
 }
 
 type CurrencyConfiguration struct {

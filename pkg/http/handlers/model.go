@@ -62,6 +62,7 @@ type AddressTypeRes struct {
 
 type FireblocksSignReq struct {
 	Asset       string `json:"asset"`
+    DestId      string `json:"destId"`
 	DestAddress string `json:"destAddress"`
 }
 
