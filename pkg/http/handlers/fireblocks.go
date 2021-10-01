@@ -52,18 +52,18 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 
+	if err := SignReq.Validate(); err != nil {
+		RES.Action = RejectTransaction
+		RES.RejectionReason = "Invalid param: " + err.Error()
+		return
+	}
+
 	if SignReq.DestId == config.CONF.FireblocksHotVaultId {
 		validateHotDestAddress(SignReq, &RES)
 	}
 }
 
 func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
-	if err := signReq.Validate(); err != nil {
-		res.Action = RejectTransaction
-		res.RejectionReason = "Invalid param: " + err.Error()
-		return
-	}
-	
 	receiverWallet, err := rc.GetReceiverFromList(config.CURR[signReq.Asset].RpcConfigs)
 	if err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetReceiverFromList err: " + err.Error())
@@ -81,6 +81,10 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 func (r *FireblocksSignReq) Validate() (err error) {
 	if r.Asset == "" {
 		return errors.New("asset is required")
+	}
+
+	if r.DestId == "" {
+		return errors.New("destId is required")
 	}
 
 	if r.DestAddress == "" {
