@@ -43,42 +43,48 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 
 	logger.InfoLog(" -- fireblocks.CallbackHandler, Requesting ...", req)
 
+	RES.Action = ApproveTransaction
+
 	if err = json.NewDecoder(req.Body).Decode(&SignReq); err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler json.NewDecoder err: " + err.Error())
+		RES.Action = RejectTransaction
 		RES.RejectionReason = errInternalServer
 		return
 	}
 
-	RES.Action = RejectTransaction
+	if SignReq.DestId == config.CONF.FireblocksHotVaultId {
+		validateHotDestAddress(SignReq, &RES)
+	}
+}
 
-	if err = SignReq.Validate(); err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler SignReq.Validate err: " + err.Error())
-		RES.RejectionReason = "Invalid param: " + err.Error()
+func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
+	if err := signReq.Validate(); err != nil {
+		res.Action = RejectTransaction
+		res.RejectionReason = "Invalid param: " + err.Error()
 		return
 	}
-
-	RES.RejectionReason = InvalidDestAddressReason
 	
-	receiverWallet, err := rc.GetReceiverFromList(config.CURR[SignReq.Asset].RpcConfigs)
+	receiverWallet, err := rc.GetReceiverFromList(config.CURR[signReq.Asset].RpcConfigs)
 	if err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetReceiverFromList err: " + err.Error())
-		RES.RejectionReason = errInternalServer
+		res.Action = RejectTransaction
+		res.RejectionReason = errInternalServer
 		return
 	}
 	
-	if receiverWallet.Address == SignReq.DestAddress {
-		RES.Action = ApproveTransaction
-		RES.RejectionReason = ""
+	if receiverWallet.Address != signReq.DestAddress {
+		res.Action = RejectTransaction
+		res.RejectionReason = InvalidDestAddressReason
 	}
 }
 
 func (r *FireblocksSignReq) Validate() (err error) {
 	if r.Asset == "" {
-		return errors.New("Asset is required")
+		return errors.New("asset is required")
 	}
 
 	if r.DestAddress == "" {
-		return errors.New("Destination Address is required")
+		return errors.New("destAddress is required")
 	}
 	
 	return nil
