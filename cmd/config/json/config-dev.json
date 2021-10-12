@@ -29,5 +29,9 @@
 
     "jwt_secret": "709hLeopF8tQzPKWpv0fB2rSk5xRfuHC",
 
+    "fireblocks_callback_port": "443",
+    "fireblocks_callback_ssl_cert": "cert.pem",
+    "fireblocks_callback_ssl_key": "key.pem",
+
     "fireblocks_hot_vault_id": "315878c3-fcfd-f7f6-2046-058d04334b7e"
 }
