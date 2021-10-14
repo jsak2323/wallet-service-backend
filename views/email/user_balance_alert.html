@@ -1,0 +1,20 @@
+<html>
+    <body>
+        Cold: {{.WalletBalance.TotalColdCoin}} ({{.WalletBalance.TotalColdIdr}} IDR)
+        <ul>
+           {{range $cold := .WalletBalance.ColdBalances}} 
+           <li>{{$cold.Name}}: {{$cold.Coin}} ({{$cold.Idr}} IDR)</li>
+           {{end}}
+        </ul>
+        Hot: {{.WalletBalance.TotalHotCoin}} ({{.WalletBalance.TotalHotIdr}} IDR)
+        <ul>
+           {{range $hot := .WalletBalance.HotBalances}} 
+           <li>{{$hot.Name}}: {{$hot.Coin}} ({{$hot.Idr}} IDR)</li>
+           {{end}}
+        </ul>
+        Hot+Cold Coin: <b>{{.TotalCoin}}</b> {{.WalletBalance.CurrencyConfig.Unit}} <br>
+        User Coin: <b>{{.WalletBalance.TotalUserCoin}}</b> {{.WalletBalance.CurrencyConfig.Unit}} <br>
+        Hot+Cold Coin: <b>{{.TotalIdr}}</b> IDR <br>
+        User IDR: {{.WalletBalance.TotalUserIdr}} IDR
+    </body>
+</html>

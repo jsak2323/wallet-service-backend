@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -98,14 +99,17 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 			ad, _ = req.Context().Value("access_details").(jwt.AccessDetails)
 		)
 
-		if skipRoute(mux.CurrentRoute(req).GetName()) {
+		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host){
 			hf.ServeHTTP(w, req)
 			return
 		}
 
 		handleResponse := func() {
 			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
+				w.WriteHeader(http.StatusForbidden)
+				json.NewEncoder(w).Encode(StandardRes{
+					Error: "Unauthorized user account for resource",
+				})
 			}
 		}
 		defer handleResponse()

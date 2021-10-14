@@ -75,8 +75,13 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
         IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
 
+    module, ok := (*stas.moduleServices)[SYMBOL]
+    if !ok {
+        logger.ErrorLog(" - SendToAddressHandler module not implemented symbol: "+SYMBOL)
+    }
+    
     // execute rpc call
-    rpcRes, err := (*stas.moduleServices)[SYMBOL].SendToAddress(rpcConfig, amountInDecimal, address, memo)
+    rpcRes, err := module.SendToAddress(rpcConfig, amountInDecimal, address, memo)
     if err != nil { 
         logger.ErrorLog(" - SendToAddressHandler (*stas.moduleServices)[strings.ToUpper(symbol)].SendToAddress(rpcConfig, address, amountInDecimal) address:"+address+", amount: "+amountInDecimal+", Error: "+err.Error())
         RES.Error = err.Error()

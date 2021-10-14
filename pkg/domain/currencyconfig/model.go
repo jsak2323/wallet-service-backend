@@ -20,6 +20,8 @@ type CurrencyConfig struct {
     CmcId                   int
     ParentSymbol            string
     LastUpdated             string
+
+    Active                  bool
 }
 
 

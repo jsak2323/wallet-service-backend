@@ -32,13 +32,15 @@ func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request
 	
 	roles, err := svc.roleRepo.GetAll(page, limit)
 	if err != nil {
+		logger.ErrorLog(" - ListRoleHandler svc.roleRepo.GetAll err: " + err.Error())
+		RES.Error = errInternalServer
 		return
 	}
 
-	for i, user := range roles {
-		roles[i].Permissions, err = svc.permissionRepo.GetByRoleId(user.Id)
+	for i, role := range roles {
+		roles[i].Permissions, err = svc.permissionRepo.GetByRoleId(role.Id)
 		if err != nil {
-			logger.ErrorLog(" - ListRoleHandler svc.roleRepo.Create err: " + err.Error())
+			logger.ErrorLog(" - ListRoleHandler svc.permissionRepo.GetByRoleId err: " + err.Error())
 			RES.Error = errInternalServer
 			return
 		}

@@ -126,5 +126,3 @@ func GetMinuteDiffFromNow(datetime string) (float64, error) {
     minuteDiff = timeNow.Sub(time).Minutes()
     return minuteDiff, nil
 }
-
-

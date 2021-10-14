@@ -35,7 +35,6 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	logger.InfoLog(createReq.Name+createReq.Password+createReq.Username, req)
 	if !createReq.valid() {
 		logger.ErrorLog(" - CreateUserHandler invalid request")
 		RES.Error = "Invalid request"

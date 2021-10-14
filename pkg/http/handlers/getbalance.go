@@ -76,7 +76,12 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
 
             // execute concurrent rpc calls
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig)
+                module, ok := (*gbcs.moduleServices)[SYMBOL]
+                if !ok {
+                    logger.ErrorLog(" - InvokeGetBalance module not implemented symbol: "+SYMBOL)
+                }
+
+                rpcRes, err := module.GetBalance(rpcConfig)
                 if err != nil { 
                     logger.ErrorLog(" -- InvokeGetBalance (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig) Error: "+err.Error())
                     _RES.Error = rpcRes.Error

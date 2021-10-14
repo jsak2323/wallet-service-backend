@@ -91,7 +91,12 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
 
             // execute concurrent rpc calls
             go func(SYMBOL string, rpcConfig rc.RpcConfig) {
-                rpcRes, err := (*gbcs.moduleServices)[SYMBOL].GetBlockCount(rpcConfig)
+                module, ok := (*gbcs.moduleServices)[SYMBOL]
+                if !ok {
+                    logger.ErrorLog(" - InvokeGetBlockCount module not implemented symbol: "+SYMBOL)
+                }
+                
+                rpcRes, err := module.GetBlockCount(rpcConfig)
                 if err != nil { 
                     logger.Log(" - InvokeGetBlockCount (*gbcs.moduleServices)["+SYMBOL+"].GetBlockCount(rpcConfig) Error: "+err.Error())
                     _RES.Error = rpcRes.Error

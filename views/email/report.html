@@ -1,0 +1,34 @@
+<html>
+   <head>
+      <style>
+         table, th, td { border: 1px solid black; }
+         table { border-collapse: collapse; }
+         td { padding: 5px; }
+         ul { list-style-type: none; padding-left: 0;}
+      </style>
+   </head>
+    <body>
+         <table>
+            <tr style="text-align: center; font-weight: bold;">
+               <td>Symbol</td>
+               <td>Hot</td>
+               <td>Cold</td>
+               <td>Pending WD</td>
+               <td>%Hot</td>
+               <td>%Hot+Cold</td>
+               <td>User Balance</td>
+            </tr>
+            {{range $balance := .WalletBalances}}
+            <tr>
+               <td style="text-align: center;">{{$balance.CurrencyConfig.Name}}</td>
+               <td>{{$balance.TotalHotCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.TotalColdCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.PendingWDCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+               <td>{{$balance.HotPercent}}%</td>
+               <td>{{$balance.HotColdPercent}}%</td>
+               <td>{{$balance.TotalUserCoin}} {{$balance.CurrencyConfig.Unit}}</td>
+            </tr>
+            {{end}}
+         </table>
+    </body>
+</html>

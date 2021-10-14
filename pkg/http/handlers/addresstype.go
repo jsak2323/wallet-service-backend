@@ -63,8 +63,13 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
         IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
 
+    module, ok := (*ats.moduleServices)[SYMBOL]
+    if !ok {
+        logger.ErrorLog(" - AddressTypeHandler module not implemented symbol: "+SYMBOL)
+    }
+
     // execute rpc call
-    rpcRes, err := (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, address)
+    rpcRes, err := module.AddressType(rpcConfig, address)
     if err != nil { 
         logger.ErrorLog(" - AddressTypeHandler (*ats.moduleServices)[SYMBOL].AddressType(rpcConfig, addressType) address: "+address+", Error: "+err.Error())
         RES.Error = err.Error()

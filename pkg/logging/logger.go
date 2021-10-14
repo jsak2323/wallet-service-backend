@@ -40,15 +40,12 @@ func Log(msg string) {
     updateTime()
     setupLogger()
 
-    fmt.Println(msg)
     log.Info(msg)
 }
 
 func InfoLog(msg string, req *http.Request) {
     updateTime()
     setupLogger()
-
-    fmt.Println(msg)
 
     log.WithFields(logrus.Fields{
         "Method"        : req.Method,
@@ -60,7 +57,6 @@ func ErrorLog(msg string) {
     updateTime()
     setupLogger()
     
-    fmt.Println(msg)
     log.Error(msg)
 
     go sendErrorNotificationEmail(msg)

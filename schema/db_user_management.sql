@@ -107,7 +107,8 @@ INSERT INTO `role_permission` (`role_id`, `permission_id`) VALUES
 (1, 23),
 (1, 24),
 (1, 25),
-(1, 26);
+(1, 26),
+(1, 27);
 
 -- password is hashed golang/bcrypt value of '12345678'
 INSERT INTO `users` (`id`, `username`, `name`, `email`, `password`, `ip_address`) VALUES
