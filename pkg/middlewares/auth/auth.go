@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -105,7 +106,10 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 
 		handleResponse := func() {
 			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
+				w.WriteHeader(http.StatusForbidden)
+				json.NewEncoder(w).Encode(StandardRes{
+					Error: "Unauthorized user account for resource",
+				})
 			}
 		}
 		defer handleResponse()

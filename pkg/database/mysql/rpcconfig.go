@@ -77,7 +77,8 @@ func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
             node_last_updated,
             is_health_check_enabled,
             atom_feed,
-            address
+            address,
+			active
         FROM ` + rpcConfigTable + ` WHERE id = ?`
 
 	rpcConfig := rc.RpcConfig{}
@@ -116,7 +117,8 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
             node_last_updated,
             is_health_check_enabled,
             atom_feed,
-            address
+            address,
+			active
         FROM ` + rpcConfigTable
 	query += " WHERE currency_id = " + strconv.Itoa(currency_id)
 	rpcConfigs := []rc.RpcConfig{}
@@ -158,7 +160,8 @@ func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig
             node_last_updated,
             is_health_check_enabled,
             atom_feed,
-            address
+            address,
+            ` + rpcConfigTable + `.active
         FROM ` + rpcConfigTable
 	query += " LEFT JOIN " + currencyConfigTable + " ON " + rpcConfigTable + ".currency_id = " + currencyConfigTable + ".id "
 	query += " WHERE " + currencyConfigTable + ".symbol = '" + symbol + "'"
@@ -227,7 +230,8 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
             node_version = ?,
             node_last_updated = ?,
             is_health_check_enabled = ?,
-            atom_feed = ?
+            atom_feed = ?,
+            address = ?
         WHERE id = ?`,
 		rpcConfig.CurrencyId,
 		rpcConfig.Type,
@@ -243,6 +247,7 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
 		rpcConfig.NodeLastUpdated,
 		rpcConfig.IsHealthCheckEnabled,
 		rpcConfig.AtomFeed,
+		rpcConfig.Address,
 		rpcConfig.Id,
 	).Err()
 }

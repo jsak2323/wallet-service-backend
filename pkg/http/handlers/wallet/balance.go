@@ -87,6 +87,7 @@ func (s *WalletService) SetColdBalanceDetails(res *GetBalanceRes) {
 
 		coldBalanceDetail.Coin = cb.Balance
 		coldBalanceDetail.Address = cb.Address
+		coldBalanceDetail.FireblocksName = cb.FireblocksName
 		
 		if coldBalanceDetail.Idr, err = s.marketService.ConvertCoinToIdr(coldBalanceDetail.Coin, symbol); err != nil {
 			logger.ErrorLog(" - SetColdBalanceDetails ConvertCoinToIdr("+cb.Type+", "+cb.Balance+") err: "+err.Error())
