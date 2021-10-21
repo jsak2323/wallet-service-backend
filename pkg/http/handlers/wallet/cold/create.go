@@ -46,7 +46,7 @@ func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err = s.cbRepo.Update(createReq); err != nil {
+	if _, err = s.cbRepo.Create(createReq); err != nil {
 		logger.ErrorLog(" - CreateHandler s.cbRepo.Update err: " + err.Error())
 		RES.Error = errInternalServer
 		return

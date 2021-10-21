@@ -1,33 +1,14 @@
 package model
 
 import (
+    "errors"
+
     rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 )
 
-type GetBlockCountRpcRes struct {
-    Blocks  string
-    Error   string
-}
-
-type GetBalanceRpcRes struct {
-    Balance string
-    Error   string
-}
-
-type ListTransactionsRpcRes struct {
-    Transactions string
-    Error        string
-}
-
-type SendToAddressRpcRes struct {
-    TxHash  string
-    Error   string
-}
-
-type GetNewAddressRpcRes struct {
-    Address string
-    Error   string
+func InvalidRpcRequestConfig(name, method string) error {
+    return errors.New("Invalid rpc request (name, method) -> (" + name + ")" + "(" + method + ")")
 }
 
 type AddressTypeRpcRes struct {
@@ -48,4 +29,7 @@ type ModuleService interface {
     AddressType(rpcConfig rc.RpcConfig, address string) (*AddressTypeRpcRes, error)
 }
 
+type RpcRes interface {
+    SetFromMapValues(mapValues map[string]interface{}) (err error)
+}
 

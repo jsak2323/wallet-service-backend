@@ -31,7 +31,7 @@ func (r *coldBalanceRepository) Create(coldBalance domain.ColdBalance) (id int, 
 	}
     defer stmt.Close()
 
-	res, err := stmt.Exec(query, coldBalance.CurrencyId, coldBalance.Name, coldBalance.Type, coldBalance.FireblocksName, coldBalance.Address); 
+	res, err := stmt.Exec(coldBalance.CurrencyId, coldBalance.Name, coldBalance.Type, coldBalance.FireblocksName, coldBalance.Balance, coldBalance.Address); 
 	if err != nil {
         return 0, err
 	}

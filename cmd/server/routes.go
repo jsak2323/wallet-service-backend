@@ -32,6 +32,9 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	currencyConfigRepo := mysql.NewMysqlCurrencyConfigRepository(mysqlDbConn)
 	rpcConfigRepo := mysql.NewMysqlRpcConfigRepository(mysqlDbConn)
+	rpcMethodRepo := mysql.NewMysqlRpcMethodRepository(mysqlDbConn)
+	rpcRequestRepo := mysql.NewMysqlRpcRequestRepository(mysqlDbConn)
+	rpcResponseRepo := mysql.NewMysqlRpcResponseRepository(mysqlDbConn)
 	healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
 	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
 
@@ -48,7 +51,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/logout", userService.LogoutHandler).Methods(http.MethodPost)
 
 	// MODULE SERVICES
-	ModuleServices := modules.NewModuleServices(healthCheckRepo, systemConfigRepo)
+	ModuleServices := modules.NewModuleServices(healthCheckRepo, systemConfigRepo, rpcMethodRepo, rpcRequestRepo, rpcResponseRepo)
 	MarketService := h.NewMarketService(marketRepo)
 
 	// API ROUTES
@@ -115,7 +118,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	
 	// -- Cold Wallet management
 	coldWalletService := hcw.NewColdWalletService(coldbalanceRepo)
-	r.HandleFunc("/coldwallet", coldWalletService.UpdateBalanceHandler).Methods(http.MethodPost).Name("createcoldwallet")
+	r.HandleFunc("/coldwallet", coldWalletService.CreateHandler).Methods(http.MethodPost).Name("createcoldwallet")
 	// TODO get by currency
 	r.HandleFunc("/coldwallet", coldWalletService.ListHandler).Methods(http.MethodGet).Name("listcoldwallet")
 	r.HandleFunc("/coldwallet/sendtohot", coldWalletService.SendToHotHandler).Methods(http.MethodPost).Name("sendcoldwallet")

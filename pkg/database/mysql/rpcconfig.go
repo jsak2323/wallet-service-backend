@@ -37,8 +37,8 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
             node_version,
             node_last_updated,
             is_health_check_enabled,
-            address,
-            atom_feed)
+            atom_feed,
+			address)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
         `,
 		rpcConfig.CurrencyId,
@@ -231,7 +231,7 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
             node_last_updated = ?,
             is_health_check_enabled = ?,
             atom_feed = ?,
-            address = ?
+            address = ? = ?
         WHERE id = ?`,
 		rpcConfig.CurrencyId,
 		rpcConfig.Type,
