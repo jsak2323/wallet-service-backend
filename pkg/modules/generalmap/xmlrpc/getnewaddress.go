@@ -2,39 +2,40 @@ package xmlrpc
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 	rm "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcmethod"
-	rrq "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcrequest"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-type GetNewAddressXmlRpcRes struct {
-	Content GetNewAddressXmlRpcResStruct
-}
-type GetNewAddressXmlRpcResStruct struct {
-	Address string
-	Error   string
-}
-
-func (gs *GeneralMapService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (res *model.GetNewAddressRpcRes, err error) {
+func (gms *GeneralMapService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (res *model.GetNewAddressRpcRes, err error) {
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gs.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
 	if err != nil {
 		return &model.GetNewAddressRpcRes{}, err
 	}
 
-	args, err := gs.getNewAddressArgs(rpcConfig, rpcMethod, addressType)
+	rpcRequests, err := config.GetRpcRequestMap(gms.rpcRequestRepo, rpcMethod.Id)
+	if err != nil {
+		return &model.GetNewAddressRpcRes{}, err
+	}
+
+	runtimeParams := map[string]string{
+		"token": strings.ToLower(gms.Symbol),
+	}
+
+	args, err := util.GetRpcRequestArgs(rpcConfig, rpcMethod, rpcRequests, runtimeParams)
 	if err != nil {
 		return &model.GetNewAddressRpcRes{}, err
 	}
 
 	rpcReq := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gs.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.GetNewAddressRpcRes{}, err
 	}
@@ -50,38 +51,4 @@ func (gs *GeneralMapService) GetNewAddress(rpcConfig rc.RpcConfig, addressType s
 	}
 
 	return res, nil
-}
-
-func (gs *GeneralMapService) getNewAddressArgs(rpcConfig rc.RpcConfig, rpcMethod rm.RpcMethod, addresstype string) (args []string, err error) {
-	args = make([]string, rpcMethod.NumOfArgs)
-
-	hashkey, nonce := util.GenerateHashkey(rpcConfig.Password, rpcConfig.Hashkey)
-
-	rpcRequests, err := config.GetRpcRequestMap(gs.rpcRequestRepo, rpcMethod.Id)
-	if err != nil {
-		return []string{}, err
-	}
-
-	for _, rpcRequest := range rpcRequests {
-		if rpcRequest.Source == rrq.SourceRuntime {
-			switch rpcRequest.ArgName {
-			case rrq.ArgRpcUser:
-				args[rpcRequest.ArgOrder] = rpcConfig.User
-			case rrq.ArgHashkey:
-				args[rpcRequest.ArgOrder] = hashkey
-			case rrq.ArgNonce:
-				args[rpcRequest.ArgOrder] = nonce
-			case rrq.ArgAddressType:
-				args[rpcRequest.ArgOrder] = addresstype
-			default:
-				return []string{}, model.InvalidRpcRequestConfig(rpcRequest.ArgName, rpcMethod.Name)
-			}
-		}
-
-		if rpcRequest.Source == rrq.SourceConfig {
-			args = append(args, rpcRequest.Value)
-		}
-	}
-
-	return args, nil
 }

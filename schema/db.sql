@@ -110,12 +110,14 @@ CREATE TABLE rpc_config_rpc_method (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE rpc_request (
-    id        INT(11) NOT NULL AUTO_INCREMENT,
-    arg_name  VARCHAR(50) NOT NULL DEFAULT "",
-    arg_order INT(11) NOT NULL DEFAULT 0,
-    source    VARCHAR(50) NOT NULL DEFAULT "",
-    value     VARCHAR(50) NOT NULL DEFAULT "",
-    rpc_method_id INT(11) NOT NULL,
+    id                INT(11) NOT NULL AUTO_INCREMENT,
+    arg_name          VARCHAR(50) NOT NULL DEFAULT "",
+    type              VARCHAR(50) NOT NULL DEFAULT "",
+    arg_order         INT(11) NOT NULL DEFAULT 0,
+    source            VARCHAR(50) NOT NULL DEFAULT "",
+    runtime_var_name  VARCHAR(50) NOT NULL DEFAULT "",
+    value             VARCHAR(255) NOT NULL DEFAULT "",
+    rpc_method_id     INT(11) NOT NULL,
 
     PRIMARY KEY (id),
     FOREIGN KEY (rpc_method_id) REFERENCES rpc_method(id)

@@ -6,7 +6,7 @@ type GetVaultAccountAssetReq struct {
 }
 
 type GetVaultAccountAssetRes struct {
-	Balance string `json:"balance"`
+	Total string `json:"total"`
 	Error 	string `json:"message"`
 }
 

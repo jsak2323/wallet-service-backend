@@ -2,6 +2,7 @@ package xmlrpc
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
@@ -18,24 +19,33 @@ type GetBalanceXmlRpcResStruct struct {
 	Error   string
 }
 
-func (gs *GeneralMapService) GetBalance(rpcConfig rc.RpcConfig) (res *model.GetBalanceRpcRes, err error) {
-	res = &model.GetBalanceRpcRes{Balance: "0"}
+func (gms *GeneralMapService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRes, error) {
+	res := &model.GetBalanceRpcRes{Balance: "0"}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gs.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
 	if err != nil {
 		return &model.GetBalanceRpcRes{}, err
 	}
 
-	args, err := gs.onlyAuthArgs(rpcConfig, rpcMethod)
+	rpcRequests, err := config.GetRpcRequestMap(gms.rpcRequestRepo, rpcMethod.Id)
+	if err != nil {
+		return &model.GetBalanceRpcRes{}, err
+	}
+
+	runtimeParams := map[string]string{
+		"token": strings.ToLower(gms.Symbol),
+	}
+
+	args, err := util.GetRpcRequestArgs(rpcConfig, rpcMethod, rpcRequests, runtimeParams)
 	if err != nil {
 		return &model.GetBalanceRpcRes{}, err
 	}
 
 	req := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gs.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.GetBalanceRpcRes{}, err
 	}

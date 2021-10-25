@@ -1,9 +1,5 @@
 package rpcconfig
 
-import (
-	"errors"
-)
-
 type RpcConfigRepository interface {
 	Create(RpcConfig) error
 	GetById(id int) (RpcConfig, error)
@@ -11,31 +7,4 @@ type RpcConfigRepository interface {
 	GetByCurrencySymbol(symbol string) ([]RpcConfig, error)
 	Update(RpcConfig) error
 	ToggleActive(Id int, active bool) error
-}
-
-const MasterRpcType = "master"
-const SenderRpcType = "sender"
-const ReceiverRpcType = "receiver"
-
-var errSenderNotFound = errors.New("no sender rpc found")
-var errReceiverNotFound = errors.New("no receiver rpc found")
-
-func GetSenderFromList(rcs []RpcConfig) (rc RpcConfig, err error) {
-	for _, rc := range rcs {
-		if rc.Type == "sender" || rc.Type == "master" {
-			return rc, nil
-		}
-	}
-
-	return rc, errSenderNotFound
-}
-
-func GetReceiverFromList(rcs []RpcConfig) (rc RpcConfig, err error) {
-	for _, rc := range rcs {
-		if rc.Type == ReceiverRpcType || rc.Type == MasterRpcType {
-			return rc, nil
-		}
-	}
-
-	return rc, errReceiverNotFound
 }

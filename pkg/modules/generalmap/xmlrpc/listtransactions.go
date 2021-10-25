@@ -3,6 +3,7 @@ package xmlrpc
 import (
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
@@ -12,30 +13,24 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-type ListTransactionsXmlRpcRes struct {
-	Content ListTransactionsXmlRpcResStruct
-}
-type ListTransactionsXmlRpcResStruct struct {
-	Transactions string
-	Error        string
-}
-
-func (gs *GeneralMapService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (res *model.ListTransactionsRpcRes, err error) {
+func (gms *GeneralMapService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (res *model.ListTransactionsRpcRes, err error) {
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gs.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}
 
-	args, err := gs.listTransactionsArgs(rpcConfig, rpcMethod, strconv.Itoa(limit))
+	token := strings.ToLower(gms.Symbol)
+
+	args, err := gms.listTransactionsArgs(rpcConfig, rpcMethod, strconv.Itoa(limit), token)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}
 
 	rpcReq := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gs.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}
@@ -53,12 +48,12 @@ func (gs *GeneralMapService) ListTransactions(rpcConfig rc.RpcConfig, limit int)
 	return res, nil
 }
 
-func (gs *GeneralMapService) listTransactionsArgs(rpcConfig rc.RpcConfig, rpcMethod rm.RpcMethod, limit string) (args []string, err error) {
+func (gms *GeneralMapService) listTransactionsArgs(rpcConfig rc.RpcConfig, rpcMethod rm.RpcMethod, limit, token string) (args []string, err error) {
 	args = make([]string, rpcMethod.NumOfArgs)
 
 	hashkey, nonce := util.GenerateHashkey(rpcConfig.Password, rpcConfig.Hashkey)
 
-	rpcRequests, err := config.GetRpcRequestMap(gs.rpcRequestRepo, rpcMethod.Id)
+	rpcRequests, err := config.GetRpcRequestMap(gms.rpcRequestRepo, rpcMethod.Id)
 	if err != nil {
 		return []string{}, err
 	}
@@ -74,6 +69,8 @@ func (gs *GeneralMapService) listTransactionsArgs(rpcConfig rc.RpcConfig, rpcMet
 				args[rpcRequest.ArgOrder] = nonce
 			case rrq.ArgAddressType:
 				args[rpcRequest.ArgOrder] = limit
+			case rrq.ArgToken:
+				args[rpcRequest.ArgOrder] = token
 			default:
 				return []string{}, model.InvalidRpcRequestConfig(rpcRequest.ArgName, rpcMethod.Name)
 			}

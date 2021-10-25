@@ -21,7 +21,7 @@ func NewMysqlRpcRequestRepository(db *sql.DB) rr.Repository {
 }
 
 func (r *rpcRequestRepository) GetByRpcMethodId(rpcConfigId int) (rpcRequests []rr.RpcRequest, err error) {
-	query := `SELECT id, arg_name, arg_order, source, value, rpc_method_id value FROM ` + rpcRequestTable + ` WHERE rpc_method_id = ? ORDER BY arg_order`
+	query := `SELECT id, arg_name, type, arg_order, source, runtime_var_name, value, rpc_method_id value FROM ` + rpcRequestTable + ` WHERE rpc_method_id = ? ORDER BY arg_order`
 
 	rows, err := r.db.Query(query, rpcConfigId)
 	if err != nil {
@@ -46,8 +46,10 @@ func mapRpcRequest(rows *sql.Rows, rpcRequest *rr.RpcRequest) error {
 	err := rows.Scan(
 		&rpcRequest.Id,
 		&rpcRequest.ArgName,
+		&rpcRequest.Type,
 		&rpcRequest.ArgOrder,
 		&rpcRequest.Source,
+		&rpcRequest.RuntimeVarName,
 		&rpcRequest.Value,
 		&rpcRequest.RpcMethodId,
 	)

@@ -1,5 +1,6 @@
 package rpcmethod
 
-const TypeGetBlockCount string = "getblockcount"
 const TypeGetBalance string = "getbalance"
+const TypeGetBlockCount string = "getblockcount"
+const TypeGetNewAddress string = "getnewaddress"
 const TypeSendToAddress string = "sendtoaddress"

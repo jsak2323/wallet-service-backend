@@ -29,7 +29,7 @@ func (s *ColdWalletService) GetBalance(symbol string) (coldBalances []cb.ColdBal
 				}); err != nil {
 					logger.ErrorLog("- cold.getBalance fireblocks.GetVaultAccountAsset(" + cbs[i].FireblocksName + ") error: " + err.Error())
 				} else {
-					cbs[i].Balance = res.Balance
+					cbs[i].Balance = res.Total
 				}
 			} else {
 				// non fireblocks balance are stored in raw in db

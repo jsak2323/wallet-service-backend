@@ -18,24 +18,29 @@ type GetBlockCountXmlRpcResStruct struct {
 	Error  string
 }
 
-func (gs *GeneralMapService) GetBlockCount(rpcConfig rc.RpcConfig) (res *model.GetBlockCountRpcRes, err error) {
-	res = &model.GetBlockCountRpcRes{Blocks: "0"}
+func (gms *GeneralMapService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
+	res := &model.GetBlockCountRpcRes{Blocks: "0"}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gs.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBlockCount)
 	if err != nil {
 		return &model.GetBlockCountRpcRes{}, err
 	}
 
-	args, err := gs.onlyAuthArgs(rpcConfig, rpcMethod)
+	rpcRequests, err := config.GetRpcRequestMap(gms.rpcRequestRepo, rpcMethod.Id)
+	if err != nil {
+		return &model.GetBlockCountRpcRes{}, err
+	}
+
+	args, err := util.GetRpcRequestArgs(rpcConfig, rpcMethod, rpcRequests, map[string]string{})
 	if err != nil {
 		return &model.GetBlockCountRpcRes{}, err
 	}
 
 	rpcReq := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gs.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.GetBlockCountRpcRes{}, err
 	}
