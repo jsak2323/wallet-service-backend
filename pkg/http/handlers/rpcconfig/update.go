@@ -59,9 +59,6 @@ func validateUpdateReq(rpcConfig domain.RpcConfig) error {
 	if rpcConfig.Id == 0 {
 		return errors.New("ID")
 	}
-	if rpcConfig.CurrencyId == 0 {
-		return errors.New("Currency ID")
-	}
 	if rpcConfig.Name == "" {
 		return errors.New("Name")
 	}

@@ -50,40 +50,46 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     if err != nil { logger.ErrorLog(" - HealthCheckHandler h.GetMaintenanceList err: "+err.Error()) }
 
     logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
-    getBlockCountService.InvokeGetBlockCount(&gbcRES, "")
+    getBlockCountService.InvokeGetBlockCount(&gbcRES, "", "")
     logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." )
 
-    for resSymbol, resRpcConfigs := range gbcRES { 
-        for _, resRpcConfig := range resRpcConfigs { 
-            nodeBlockCount, _ := strconv.Atoi(resRpcConfig.Blocks)
-
-            isBlockCountHealthy, blockDiff := false, 0
-
-            if !resRpcConfig.RpcConfig.IsHealthCheckEnabled { continue }
-            if maintenanceList[resSymbol] { continue }
-
-            if isPing { // if ping, only check if blockount is 0
-                if nodeBlockCount <= 0 {
-                    hcs.sendNotificationEmails(resRpcConfig, -1)
+    for resSymbol, mapTokenType := range gbcRES { 
+        for resTokenType, resRpcConfigs := range mapTokenType { 
+            for _, resRpcConfig := range resRpcConfigs { 
+                nodeBlockCount, _ := strconv.Atoi(resRpcConfig.Blocks)
+    
+                isBlockCountHealthy, blockDiff := false, 0
+    
+                if !resRpcConfig.RpcConfig.IsHealthCheckEnabled { continue }
+                if maintenanceList[resSymbol] { continue }
+    
+                if isPing { // if ping, only check if blockount is 0
+                    if nodeBlockCount <= 0 {
+                        hcs.sendNotificationEmails(resRpcConfig, -1)
+                    }
+                    fmt.Println(" -- Healthcheck ping "+resSymbol+" Blocks: "+resRpcConfig.Blocks)
+                    continue
                 }
-                fmt.Println(" -- Healthcheck ping "+resSymbol+" Blocks: "+resRpcConfig.Blocks)
-                continue
-            }
-
-            _isBlockCountHealthy, _blockDiff, err := (*hcs.moduleServices)[resSymbol].IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
-            if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
-
-            isBlockCountHealthy = _isBlockCountHealthy
-            blockDiff           = _blockDiff
-
-            if !isBlockCountHealthy && config.FirstHealthCheck { // if not healthy, send notification emails
-                hcs.sendNotificationEmails(resRpcConfig, blockDiff)
-            }
-
-            config.FirstHealthCheck = true
-            
-            if !isPing {
-                hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+    
+                currencyConfig, err := config.GetCurrencyBySymbolTokenType(resSymbol, resTokenType)
+                
+                module, err := hcs.moduleServices.GetModule(currencyConfig.Id)
+                
+                _isBlockCountHealthy, _blockDiff, err := module.IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
+                if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }
+    
+                isBlockCountHealthy = _isBlockCountHealthy
+                blockDiff           = _blockDiff
+    
+                if !isBlockCountHealthy && config.FirstHealthCheck { // if not healthy, send notification emails
+                    hcs.sendNotificationEmails(resRpcConfig, blockDiff)
+                }
+    
+                config.FirstHealthCheck = true
+                
+                if !isPing {
+                    hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+                }
             }
         }
     }

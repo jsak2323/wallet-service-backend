@@ -109,8 +109,8 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	// -- Rpc Config management
 	rpcConfigService := hrc.NewRpcConfigService(rpcConfigRepo)
-	r.HandleFunc("/rpcconfig/{id}", rpcConfigService.GetByIdHandler).Methods(http.MethodGet).Name("getrpcconfigbyid")
-	r.HandleFunc("/rpcconfig/getbycurrency/{currency_id}", rpcConfigService.GetByCurrencyHandler).Methods(http.MethodGet).Name("getrpcconfigbycurrency")
+	r.HandleFunc("/rpcconfig/list", rpcConfigService.ListHandler).Methods(http.MethodGet).Name("listrpcconfig")
+	r.HandleFunc("/rpcconfig/id/{id}", rpcConfigService.GetByIdHandler).Methods(http.MethodGet).Name("getrpcconfigbyid")
 	r.HandleFunc("/rpcconfig", rpcConfigService.CreateHandler).Methods(http.MethodPost).Name("createrpcconfig")
 	r.HandleFunc("/rpcconfig", rpcConfigService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcconfig")
 	r.HandleFunc("/rpcconfig/deactivate/{id}", rpcConfigService.DeactivateHandler).Methods(http.MethodPost).Name("deactivaterpcconfig")
@@ -132,7 +132,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	walletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
 	r.HandleFunc("/wallet/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
-	r.HandleFunc("/wallet/{symbol}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebysymbol")
+	r.HandleFunc("/wallet/{currency_id}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
 	
 	// -- GET listtransactions (disabled)
 	/*
@@ -179,7 +179,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet).Name("cronhealthcheck")
 
 	// -- GET checkbalance
-	checkBalanceService := c.NewCheckBalanceService(walletService, coldWalletService, MarketService, *ModuleServices, hotLimitRepo, userRepo)
+	checkBalanceService := c.NewCheckBalanceService(walletService, coldWalletService, MarketService, ModuleServices, hotLimitRepo, userRepo)
 	r.HandleFunc("/cron/checkbalance", checkBalanceService.CheckBalanceHandler).Methods(http.MethodGet)
 
 	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)

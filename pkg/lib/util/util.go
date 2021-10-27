@@ -105,8 +105,8 @@ func Microtime() float64 {
     return float64(now.Unix()) + micSeconds
 }
 
-func GetRpcConfigByType(SYMBOL string, rpcConfigType string) (rc.RpcConfig, error) {
-    for _, rpcConfig := range config.CURR[SYMBOL].RpcConfigs {
+func GetRpcConfigByType(currencyConfigId int, rpcConfigType string) (rc.RpcConfig, error) {
+    for _, rpcConfig := range config.CURRRPC[currencyConfigId].RpcConfigs {
         if rpcConfig.Type == rpcConfigType || rpcConfig.Type == "master" {
             return rpcConfig, nil
         }

@@ -10,7 +10,7 @@ import (
 func (gs *GeneralService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
     isBlockCountHealthy := false
     SYMBOL              := gs.GetSymbol()
-    healthyBlockDiff    := config.CURR[SYMBOL].Config.HealthyBlockDiff
+    healthyBlockDiff    := config.CURRRPC[gs.CurrencyConfigId].Config.HealthyBlockDiff
     blockDiff           := 0
     previousBlockCount  := 0
 

@@ -2,6 +2,7 @@ package rpcconfig
 
 type RpcConfigRepository interface {
 	Create(RpcConfig) error
+	GetAll(page, limit int) ([]RpcConfig, error)
 	GetById(id int) (RpcConfig, error)
 	GetByCurrencyId(currency_id int) ([]RpcConfig, error)
 	GetByCurrencySymbol(symbol string) ([]RpcConfig, error)

@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -19,7 +20,8 @@ var (
 	ErrorMailCount   int
 	FirstHealthCheck bool
 
-	CURR    = make(map[string]CurrencyConfiguration)
+	CURRRPC = make(map[int]CurrencyRpcConfig)
+	CURRID  = make(map[string]map[string]int) // currency_id by symbol and token_typen 
 	SYMBOLS = make(map[int]string)
 )
 
@@ -74,7 +76,7 @@ type Configuration struct {
 	TelegramAlertChatId string `json:"telegram_alert_chat_id"`
 }
 
-type CurrencyConfiguration struct {
+type CurrencyRpcConfig struct {
 	Config     cc.CurrencyConfig
 	RpcConfigs []rc.RpcConfig
 }
@@ -158,18 +160,49 @@ func LoadCurrencyConfigs() {
 			getSymbol = currencyConfig.ParentSymbol
 		}
 
-		rpcConfigs, err := rpcConfigRepo.GetByCurrencySymbol(getSymbol)
+		rpcConfigs, err := rpcConfigRepo.GetByCurrencyId(currencyConfig.Id)
 		if err != nil {
 			panic("Unexpected error when executing rpcConfigRepo.GetByCurrencySymbol(getSymbol). " + getSymbol + " Error: " + err.Error())
 		}
 
-		CURR[currencyConfig.Symbol] = CurrencyConfiguration{
+		CURRRPC[currencyConfig.Id] = CurrencyRpcConfig{
 			Config:     currencyConfig,
 			RpcConfigs: rpcConfigs,
 		}
+
+		_, ok := CURRID[currencyConfig.Symbol]
+		if !ok { CURRID[currencyConfig.Symbol] = make(map[string]int) }
+		CURRID[currencyConfig.Symbol][currencyConfig.TokenType] = currencyConfig.Id
 
 		SYMBOLS[currencyConfig.Id] = currencyConfig.Symbol
 	}
 
 	fmt.Println("Done.")
+}
+
+func GetCurrencyBySymbol(symbol string) (result []cc.CurrencyConfig, err error) {
+	tokenTypes, ok  := CURRID[symbol]
+	if !ok {
+		return []cc.CurrencyConfig{}, errors.New("symbol not found "+ symbol)
+	}
+
+	for _, currencyConfigId := range tokenTypes {
+		result = append(result, CURRRPC[currencyConfigId].Config)
+	}
+
+	return result, nil
+}
+
+func GetCurrencyBySymbolTokenType(symbol, tokenType string) (cc.CurrencyConfig, error) {
+	tokenTypes, ok  := CURRID[symbol]
+	if !ok {
+		return cc.CurrencyConfig{}, errors.New("symbol not found  "+symbol)
+	}
+
+	currencyId, ok := tokenTypes[tokenType]
+	if !ok {
+		return cc.CurrencyConfig{}, errors.New("token_type not found "+tokenType)
+	}
+
+	return CURRRPC[currencyId].Config, nil
 }

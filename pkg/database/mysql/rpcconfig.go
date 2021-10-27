@@ -24,7 +24,6 @@ func NewMysqlRpcConfigRepository(db *sql.DB) rc.RpcConfigRepository {
 func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
 	return r.db.QueryRow(`
         INSERT INTO `+rpcConfigTable+`(
-            currency_id,
             type,
             name,
             platform,
@@ -41,7 +40,6 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
 			address)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
         `,
-		rpcConfig.CurrencyId,
 		rpcConfig.Type,
 		rpcConfig.Name,
 		rpcConfig.Platform,
@@ -59,11 +57,50 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
 	).Err()
 }
 
+func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig, err error) {
+	query := `
+        SELECT
+            id,
+            type,
+            name,
+            platform,
+            host,
+            port,
+            path,
+            user,
+            password,
+            hashkey,
+            node_version,
+            node_last_updated,
+            is_health_check_enabled,
+            atom_feed,
+            address,
+			active
+        FROM ` + rpcConfigTable
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return []rc.RpcConfig{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		rpcConfig := rc.RpcConfig{}
+
+		if err = mapRpcConfig(rows, &rpcConfig); err != nil {
+			return []rc.RpcConfig{}, err
+		}
+
+		rpcConfigs = append(rpcConfigs, rpcConfig)
+	}
+
+	return rpcConfigs, nil
+}
+
 func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
 	query := `
         SELECT
             id,
-            currency_id,
             type,
             name,
             platform,
@@ -103,7 +140,6 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
 	query := `
         SELECT
             id,
-            currency_id,
             type,
             name,
             platform,
@@ -119,8 +155,10 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
             atom_feed,
             address,
 			active
-        FROM ` + rpcConfigTable
-	query += " WHERE currency_id = " + strconv.Itoa(currency_id)
+        FROM ` + rpcConfigTable + `
+		JOIN ` + currencyRpcTable + ` on ` + currencyRpcTable + `.rpc_config_id = ` + rpcConfigTable + `.id
+		`
+	query += " WHERE "+ currencyRpcTable +".currency_config_id = " + strconv.Itoa(currency_id)
 	rpcConfigs := []rc.RpcConfig{}
 
 	rows, err := r.db.Query(query)
@@ -146,7 +184,6 @@ func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig
 	query := `
         SELECT
             ` + rpcConfigTable + `.id,
-            currency_id,
             type,
             ` + rpcConfigTable + `.name,
             platform,
@@ -189,7 +226,6 @@ func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig
 func mapRpcConfig(rows *sql.Rows, rpcConf *rc.RpcConfig) error {
 	err := rows.Scan(
 		&rpcConf.Id,
-		&rpcConf.CurrencyId,
 		&rpcConf.Type,
 		&rpcConf.Name,
 		&rpcConf.Platform,
@@ -217,7 +253,6 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
 	return r.db.QueryRow(`
         UPDATE `+rpcConfigTable+`
         SET 
-            currency_id = ?,
             type = ?,
             name = ?,
             platform = ?,
@@ -233,7 +268,6 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
             atom_feed = ?,
             address = ?
         WHERE id = ?`,
-		rpcConfig.CurrencyId,
 		rpcConfig.Type,
 		rpcConfig.Name,
 		rpcConfig.Platform,

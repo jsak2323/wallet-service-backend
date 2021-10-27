@@ -19,9 +19,10 @@ type CurrencyConfig struct {
     DefaultIdrPrice         int
     CmcId                   int
     ParentSymbol            string
-    LastUpdated             string
-
+    ModuleType              string
     Active                  bool
+    
+    LastUpdated             string
 }
 
 

@@ -27,7 +27,7 @@ type CheckBalanceService struct {
 	walletService  		*hw.WalletService
 	coldWalletService 	*hcw.ColdWalletService
 	marketService 		*h.MarketService
-	moduleServices 		modules.ModuleServiceMap
+	moduleServices 		*modules.ModuleServiceMap
 	hotLimitRepo   		hl.Repository
 	userRepo			user.Repository
 }
@@ -36,7 +36,7 @@ func NewCheckBalanceService(
 	walletService  		*hw.WalletService,
 	coldWalletService 	*hcw.ColdWalletService,
 	marketService 		*h.MarketService,
-	moduleServices 		modules.ModuleServiceMap,
+	moduleServices 		*modules.ModuleServiceMap,
 	hotLimitRepo   		hl.Repository,
 	userRepo 			user.Repository,
 ) *CheckBalanceService {
@@ -56,9 +56,9 @@ const defaultMemo = "0000"
 func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *http.Request) {
 	var walletBalances []hw.GetBalanceRes
 
-	for _, curr := range config.CURR {	
+	for _, curr := range config.CURRRPC {	
 		walletBalance := s.walletService.GetBalance(curr)
-		
+	
 		s.checkUserBalance(walletBalance)
 		s.checkHotLimit(curr.Config, walletBalance)
 
@@ -208,7 +208,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		return
 	}
 
-	senderRpc, err := util.GetRpcConfigByType(currency.Symbol, rc.MasterRpcType)
+	senderRpc, err := util.GetRpcConfigByType(currency.Id, rc.SenderRpcType)
 	if err != nil {
 		logger.ErrorLog("checkHotLimit("+currency.Symbol+") GetSenderFromList err: "+err.Error())
 		return
@@ -242,8 +242,14 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		address := coldWallet.Address
 		memo := defaultMemo
 
+		module, err := s.moduleServices.GetModule(currency.Id)
+		if err != nil {
+			logger.ErrorLog("s.moduleServices.GetModule err: "+err.Error())
+			return
+		}
+		
 		logger.Log(" - CheckBalanceService -- Sending "+currency.Symbol+" from hot to cold...")
-		if res, err := s.moduleServices[currency.Symbol].SendToAddress(senderRpc, amount, address, memo); err != nil {
+		if res, err := module.SendToAddress(senderRpc, amount, address, memo); err != nil {
 			logger.ErrorLog("checkHotLimit("+currency.Symbol+") SendToAddress err: "+err.Error())
 			return
 		} else {

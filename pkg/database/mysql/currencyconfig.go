@@ -38,6 +38,7 @@ func (r *currencyConfigRepository) Create(currencyConfig cc.CurrencyConfig) erro
             default_idr_price,
             cmc_id,
             parent_symbol,
+            module_type,
             last_updated)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now());
         `,
@@ -56,6 +57,7 @@ func (r *currencyConfigRepository) Create(currencyConfig cc.CurrencyConfig) erro
         currencyConfig.DefaultIdrPrice,
         currencyConfig.CmcId,
         currencyConfig.ParentSymbol,
+        currencyConfig.ModuleType,
     ).Err()
 }
 
@@ -78,6 +80,7 @@ func (r *currencyConfigRepository) GetAll() ([]cc.CurrencyConfig, error) {
             default_idr_price,
             cmc_id,
             parent_symbol,
+            module_type,
             active,
             last_updated
         FROM `+currencyConfigTable
@@ -117,6 +120,7 @@ func (r *currencyConfigRepository) GetBySymbol(symbol string) (*cc.CurrencyConfi
             default_idr_price,
             cmc_id,
             parent_symbol,
+            module_type,
             active,
             last_updated
         FROM `+currencyConfigTable+`
@@ -157,6 +161,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
         &currConf.DefaultIdrPrice,
         &cmcId,
         &parentSymbol,
+        &currConf.ModuleType,
         &currConf.Active,
         &currConf.LastUpdated,
     )
@@ -188,6 +193,7 @@ func (r *currencyConfigRepository) Update(currencyConfig cc.CurrencyConfig) (err
             default_idr_price = ?,
             cmc_id = ?,
             parent_symbol = ?,
+            module_type = ?,
             last_updated = now()
         WHERE id = ?`,
         currencyConfig.Symbol,
@@ -205,6 +211,7 @@ func (r *currencyConfigRepository) Update(currencyConfig cc.CurrencyConfig) (err
         currencyConfig.DefaultIdrPrice,
         currencyConfig.CmcId,
         currencyConfig.ParentSymbol,
+        currencyConfig.ModuleType,
         currencyConfig.Id,
     ).Err()
 }

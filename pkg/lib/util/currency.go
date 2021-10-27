@@ -85,7 +85,7 @@ func CmpBig(a, b string) (int, error) {
 
 func PercentBig(a, b string) (string, error) {
     if a == "" { a = "0" }
-    if b == "" { b = "0" }
+    if b == "" { b = "1" }
 
     aBig, ok := big.NewFloat(0).SetString(a)
     if !ok { return "0", errors.New("fail big.SetString("+a+")") }

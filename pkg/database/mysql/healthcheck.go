@@ -157,7 +157,6 @@ func mapHealthCheckWithRpcConfig(rows *sql.Rows, healthCheck *hc.HealthCheckWith
         &healthCheck.IsHealthy,
         &healthCheck.LastUpdated,
         &placeHolderInt,
-        &healthCheck.RpcConfig.CurrencyId,
         &healthCheck.RpcConfig.Type,
         &healthCheck.RpcConfig.Name,
         &healthCheck.RpcConfig.Platform,

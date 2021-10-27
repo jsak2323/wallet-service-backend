@@ -26,8 +26,8 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 
 	logger.InfoLog(" - ListHandler For all symbols, Requesting ...", req)
 
-	if len(config.CURR) > 0 {
-		for _, curr := range config.CURR {
+	if len(config.CURRRPC) > 0 {
+		for _, curr := range config.CURRRPC {
 			RES.CurrencyConfigs = append(RES.CurrencyConfigs, curr.Config)
 		}
 	} else {

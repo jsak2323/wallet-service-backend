@@ -1,15 +1,16 @@
 package handlers
 
 import (
-    "strings"
-    "net/http"
-    "encoding/json"
+	"encoding/json"
+	"net/http"
+	"strings"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
-    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type AddressTypeService struct {
@@ -40,13 +41,21 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
     // define request params
     vars := mux.Vars(req)
     symbol  := vars["symbol"]
+    tokenType  := vars["token_type"]
     address := vars["address"]
 
     SYMBOL := strings.ToUpper(symbol)
     logger.InfoLog(" - AddressTypeHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
+    currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, tokenType)
+    if err != nil {
+        logger.ErrorLog(" - AddressTypeHandler config.GetCurrencyBySymbol("+symbol+","+tokenType+")+err: "+err.Error())
+        RES.Error = err.Error()
+        return
+    }
+    
     // define rpc config
-    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")
+    rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, "receiver")
     if err != nil {
         logger.ErrorLog(" - AddressTypeHandler util.GetRpcConfigByType(SYMBOL, \"receiver\") err: "+err.Error())
         RES.Error = err.Error()
@@ -54,7 +63,6 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
     }
     RES.RpcConfig = RpcConfigResDetail{
         RpcConfigId             : rpcConfig.Id,
-        Symbol                  : SYMBOL,
         Name                    : rpcConfig.Name,
         Host                    : rpcConfig.Host,
         Type                    : rpcConfig.Type,
@@ -63,9 +71,11 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
         IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
 
-    module, ok := (*ats.moduleServices)[SYMBOL]
-    if !ok {
-        logger.ErrorLog(" - AddressTypeHandler module not implemented symbol: "+SYMBOL)
+    module, err := ats.moduleServices.GetModule(currencyConfig.Id)
+    if err != nil {
+        logger.ErrorLog(" - AddressTypeHandler stas.moduleServices.GetModule err: "+err.Error())
+        RES.Error = err.Error()
+        return
     }
 
     // execute rpc call

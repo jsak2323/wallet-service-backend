@@ -2,7 +2,6 @@ package rpcconfig
 
 type RpcConfig struct {
 	Id                   int
-	CurrencyId           int
 	Type                 string
 	Name                 string
 	Platform             string

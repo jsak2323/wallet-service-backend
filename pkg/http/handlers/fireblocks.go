@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
@@ -17,6 +18,8 @@ type FireblocksService struct {
 func NewFireblocksService() *FireblocksService {
 	return &FireblocksService{}
 }
+
+const TypeBaseAsset = "BASE_ASSET"
 
 const RejectTransaction = "REJECT"
 const ApproveTransaction = "APPROVE"
@@ -65,7 +68,21 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 }
 
 func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
-	receiverWallet, err := util.GetRpcConfigByType(signReq.Asset, rc.SenderRpcType)
+	var currencyConfig cc.CurrencyConfig
+	
+	if signReq.Type == TypeBaseAsset {
+		signReq.Type = cc.MainTokenType
+	}
+
+	currencyConfig, err := config.GetCurrencyBySymbolTokenType(signReq.Asset, signReq.Type)
+    if err != nil {
+        logger.ErrorLog(" -- fireblocks.CallbackHandler config.GetCurrencyBySymbol("+signReq.Asset+","+signReq.Type+")+err: "+err.Error())
+        res.Action = RejectTransaction
+		res.RejectionReason = errAssetNotFound
+        return
+    }
+	
+	receiverWallet, err := util.GetRpcConfigByType(currencyConfig.Id, rc.SenderRpcType)
 	if err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: " + err.Error())
 		res.Action = RejectTransaction
@@ -82,6 +99,10 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 func (r *FireblocksSignReq) Validate() (err error) {
 	if r.Asset == "" {
 		return errors.New("asset is required")
+	}
+
+	if r.Type == "" {
+		return errors.New("type is required")
 	}
 
 	if r.DestId == "" {
