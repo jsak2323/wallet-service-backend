@@ -21,8 +21,10 @@ type CurrencyConfig struct {
     ParentSymbol            string
     ModuleType              string
     Active                  bool
-    
+
     LastUpdated             string
+
+    RpcConfigs interface{}
 }
 
 

@@ -24,7 +24,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 	}
 	defer handleResponse()
 
-	logger.InfoLog(" - ListHandler For all symbols, Requesting ...", req)
+	logger.InfoLog(" - currency.ListHandler For all symbols, Requesting ...", req)
 
 	if len(config.CURRRPC) > 0 {
 		for _, curr := range config.CURRRPC {
@@ -32,8 +32,17 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 		}
 	} else {
 		if RES.CurrencyConfigs, err = s.ccRepo.GetAll(); err != nil {
-			logger.ErrorLog(" -- ListHandler ccRepo.GetAll Error: " + err.Error())
+			logger.ErrorLog(" -- currency.ListHandler ccRepo.GetAll Error: " + err.Error())
 			RES.Error = err.Error()
+			return
+		}
+	}
+
+	for i, currency := range RES.CurrencyConfigs {
+		RES.CurrencyConfigs[i].RpcConfigs, err = s.rcRepo.GetByCurrencyId(currency.Id)
+		if err != nil {
+			logger.ErrorLog(" - currency.ListHandler s.rcRepo.GetByCurrencyId err: " + err.Error())
+			RES.Error = errInternalServer
 			return
 		}
 	}

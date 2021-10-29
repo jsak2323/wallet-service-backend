@@ -32,6 +32,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	currencyConfigRepo := mysql.NewMysqlCurrencyConfigRepository(mysqlDbConn)
 	rpcConfigRepo := mysql.NewMysqlRpcConfigRepository(mysqlDbConn)
+	currencyRpcRepo := mysql.NewMysqlCurrencyRpcRepository(mysqlDbConn)
 	rpcMethodRepo := mysql.NewMysqlRpcMethodRepository(mysqlDbConn)
 	rpcRequestRepo := mysql.NewMysqlRpcRequestRepository(mysqlDbConn)
 	rpcResponseRepo := mysql.NewMysqlRpcResponseRepository(mysqlDbConn)
@@ -96,10 +97,12 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet).Name("getlog")
 
 	// -- Currency Config management
-	currencyConfigService := hc.NewCurrencyConfigService(currencyConfigRepo)
+	currencyConfigService := hc.NewCurrencyConfigService(currencyConfigRepo, currencyRpcRepo, rpcConfigRepo)
 	r.HandleFunc("/currency/list", currencyConfigService.ListHandler).Methods(http.MethodGet).Name("listcurrency")
 	r.HandleFunc("/currency", currencyConfigService.CreateHandler).Methods(http.MethodPost).Name("createcurrency")
 	r.HandleFunc("/currency", currencyConfigService.UpdateHandler).Methods(http.MethodPut).Name("updatecurrency")
+	r.HandleFunc("/currency/rpcconfig", currencyConfigService.CreateRpcHandler).Methods(http.MethodPost).Name("createcurrencyrpc")
+	r.HandleFunc("/currency/{currency_id}/rpcconfig/{rpc_id}", currencyConfigService.DeleteRpcHandler).Methods(http.MethodDelete).Name("deletecurrencyrpc")
 	r.HandleFunc("/currency/deactivate/{id}", currencyConfigService.DeactivateHandler).Methods(http.MethodPost).Name("deactivatecurrency")
 	r.HandleFunc("/currency/activate/{id}", currencyConfigService.ActivateHandler).Methods(http.MethodPost).Name("activatecurrency")
 	// -- GET getbalance
