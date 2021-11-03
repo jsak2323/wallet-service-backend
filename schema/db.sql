@@ -19,6 +19,7 @@ CREATE TABLE currency_config (
   cmc_id                    INT(7) NULL DEFAULT NULL,
   parent_symbol             VARCHAR(50) NULL DEFAULT NULL,
   address                   VARCHAR(255) NOT NULL DEFAULT "";
+  module_type               VARCHAR(50) NOT NULL DEFAULT "";
   active                    TINYINT(1) NOT NULL DEFAULT 0,
   last_updated              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
@@ -105,7 +106,7 @@ CREATE TABLE rpc_method (
     id          INT(11) NOT NULL AUTO_INCREMENT,
     name        VARCHAR(50) NOT NULL DEFAULT "",
     type        VARCHAR(50) NOT NULL DEFAULT "",
-    num_of_args INT(11) NOT NULL DEFAULT 6;
+    num_of_args INT(11) NOT NULL DEFAULT 6,
 
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -136,6 +137,7 @@ CREATE TABLE rpc_response (
     id            INT(11) NOT NULL AUTO_INCREMENT,
     xml_path      VARCHAR(255) NOT NULL DEFAULT "",
     field_name    VARCHAR(50) NOT NULL DEFAULT "",
+    data_type_tag VARCHAR(50) NOT NULL DEFAULT "",
     rpc_method_id INT(11) NOT NULL,
 
     PRIMARY KEY (id),

@@ -40,7 +40,7 @@ func (r *currencyConfigRepository) Create(currencyConfig cc.CurrencyConfig) erro
             parent_symbol,
             module_type,
             last_updated)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now());
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,now());
         `,
         currencyConfig.Symbol,
         currencyConfig.Name,

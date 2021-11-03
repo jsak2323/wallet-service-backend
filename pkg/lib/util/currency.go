@@ -93,6 +93,8 @@ func PercentBig(a, b string) (string, error) {
     bBig, ok := big.NewFloat(0).SetString(b)
     if !ok { return "0", errors.New("fail big.SetString("+b+")") }
 
+    if bBig.Cmp(big.NewFloat(0)) <= 0 { return "0", errors.New("division by zero")}
+
     aBig.Mul(aBig.Quo(aBig,bBig), big.NewFloat(100))
 
     return aBig.Text('f', 2), nil

@@ -49,7 +49,7 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 	}
 
 	if err = s.ccRepo.Create(currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.CreateHandler ccRepo.GetAll Error: " + err.Error())
+		logger.ErrorLog(" -- currency.CreateHandler ccRepo.Create Error: " + err.Error())
 		RES.Error = errInternalServer
 		return
 	}
