@@ -1,12 +1,14 @@
 package xmlrpc
 
 import(
+    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
     sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
 )
 
 type GeneralService struct {
     Symbol           string
+    CurrencyConfigId int
     healthCheckRepo  hc.HealthCheckRepository
     systemConfigRepo sc.SystemConfigRepository
 }
@@ -20,12 +22,13 @@ func (gs *GeneralService) GetHealthCheckRepo() hc.HealthCheckRepository {
 }
 
 func NewGeneralService(
-    symbol string, 
+    currencyConfig cc.CurrencyConfig,
     healthCheckRepo hc.HealthCheckRepository,
     systemConfigRepo sc.SystemConfigRepository,
 ) *GeneralService {
     return &GeneralService{
-        symbol,
+        currencyConfig.Symbol,
+        currencyConfig.Id,
         healthCheckRepo,
         systemConfigRepo,
     }

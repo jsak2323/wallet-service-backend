@@ -14,7 +14,7 @@ import (
 
 func (es *EthService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
     isBlockCountHealthy := false
-    healthyBlockDiff    := config.CURR[es.GetSymbol()].Config.HealthyBlockDiff
+    healthyBlockDiff    := config.CURRRPC[es.currencyConfigId].Config.HealthyBlockDiff
     blockDiff           := 0
 
     infuraService := eth.NewInfuraService()

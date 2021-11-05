@@ -1,17 +1,19 @@
 package handlers
 
 import (
-    "strings"
-    "net/http"
-    "encoding/json"
+	"encoding/json"
+	"net/http"
+	"strings"
 
-    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules"
+	config "github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type SendToAddressRequest struct {
     Symbol      string `json:"symbol"` 
+    TokenType   string `json:"token_type"`
     Amount      string `json:"amount"` 
     Address     string `json:"address"` 
     Memo        string `json:"memo"` 
@@ -49,16 +51,26 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
         logger.ErrorLog(" - SendToAddressHandler util.DecodeAndLogPostRequest(req, &sendToAddressRequest) err: "+err.Error())
         return
     }
+
     symbol          := sendToAddressRequest.Symbol
+    tokenType       := sendToAddressRequest.TokenType
     amountInDecimal := sendToAddressRequest.Amount
     address         := sendToAddressRequest.Address
     memo            := sendToAddressRequest.Memo
 
     SYMBOL := strings.ToUpper(symbol)
-    logger.InfoLog(" - SendToAddressHandler Sending "+amountInDecimal+" "+SYMBOL+", Requesting ...", req) 
+    TOKENTYPE := strings.ToUpper(tokenType)
+    logger.InfoLog(" - SendToAddressHandler Sending "+amountInDecimal+" "+SYMBOL+" "+TOKENTYPE+", Requesting ...", req) 
+
+    currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, tokenType)
+    if err != nil {
+        logger.ErrorLog(" - AddressTypeHandler config.GetCurrencyBySymbol("+SYMBOL+","+tokenType+")+err: "+err.Error())
+        RES.Error = err.Error()
+        return
+    }
 
     // define rpc config
-    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "sender")
+    rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, "sender")
     if err != nil {
         logger.ErrorLog(" - SendToAddressHandler util.GetRpcConfigByType(SYMBOL, \"sender\") err: "+err.Error())
         RES.Error = err.Error()
@@ -67,6 +79,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
     RES.RpcConfig = RpcConfigResDetail{
         RpcConfigId             : rpcConfig.Id,
         Symbol                  : SYMBOL,
+        TokenType               : TOKENTYPE,
         Name                    : rpcConfig.Name,
         Host                    : rpcConfig.Host,
         Type                    : rpcConfig.Type,
@@ -74,10 +87,12 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
         NodeLastUpdated         : rpcConfig.NodeLastUpdated,
         IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
-
-    module, ok := (*stas.moduleServices)[SYMBOL]
-    if !ok {
-        logger.ErrorLog(" - SendToAddressHandler module not implemented symbol: "+SYMBOL)
+    
+    module, err := stas.moduleServices.GetModule(currencyConfig.Id)
+    if err != nil {
+        logger.ErrorLog(" - SendToAddressHandler stas.moduleServices.GetModule err: "+err.Error())
+        RES.Error = err.Error()
+        return
     }
     
     // execute rpc call

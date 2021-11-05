@@ -56,9 +56,6 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 }
 
 func validateCreateReq(rpcConfig domain.RpcConfig) error {
-	if rpcConfig.CurrencyId == 0 {
-		return errors.New("Currency ID")
-	}
 	if rpcConfig.Name == "" {
 		return errors.New("Name")
 	}

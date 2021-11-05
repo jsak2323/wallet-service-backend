@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 	rm "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcmethod"
 	rrq "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcrequest"
@@ -11,6 +12,7 @@ import (
 type GeneralMapService struct {
 	ParentSymbol     string
 	Symbol           string
+	CurrencyConfigId int
 	healthCheckRepo  hc.HealthCheckRepository
 	systemConfigRepo sc.SystemConfigRepository
 	rpcMethodRepo    rm.Repository
@@ -31,8 +33,7 @@ func (gms *GeneralMapService) GetHealthCheckRepo() hc.HealthCheckRepository {
 }
 
 func NewGeneralMapService(
-	parentSymbol string,
-	symbol string,
+	currencyConfig cc.CurrencyConfig,
 	healthCheckRepo hc.HealthCheckRepository,
 	systemConfigRepo sc.SystemConfigRepository,
 	rpcMethodRepo rm.Repository,
@@ -40,8 +41,9 @@ func NewGeneralMapService(
 	rpcResponsRepo rrs.Repository,
 ) *GeneralMapService {
 	return &GeneralMapService{
-		parentSymbol,
-		symbol,
+		currencyConfig.ParentSymbol,
+		currencyConfig.Symbol,
+		currencyConfig.Id,
 		healthCheckRepo,
 		systemConfigRepo,
 		rpcMethodRepo,

@@ -14,7 +14,7 @@ import (
     "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
-type GetHealthCheckHandlerResponseMap map[string][]GetHealthCheckRes
+type GetHealthCheckHandlerResponseMap map[string]map[string][]GetHealthCheckRes // map by symbol, token_type
 
 type GetHealthCheckService struct {
     moduleServices   *modules.ModuleServiceMap
@@ -37,6 +37,7 @@ func NewGetHealthCheckService(
 func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, req *http.Request) { 
     vars := mux.Vars(req)
     symbol := vars["symbol"]
+    tokenType := vars["token_type"]
     isGetAll := symbol == ""
 
     RES := make(GetHealthCheckHandlerResponseMap)
@@ -47,7 +48,7 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
         logger.InfoLog(" - GetHealthCheckHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
     }
 
-    ghcs.InvokeGetHealthCheck(&RES, symbol)
+    ghcs.InvokeGetHealthCheck(&RES, symbol, tokenType)
     
     // handle success response
     logger.InfoLog(" - GetHealthCheckHandler Success.", req)
@@ -55,7 +56,7 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
     json.NewEncoder(w).Encode(RES)
 }
 
-func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandlerResponseMap, symbol string) {
+func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandlerResponseMap, symbol, tokenType string) {
     // get maintenance list
     maintenanceList, err := GetMaintenanceList(ghcs.systemConfigRepo)
     if err != nil { logger.ErrorLog(" - InvokeGetHealthCheck GetMaintenanceList err: "+err.Error()) }
@@ -63,8 +64,15 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
     // fetch healthcheck data from db
     if symbol != "" { // get by rpc config id
         SYMBOL := strings.ToUpper(symbol)
+        TOKENTYPE := strings.ToUpper(tokenType)
 
-        for _, rpcConfig := range config.CURR[SYMBOL].RpcConfigs {
+        currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, TOKENTYPE)
+        if err != nil {
+            logger.ErrorLog(" - InvokeGetHealthCheck "+SYMBOL+" config.GetCurrencyBySymbol err: "+err.Error())
+            return
+        }
+
+        for _, rpcConfig := range config.CURRRPC[currencyConfig.Id].RpcConfigs {
             _RES := GetHealthCheckRes{}
 
             if rpcConfig.Id == 0 { // currency not found
@@ -74,6 +82,7 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
             _RES.RpcConfig = RpcConfigResDetail{
                 RpcConfigId          : rpcConfig.Id,
                 Symbol               : SYMBOL,
+                TokenType            : TOKENTYPE,
                 Name                 : rpcConfig.Name,
                 Host                 : rpcConfig.Host,
                 Type                 : rpcConfig.Type,
@@ -91,43 +100,50 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandl
 
             _RES.HealthCheck   = healthCheck
             _RES.IsMaintenance = maintenanceList[SYMBOL]
-            (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
+            
+            _, ok := (*RES)[SYMBOL]
+            if !ok { (*RES)[SYMBOL] = make(map[string][]GetHealthCheckRes) }
+            (*RES)[SYMBOL][TOKENTYPE] = append((*RES)[SYMBOL][TOKENTYPE], _RES)
         }
 
     } else { // get all
 
-        healthChecks, err := ghcs.healthCheckRepo.GetAllWithRpcConfig()
-        if err != nil {
-            logger.ErrorLog(" - InvokeGetHealthCheck GetAllWithRpcConfig err: "+err.Error())
-            return
-        }
+        for _, curr := range config.CURRRPC {
+            for _, rpcConfig := range curr.RpcConfigs {
 
-        for _, healthCheck := range healthChecks {
-            SYMBOL := config.SYMBOLS[healthCheck.RpcConfig.CurrencyId]
+                healthCheck, err := ghcs.healthCheckRepo.GetByRpcConfigId(rpcConfig.Id)
+                if err != nil {
+                    logger.ErrorLog(" - InvokeGetHealthCheck GetAllWithRpcConfig err: "+err.Error())
+                    return
+                }
 
-            _RES := GetHealthCheckRes{
-                RpcConfig: RpcConfigResDetail{
-                    RpcConfigId          : healthCheck.RpcConfig.Id,
-                    Symbol               : SYMBOL,
-                    Name                 : healthCheck.RpcConfig.Name,
-                    Host                 : healthCheck.RpcConfig.Host,
-                    Type                 : healthCheck.RpcConfig.Type,
-                    NodeVersion          : healthCheck.RpcConfig.NodeVersion,
-                    NodeLastUpdated      : healthCheck.RpcConfig.NodeLastUpdated,
-                    IsHealthCheckEnabled : healthCheck.RpcConfig.IsHealthCheckEnabled,
-                },
-                HealthCheck: hc.HealthCheck{
-                    Id           : healthCheck.Id,
-                    RpcConfigId  : healthCheck.RpcConfig.Id,
-                    BlockCount   : healthCheck.BlockCount,
-                    BlockDiff    : healthCheck.BlockDiff,
-                    IsHealthy    : healthCheck.IsHealthy,
-                    LastUpdated  : healthCheck.LastUpdated,
-                },
-                IsMaintenance: maintenanceList[SYMBOL],
+                _RES := GetHealthCheckRes{
+                    RpcConfig: RpcConfigResDetail{
+                        RpcConfigId          : rpcConfig.Id,
+                        Symbol               : curr.Config.Symbol,
+                        TokenType            : curr.Config.TokenType,
+                        Name                 : rpcConfig.Name,
+                        Host                 : rpcConfig.Host,
+                        Type                 : rpcConfig.Type,
+                        NodeVersion          : rpcConfig.NodeVersion,
+                        NodeLastUpdated      : rpcConfig.NodeLastUpdated,
+                        IsHealthCheckEnabled : rpcConfig.IsHealthCheckEnabled,
+                    },
+                    HealthCheck: hc.HealthCheck{
+                        Id           : healthCheck.Id,
+                        RpcConfigId  : rpcConfig.Id,
+                        BlockCount   : healthCheck.BlockCount,
+                        BlockDiff    : healthCheck.BlockDiff,
+                        IsHealthy    : healthCheck.IsHealthy,
+                        LastUpdated  : healthCheck.LastUpdated,
+                    },
+                    IsMaintenance: maintenanceList[curr.Config.Symbol],
+                }
+
+                _, ok := (*RES)[curr.Config.Symbol]
+                if !ok { (*RES)[curr.Config.Symbol] = make(map[string][]GetHealthCheckRes) }
+                (*RES)[curr.Config.Symbol][curr.Config.TokenType] = append((*RES)[curr.Config.Symbol][curr.Config.TokenType], _RES)
             }
-
-            (*RES)[SYMBOL] = append((*RES)[SYMBOL], _RES)
         }
     }
 }

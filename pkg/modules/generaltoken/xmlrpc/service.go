@@ -1,6 +1,7 @@
 package xmlrpc
 
 import(
+    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
     sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
 )
@@ -8,6 +9,7 @@ import(
 type GeneralTokenService struct {
     ParentSymbol     string
     Symbol           string
+    TokenType        string
     healthCheckRepo  hc.HealthCheckRepository
     systemConfigRepo sc.SystemConfigRepository
 }
@@ -25,14 +27,14 @@ func (gts *GeneralTokenService) GetHealthCheckRepo() hc.HealthCheckRepository {
 }
 
 func NewGeneralTokenService(
-    parentSymbol string, 
-    symbol string, 
+    currencyConfig cc.CurrencyConfig,
     healthCheckRepo hc.HealthCheckRepository,
     systemConfigRepo sc.SystemConfigRepository,
 ) *GeneralTokenService {
     return &GeneralTokenService{
-        parentSymbol,
-        symbol,
+        currencyConfig.ParentSymbol,
+        currencyConfig.Symbol,
+        currencyConfig.TokenType,
         healthCheckRepo,
         systemConfigRepo,
     }

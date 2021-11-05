@@ -19,15 +19,16 @@ CREATE TABLE currency_config (
   cmc_id                    INT(7) NULL DEFAULT NULL,
   parent_symbol             VARCHAR(50) NULL DEFAULT NULL,
   address                   VARCHAR(255) NOT NULL DEFAULT "";
+  module_type               VARCHAR(50) NOT NULL DEFAULT "";
   active                    TINYINT(1) NOT NULL DEFAULT 0,
   last_updated              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT symbol_token_type UNIQUE (symbol,token_type)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 CREATE TABLE rpc_config (
   id                        INT(11) NOT NULL AUTO_INCREMENT,
-  currency_id               INT(11) NOT NULL,
   type                      VARCHAR(30) NOT NULL,
   name                      VARCHAR(50) NOT NULL DEFAULT "",
   platform                  VARCHAR(30) NOT NULL DEFAULT "GCP",
@@ -46,6 +47,15 @@ CREATE TABLE rpc_config (
   PRIMARY KEY (id),
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+CREATE TABLE currency_config_rpc_config (
+    currency_config_id INT(11) NOT NULL,
+    rpc_config_id INT(11) NOT NULL,
+
+    FOREIGN KEY (currency_config_id) REFERENCES currency_config(id),
+    FOREIGN KEY (rpc_config_id) REFERENCES rpc_config(id),
+    CONSTRAINT currency_rpc UNIQUE (currency_config_id, rpc_config_id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE system_config (
   name    VARCHAR(255) NOT NULL DEFAULT "",
@@ -96,7 +106,7 @@ CREATE TABLE rpc_method (
     id          INT(11) NOT NULL AUTO_INCREMENT,
     name        VARCHAR(50) NOT NULL DEFAULT "",
     type        VARCHAR(50) NOT NULL DEFAULT "",
-    num_of_args INT(11) NOT NULL DEFAULT 6;
+    num_of_args INT(11) NOT NULL DEFAULT 6,
 
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -127,6 +137,7 @@ CREATE TABLE rpc_response (
     id            INT(11) NOT NULL AUTO_INCREMENT,
     xml_path      VARCHAR(255) NOT NULL DEFAULT "",
     field_name    VARCHAR(50) NOT NULL DEFAULT "",
+    data_type_tag VARCHAR(50) NOT NULL DEFAULT "",
     rpc_method_id INT(11) NOT NULL,
 
     PRIMARY KEY (id),

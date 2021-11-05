@@ -3,14 +3,20 @@ package xmlrpc
 import (
 	"strconv"
 
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (gms *GeneralMapService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error) {
 	isBlockCountHealthy := false
-	PARENTSYMBOL := gms.ParentSymbol
-	healthyBlockDiff := config.CURR[PARENTSYMBOL].Config.HealthyBlockDiff
+	
+	parentCurrency, err := config.GetCurrencyBySymbolTokenType(gms.ParentSymbol, cc.MainTokenType)
+	if err != nil {
+		return false, 0, err
+	}
+
+	healthyBlockDiff := parentCurrency.HealthyBlockDiff
 	blockDiff := 0
 
 	previousHealthCheck, err := gms.healthCheckRepo.GetByRpcConfigId(rpcConfigId)
@@ -25,7 +31,7 @@ func (gms *GeneralMapService) IsBlockCountHealthy(nodeBlockCount int, rpcConfigI
 		isBlockCountHealthy = true
 	}
 
-	logger.Log(" - " + PARENTSYMBOL + " rpcConfigId: " + strconv.Itoa(rpcConfigId) + " nodeBlockCount: " + strconv.Itoa(nodeBlockCount) + ", previousBlockCount: " + strconv.Itoa(previousBlockCount))
+	logger.Log(" - " + gms.ParentSymbol + " rpcConfigId: " + strconv.Itoa(rpcConfigId) + " nodeBlockCount: " + strconv.Itoa(nodeBlockCount) + ", previousBlockCount: " + strconv.Itoa(previousBlockCount))
 
 	return isBlockCountHealthy, blockDiff, nil
 }

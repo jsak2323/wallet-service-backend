@@ -5,10 +5,12 @@ import (
 )
 
 const errInternalServer = "Internal server error"
+const errAssetNotFound = "Asset not found"
 
 type RpcConfigResDetail struct { 
     RpcConfigId          int
     Symbol               string
+    TokenType            string
     Name                 string
     Host                 string
     Type                 string
@@ -62,6 +64,7 @@ type AddressTypeRes struct {
 
 type FireblocksSignReq struct {
 	Asset       string `json:"asset"`
+	Type        string `json:"type"`
     DestId      string `json:"destId"`
 	DestAddress string `json:"destAddress"`
 }

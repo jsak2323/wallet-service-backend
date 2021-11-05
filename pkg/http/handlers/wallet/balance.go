@@ -1,16 +1,15 @@
 package wallet
 
 import (
-	"net/http"
 	"encoding/json"
-	"strings"
+	"net/http"
+	"strconv"
 	"sync"
-	
-    "github.com/gorilla/mux"
 
-	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
-	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	"github.com/gorilla/mux"
+
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 	ub "github.com/btcid/wallet-services-backend-go/pkg/domain/userbalance"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
@@ -18,49 +17,52 @@ import (
 	modulesm "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-type GetBalanceHandlerResponseMap map[string]GetBalanceRes
+type GetBalanceHandlerResponseMap map[int]GetBalanceRes
 
 func (s *WalletService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-    symbol := vars["symbol"]
-    isGetAll := symbol == ""
+    currencyId, err := strconv.Atoi(vars["currency_id"])
+	if err != nil {
+
+	}
+    isGetAll := currencyId == 0
 
 	RES := make(GetBalanceHandlerResponseMap)
 
     if isGetAll {
-        logger.InfoLog(" - wallet.GetBalanceHandler For all symbols, Requesting ...", req) 
+        logger.InfoLog(" - wallet.GetBalanceHandler For all currencies, Requesting ...", req) 
     } else {
-        logger.InfoLog(" - wallet.GetBalanceHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
+        logger.InfoLog(" - wallet.GetBalanceHandler For currency_id: "+strconv.Itoa(currencyId)+", Requesting ...", req) 
     }
 
-	s.InvokeGetBalance(&RES, symbol)
+	s.InvokeGetBalance(&RES, currencyId)
 	
 	resJson, _ := json.Marshal(RES)
-    logger.InfoLog(" - wallet.GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+    logger.InfoLog(" - wallet.GetBalanceHandler Success. CurrencyId: "+strconv.Itoa(currencyId)+", Res: "+string(resJson), req)
 	w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(RES)
 }
 
-func (s *WalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol string) {
-	if symbol == "" {
+func (s *WalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, currencyId int) {
+	if currencyId == 0 {
 		wg := sync.WaitGroup{}
-		wg.Add(len(config.CURR))
+		wg.Add(len(config.CURRRPC))
 
-		for SYMBOL, curr := range config.CURR {
-			go func(currConfig cc.CurrencyConfig, _SYMBOL string) {
+		for _, curr := range config.CURRRPC {
+			go func(currencyConfiguration config.CurrencyRpcConfig) {
 				defer wg.Done()
 				
-				(*RES)[_SYMBOL] = s.GetBalance(config.CURR[_SYMBOL])
-			}(curr.Config, SYMBOL)
+				(*RES)[currencyId] = s.GetBalance(currencyConfiguration)
+			}(curr)
 		}
 
 		wg.Wait()
     } else {
-		(*RES)[symbol] = s.GetBalance(config.CURR[symbol])
+		(*RES)[currencyId] = s.GetBalance(config.CURRRPC[currencyId])
 	}
 }
 
-func (s *WalletService) GetBalance(currConfig config.CurrencyConfiguration) GetBalanceRes {
+func (s *WalletService) GetBalance(currConfig config.CurrencyRpcConfig) GetBalanceRes {
 	var wg sync.WaitGroup
 	var res GetBalanceRes =  GetBalanceRes{CurrencyConfig: currConfig.Config}
 	
@@ -79,7 +81,7 @@ func (s *WalletService) GetBalance(currConfig config.CurrencyConfiguration) GetB
 
 func (s *WalletService) SetColdBalanceDetails(res *GetBalanceRes) {
 	var symbol string = res.CurrencyConfig.Symbol
-	var cbs    []cb.ColdBalance = s.coldWalletService.GetBalance(symbol)
+	var cbs    []cb.ColdBalance = s.coldWalletService.GetBalance(res.CurrencyConfig.Id)
 	var err    error
 	
 	for _, cb := range cbs {
@@ -107,15 +109,14 @@ func (s *WalletService) SetColdBalanceDetails(res *GetBalanceRes) {
 
 func (s *WalletService) SetHotBalanceDetails(rpcConfigs []rc.RpcConfig, res *GetBalanceRes) {
 	var symbol string = res.CurrencyConfig.Symbol
-	var err error
 	
 	for _, rpcConfig := range rpcConfigs {
 		var hotBalanceDetail BalanceDetail = BalanceDetail{ Name: rpcConfig.Name, Type: rpcConfig.Type }
 		var rpcRes 			 *modulesm.GetBalanceRpcRes
 
-		module, ok := (*s.moduleServices)[symbol];
-		if !ok {
-			logger.ErrorLog(" - SetHotBalanceDetails module not implemented symbol: "+symbol)
+		module, err := s.moduleServices.GetModule(res.CurrencyConfig.Id);
+		if err != nil {
+			logger.ErrorLog(" - s.moduleServices err: "+err.Error())
 			continue
 		}
 

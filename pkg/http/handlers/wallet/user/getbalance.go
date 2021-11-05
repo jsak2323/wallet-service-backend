@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
-	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -37,28 +36,47 @@ func (s *UserWalletService) GetBalanceHandler(w http.ResponseWriter, req *http.R
 }
 
 func (s *UserWalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol string) {
+	var err error
+
 	if symbol == "" {
 		wg := sync.WaitGroup{}
-		wg.Add(len(config.CURR))
+		wg.Add(len(config.CURRRPC))
 
-		for _, curr := range config.CURR {
-			go func(_curr cc.CurrencyConfig) {
+		for _, SYMBOL := range config.SYMBOLS {
+			go func(_SYMBOL string) {
 				defer wg.Done()
 
-				if tcb, err := s.userBalanceRepo.GetTotalCoinBalance(_curr.Symbol); err != nil {
-					logger.ErrorLog("- userwallet.GetBalance s.userBalanceRepo.GetTotalCoinBalance("+_curr.Symbol+") error: "+err.Error())
-				} else {
-					(*RES)[_curr.Symbol] = TotalUserBalanceRes{_curr, tcb}
+				(*RES)[symbol], err = s.getUserBalanceRes(symbol)
+				if err != nil {
+					logger.ErrorLog("- userwallet.GetBalance s.userBalanceRepo.GetTotalCoinBalance("+symbol+") error: "+err.Error())
+					return
 				}
-			}(curr.Config)
+			}(SYMBOL)
 		}
 
 		wg.Wait()
 	} else {
-		if tcb, err := s.userBalanceRepo.GetTotalCoinBalance(symbol); err != nil {
+		(*RES)[symbol], err = s.getUserBalanceRes(symbol)
+		if err != nil {
 			logger.ErrorLog("- userwallet.GetBalance s.userBalanceRepo.GetTotalCoinBalance("+symbol+") error: "+err.Error())
-		} else {
-			(*RES)[symbol] = TotalUserBalanceRes{config.CURR[symbol].Config, tcb}
+			return
 		}
 	}
+}
+
+func (s *UserWalletService) getUserBalanceRes(symbol string) (TotalUserBalanceRes, error) {
+	tcb, err := s.userBalanceRepo.GetTotalCoinBalance(symbol)
+		if err != nil {
+			return TotalUserBalanceRes{}, err
+		} 
+
+		currencyConfigs, err := config.GetCurrencyBySymbol(symbol)
+		if err != nil {
+			return TotalUserBalanceRes{}, err
+		}
+		
+		return TotalUserBalanceRes{
+			TokenTypes: currencyConfigs,
+			Balance: tcb,
+		}, nil
 }

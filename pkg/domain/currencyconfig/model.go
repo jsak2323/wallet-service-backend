@@ -19,9 +19,12 @@ type CurrencyConfig struct {
     DefaultIdrPrice         int
     CmcId                   int
     ParentSymbol            string
+    ModuleType              string
+    Active                  bool
+
     LastUpdated             string
 
-    Active                  bool
+    RpcConfigs interface{}
 }
 
 

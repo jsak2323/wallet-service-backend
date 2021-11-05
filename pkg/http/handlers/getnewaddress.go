@@ -7,6 +7,7 @@ import (
 
     "github.com/gorilla/mux"
 
+    config "github.com/btcid/wallet-services-backend-go/cmd/config"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
     "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
     "github.com/btcid/wallet-services-backend-go/pkg/modules"
@@ -40,13 +41,21 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
     // define request params
     vars := mux.Vars(req)
     symbol      := vars["symbol"]
+    tokenType      := vars["token_type"]
     addressType := vars["type"]
 
     SYMBOL := strings.ToUpper(symbol)
     logger.InfoLog(" - GetNewAddressHandler For symbol: "+SYMBOL+", Requesting ...", req) 
 
+    currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, tokenType)
+    if err != nil {
+        logger.ErrorLog(" - AddressTypeHandler config.GetCurrencyBySymbol("+SYMBOL+","+tokenType+")+err: "+err.Error())
+        RES.Error = err.Error()
+        return
+    }
+
     // define rpc config
-    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, "receiver")
+    rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, "receiver")
     if err != nil {
         logger.ErrorLog(" - GetNewAddressHandler util.GetRpcConfigByType(SYMBOL, \"receiver\") err: "+err.Error())
         RES.Error = err.Error()
@@ -63,9 +72,11 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
         IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
     }
 
-    module, ok := (*gnas.moduleServices)[SYMBOL]
-    if !ok {
-        logger.ErrorLog(" - GetNewAddressHandler module not implemented symbol: "+SYMBOL)
+    module, err := gnas.moduleServices.GetModule(currencyConfig.Id)
+    if err != nil {
+        logger.ErrorLog(" - GetNewAddressHandler stas.moduleServices.GetModule err: "+err.Error())
+        RES.Error = err.Error()
+        return
     }
     
     // execute rpc call

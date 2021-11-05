@@ -6,6 +6,6 @@ import (
 )
 
 type TotalUserBalanceRes struct {
-	cc.CurrencyConfig
-	ub.TotalCoinBalance
+	TokenTypes []cc.CurrencyConfig
+	Balance ub.TotalCoinBalance
 }

@@ -85,13 +85,15 @@ func CmpBig(a, b string) (int, error) {
 
 func PercentBig(a, b string) (string, error) {
     if a == "" { a = "0" }
-    if b == "" { b = "0" }
+    if b == "" { b = "1" }
 
     aBig, ok := big.NewFloat(0).SetString(a)
     if !ok { return "0", errors.New("fail big.SetString("+a+")") }
 
     bBig, ok := big.NewFloat(0).SetString(b)
     if !ok { return "0", errors.New("fail big.SetString("+b+")") }
+
+    if bBig.Cmp(big.NewFloat(0)) <= 0 { return "0", errors.New("division by zero")}
 
     aBig.Mul(aBig.Quo(aBig,bBig), big.NewFloat(100))
 

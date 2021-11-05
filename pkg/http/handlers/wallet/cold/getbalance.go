@@ -10,8 +10,8 @@ import (
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
-func (s *ColdWalletService) GetBalance(symbol string) (coldBalances []cb.ColdBalance) {
-	currency := config.CURR[symbol].Config
+func (s *ColdWalletService) GetBalance(currencyConfigId int) (coldBalances []cb.ColdBalance) {
+	currency := config.CURRRPC[currencyConfigId].Config
 
 	if cbs, err := s.cbRepo.GetByCurrencyId(currency.Id); err != nil {
 		logger.ErrorLog("- cold.getBalance s.cbRepo.GetByCurrencyId(" + strconv.Itoa(currency.Id) + ") error: " + err.Error())

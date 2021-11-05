@@ -14,3 +14,8 @@ type StandardRes struct {
 	Message string `json:"message"`
 	Error   string `json:"error"`
 }
+
+type CurrencyRpcReq struct {
+	CurrencyId int `json:"currency_id"`
+	RpcId      int `json:"rpc_id"`
+}

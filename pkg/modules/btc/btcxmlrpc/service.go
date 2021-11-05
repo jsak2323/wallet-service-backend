@@ -6,6 +6,7 @@ import(
 )
 
 type BtcService struct {
+    currencyConfigId int
     healthCheckRepo  hc.HealthCheckRepository
     systemConfigRepo sc.SystemConfigRepository
 }
@@ -18,8 +19,9 @@ func (bs *BtcService) GetHealthCheckRepo() hc.HealthCheckRepository {
     return bs.healthCheckRepo
 }
 
-func NewBtcService(healthCheckRepo hc.HealthCheckRepository, systemConfigRepo sc.SystemConfigRepository) *BtcService{
+func NewBtcService(currencyConfigId int, healthCheckRepo hc.HealthCheckRepository, systemConfigRepo sc.SystemConfigRepository) *BtcService{
     return &BtcService{
+        currencyConfigId,
         healthCheckRepo,
         systemConfigRepo,
     }

@@ -8,13 +8,14 @@ import (
 
     "github.com/gorilla/mux"
 
+    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
     rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
     logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
     "github.com/btcid/wallet-services-backend-go/pkg/modules"
     "github.com/btcid/wallet-services-backend-go/cmd/config"
 )
 
-type ListTransactionsHandlerResponseMap map[string][]ListTransactionsRes
+type ListTransactionsHandlerResponseMap map[string]map[string][]ListTransactionsRes // map by symbol, token_type
 
 type ListTransactionsService struct {
     moduleServices *modules.ModuleServiceMap
@@ -29,6 +30,7 @@ func NewListTransactionsService(moduleServices *modules.ModuleServiceMap) *ListT
 func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWriter, req *http.Request) { 
     vars := mux.Vars(req)
     symbol := vars["symbol"]
+    tokenType := vars["token_type"]
     limit  := vars["limit"]
     isGetAll := symbol == ""
 
@@ -41,7 +43,7 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
     }
 
     limitInt, _ := strconv.Atoi(limit)
-    lts.InvokeListTransactions(&RES, symbol, limitInt)
+    lts.InvokeListTransactions(&RES, symbol, tokenType, limitInt)
 
     // handle success response
     logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol, req)
@@ -49,23 +51,26 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
     json.NewEncoder(w).Encode(RES)
 }
 
-func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactionsHandlerResponseMap, symbol string, limit int) {
+func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactionsHandlerResponseMap, symbol, tokenType string, limit int) {
     rpcConfigCount := 0
     resChannel := make(chan ListTransactionsRes)
 
-    for SYMBOL, currConfig := range config.CURR {
-        SYMBOL = strings.ToUpper(SYMBOL)
+    for _, curr := range config.CURRRPC {
+        SYMBOL := strings.ToUpper(curr.Config.Symbol)
+        TOKENTYPE := strings.ToUpper(curr.Config.Symbol)
 
         // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != SYMBOL { continue }
+        if symbol != "" && strings.ToUpper(symbol) != SYMBOL {continue}
+        if tokenType != "" && strings.ToUpper(tokenType) != TOKENTYPE { continue }
 
-        for _, rpcConfig := range currConfig.RpcConfigs {
+        for _, rpcConfig := range curr.RpcConfigs {
             rpcConfigCount++
 
             _RES := ListTransactionsRes{
                 RpcConfig: RpcConfigResDetail{
                     RpcConfigId             : rpcConfig.Id,
                     Symbol                  : SYMBOL,
+                    TokenType               : TOKENTYPE,
                     Name                    : rpcConfig.Name,
                     Host                    : rpcConfig.Host,
                     Type                    : rpcConfig.Type,
@@ -76,10 +81,12 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
             }
 
             // execute concurrent rpc calls
-            go func(SYMBOL string, rpcConfig rc.RpcConfig) {
-                module, ok := (*lts.moduleServices)[SYMBOL]
-                if !ok {
-                    logger.ErrorLog(" - ListTransactionsHandler module not implemented symbol: "+SYMBOL)
+            go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
+                module, err := lts.moduleServices.GetModule(currencyConfig.Id)
+                if err != nil {
+                    logger.ErrorLog(" - ListTransactionsHandler lts.moduleServices.GetModule err: "+err.Error())
+                    _RES.Error = err.Error()
+                    return
                 }
                 
                 rpcRes, err := module.ListTransactions(rpcConfig, limit)
@@ -88,21 +95,27 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
                     _RES.Error = rpcRes.Error
 
                 } else {
-                    logger.Log(" - InvokeListTransactions Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
+                    logger.Log(" - InvokeListTransactions Symbol: "+currencyConfig.Symbol+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 
                     _RES.Transactions = rpcRes.Transactions
                     _RES.Error        = rpcRes.Error
                 }
 
                 resChannel <- _RES
 
-            }(SYMBOL, rpcConfig)
+            }(curr.Config, rpcConfig)
         }
     }
 
     i := 0
     for res := range resChannel {
         i++
-        (*RES)[res.RpcConfig.Symbol] = append((*RES)[res.RpcConfig.Symbol], res)
+        _, ok := (*RES)[res.RpcConfig.Symbol]
+        if !ok {
+            (*RES)[res.RpcConfig.Symbol] = make(map[string][]ListTransactionsRes)
+        }
+
+        (*RES)[res.RpcConfig.Symbol][res.RpcConfig.TokenType] = append((*RES)[res.RpcConfig.Symbol][res.RpcConfig.TokenType], res)
+
         if i >= rpcConfigCount { close(resChannel) }
     }
 }

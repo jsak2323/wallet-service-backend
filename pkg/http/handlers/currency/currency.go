@@ -1,15 +1,27 @@
 package currency
 
 import (
-	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	cr "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyrpc"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 )
 
 const errInternalServer = "Internal server error"
 
 type CurrencyConfigService struct {
-	ccRepo domain.CurrencyConfigRepository
+	ccRepo cc.CurrencyConfigRepository
+	crRepo cr.Repository
+	rcRepo rc.RpcConfigRepository
 }
 
-func NewCurrencyConfigService(ccRepo domain.CurrencyConfigRepository) *CurrencyConfigService {
-	return &CurrencyConfigService{ccRepo: ccRepo}
+func NewCurrencyConfigService(
+		ccRepo cc.CurrencyConfigRepository,
+		crRepo cr.Repository,
+		rcRepo rc.RpcConfigRepository,
+	) *CurrencyConfigService {
+	return &CurrencyConfigService{
+		ccRepo: ccRepo,
+		crRepo: crRepo,
+		rcRepo: rcRepo,
+	}
 }

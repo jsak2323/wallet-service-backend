@@ -1,15 +1,16 @@
 package handlers
 
 import (
-    "io"
-    "strings"
-    "net/http"
+	"io"
+	"net/http"
+	"strings"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
-    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type GetLogService struct {
@@ -26,16 +27,24 @@ func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request
     // define request params
     vars := mux.Vars(req)
     symbol          := vars["symbol"]
+    tokenType       := vars["token_type"]
     date            := vars["date"]
     rpcConfigType   := vars["rpcconfigtype"]
 
     SYMBOL := strings.ToUpper(symbol)
+    TOKENTYPE := strings.ToUpper(tokenType)
     logger.InfoLog(" - GetLogHandler For symbol: "+SYMBOL+", date: "+date+", type: "+rpcConfigType+", Requesting ...", req) 
 
-    // define rpc config
-    rpcConfig, err := util.GetRpcConfigByType(SYMBOL, rpcConfigType)
+    currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, TOKENTYPE)
     if err != nil {
-        logger.ErrorLog(" - GetLogHandler util.GetRpcConfigByType(SYMBOL, rpcConfigType) err: "+err.Error())
+        logger.ErrorLog(" - GetLogHandler config.GetCurrencyBySymbol err: "+err.Error())
+        return
+    }
+
+    // define rpc config
+    rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, rpcConfigType)
+    if err != nil {
+        logger.ErrorLog(" - GetLogHandler util.GetRpcConfigByType err: "+err.Error())
         return
     }
 
