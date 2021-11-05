@@ -18,6 +18,7 @@ CREATE TABLE currency_config (
   default_idr_price         INT(15) NOT NULL DEFAULT 0,
   cmc_id                    INT(7) NULL DEFAULT NULL,
   parent_symbol             VARCHAR(50) NULL DEFAULT NULL,
+  address                   VARCHAR(255) NOT NULL DEFAULT "";
   active                    TINYINT(1) NOT NULL DEFAULT 0,
   last_updated              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
@@ -81,7 +82,7 @@ CREATE TABLE cold_balance (
   FOREIGN KEY (currency_id) REFERENCES currency_config(id)
  ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
- CREATE TABLE hot_limit (
+CREATE TABLE hot_limit (
    id           INT(11) NOT NULL AUTO_INCREMENT,
    currency_id  INT(11) NOT NULL,
    type         VARCHAR(20) NOT NULL DEFAULT "",
@@ -89,4 +90,45 @@ CREATE TABLE cold_balance (
 
    PRIMARY KEY (id),
    FOREIGN KEY (currency_id) REFERENCES currency_config(id)
- ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+CREATE TABLE rpc_method (
+    id          INT(11) NOT NULL AUTO_INCREMENT,
+    name        VARCHAR(50) NOT NULL DEFAULT "",
+    type        VARCHAR(50) NOT NULL DEFAULT "",
+    num_of_args INT(11) NOT NULL DEFAULT 6;
+
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+CREATE TABLE rpc_config_rpc_method (
+    rpc_config_id INT(11) NOT NULL,
+    rpc_method_id INT(11) NOT NULL,
+
+    FOREIGN KEY (rpc_config_id) REFERENCES rpc_config(id),
+    FOREIGN KEY (rpc_method_id) REFERENCES rpc_method(id)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE rpc_request (
+    id                INT(11) NOT NULL AUTO_INCREMENT,
+    arg_name          VARCHAR(50) NOT NULL DEFAULT "",
+    type              VARCHAR(50) NOT NULL DEFAULT "",
+    arg_order         INT(11) NOT NULL DEFAULT 0,
+    source            VARCHAR(50) NOT NULL DEFAULT "",
+    runtime_var_name  VARCHAR(50) NOT NULL DEFAULT "",
+    value             VARCHAR(255) NOT NULL DEFAULT "",
+    rpc_method_id     INT(11) NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (rpc_method_id) REFERENCES rpc_method(id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+CREATE TABLE rpc_response (
+    id            INT(11) NOT NULL AUTO_INCREMENT,
+    xml_path      VARCHAR(255) NOT NULL DEFAULT "",
+    field_name    VARCHAR(50) NOT NULL DEFAULT "",
+    rpc_method_id INT(11) NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (rpc_method_id) REFERENCES rpc_method(id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;

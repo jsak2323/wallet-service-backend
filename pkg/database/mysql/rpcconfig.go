@@ -37,8 +37,8 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
             node_version,
             node_last_updated,
             is_health_check_enabled,
-            address,
-            atom_feed)
+            atom_feed,
+			address)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
         `,
 		rpcConfig.CurrencyId,

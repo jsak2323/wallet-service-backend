@@ -1,6 +1,7 @@
 package coldbalance
 
 type Repository interface {
+	Create(ColdBalance) (int, error)
 	GetAll(page, limit int) ([]ColdBalance, error)
 	GetByCurrencyId(currencyId int) ([]ColdBalance, error)
 	GetByName(name string) (ColdBalance, error)

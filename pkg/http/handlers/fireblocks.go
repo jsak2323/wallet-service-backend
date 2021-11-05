@@ -1,12 +1,13 @@
 package handlers
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -64,9 +65,9 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 }
 
 func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
-	receiverWallet, err := rc.GetReceiverFromList(config.CURR[signReq.Asset].RpcConfigs)
+	receiverWallet, err := util.GetRpcConfigByType(signReq.Asset, rc.SenderRpcType)
 	if err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetReceiverFromList err: " + err.Error())
+		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: " + err.Error())
 		res.Action = RejectTransaction
 		res.RejectionReason = errInternalServer
 		return

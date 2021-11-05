@@ -198,6 +198,7 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
     logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent))
 }
 
+// TODO check per network
 func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBalance hw.GetBalanceRes) {
 	logger.Log(" - CheckBalanceService -- Checking "+currency.Symbol+" hot limit...")
 	
@@ -207,7 +208,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		return
 	}
 
-	senderRpc, err := rc.GetSenderFromList(config.CURR[currency.Symbol].RpcConfigs)
+	senderRpc, err := util.GetRpcConfigByType(currency.Symbol, rc.MasterRpcType)
 	if err != nil {
 		logger.ErrorLog("checkHotLimit("+currency.Symbol+") GetSenderFromList err: "+err.Error())
 		return
