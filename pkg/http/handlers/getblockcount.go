@@ -68,10 +68,11 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
         TOKENTYPE := strings.ToUpper(currRpc.Config.TokenType)
 
         // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != SYMBOL && strings.ToUpper(tokenType) != TOKENTYPE { continue }
+        if symbol != "" && strings.ToUpper(symbol) != SYMBOL {continue}
+        if tokenType != "" && strings.ToUpper(tokenType) != TOKENTYPE { continue }
 
         // if not parent coin, skip
-        if currRpc.Config.ParentSymbol != cc.MainTokenType { continue }
+        if currRpc.Config.TokenType != cc.MainTokenType { continue }
 
         // if maintenance, skip
         if maintenanceList[SYMBOL] { continue }
@@ -83,6 +84,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
                 RpcConfig: RpcConfigResDetail{
                     RpcConfigId             : rpcConfig.Id,
                     Symbol                  : SYMBOL,
+                    TokenType               : TOKENTYPE,
                     Name                    : rpcConfig.Name,
                     Host                    : rpcConfig.Host,
                     Type                    : rpcConfig.Type,

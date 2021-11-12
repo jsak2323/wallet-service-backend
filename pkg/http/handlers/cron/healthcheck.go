@@ -72,8 +72,10 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
                 }
     
                 currencyConfig, err := config.GetCurrencyBySymbolTokenType(resSymbol, resTokenType)
+                if err != nil { logger.ErrorLog(" - HealthCheckHandler config.GetCurrencyBySymbolTokenType err: "+err.Error()); continue }
                 
                 module, err := hcs.moduleServices.GetModule(currencyConfig.Id)
+                if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.moduleServices.GetModule(currencyConfig.Id) err: "+err.Error()); continue }
                 
                 _isBlockCountHealthy, _blockDiff, err := module.IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
                 if err != nil { logger.ErrorLog(" - HealthCheckHandler hcs.ModuleServices[resSymbol].IsBlockCountHealthy(resRpcConfig.Blocks) err: "+err.Error()) }

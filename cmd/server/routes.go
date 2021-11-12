@@ -15,6 +15,9 @@ import (
 	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
 	hrc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcconfig"
+	hrm "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcmethod"
+	hrrq "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcrequest"
+	hrrs "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcresponse"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	c "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
@@ -32,6 +35,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 
 	currencyConfigRepo := mysql.NewMysqlCurrencyConfigRepository(mysqlDbConn)
 	rpcConfigRepo := mysql.NewMysqlRpcConfigRepository(mysqlDbConn)
+	rpcConfigRpcMethodRepo := mysql.NewMysqlRpcConfigRpcMethodRepository(mysqlDbConn)
 	currencyRpcRepo := mysql.NewMysqlCurrencyRpcRepository(mysqlDbConn)
 	rpcMethodRepo := mysql.NewMysqlRpcMethodRepository(mysqlDbConn)
 	rpcRequestRepo := mysql.NewMysqlRpcRequestRepository(mysqlDbConn)
@@ -111,13 +115,34 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/nodes/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 
 	// -- Rpc Config management
-	rpcConfigService := hrc.NewRpcConfigService(rpcConfigRepo)
+	rpcConfigService := hrc.NewRpcConfigService(rpcConfigRepo, rpcConfigRpcMethodRepo)
 	r.HandleFunc("/rpcconfig/list", rpcConfigService.ListHandler).Methods(http.MethodGet).Name("listrpcconfig")
 	r.HandleFunc("/rpcconfig/id/{id}", rpcConfigService.GetByIdHandler).Methods(http.MethodGet).Name("getrpcconfigbyid")
 	r.HandleFunc("/rpcconfig", rpcConfigService.CreateHandler).Methods(http.MethodPost).Name("createrpcconfig")
 	r.HandleFunc("/rpcconfig", rpcConfigService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcconfig")
 	r.HandleFunc("/rpcconfig/deactivate/{id}", rpcConfigService.DeactivateHandler).Methods(http.MethodPost).Name("deactivaterpcconfig")
+	r.HandleFunc("/rpcconfig/rpcmethod", rpcConfigService.CreateRpcMethodHandler).Methods(http.MethodPost).Name("createrpcconfigrpcmethod")
+	r.HandleFunc("/rpcconfig/{rpcconfig_id}/rpcmethod/{rpcmethod_id}", rpcConfigService.DeleteRpcMethodHandler).Methods(http.MethodDelete).Name("deleterpcconfigrpcmethod")
 	r.HandleFunc("/rpcconfig/activate/{id}", rpcConfigService.ActivateHandler).Methods(http.MethodPost).Name("activaterpcconfig")
+
+	rpcMethodService := hrm.NewRpcMethodService(rpcMethodRepo, rpcConfigRpcMethodRepo)
+	r.HandleFunc("/rpcmethod/list", rpcMethodService.ListHandler).Methods(http.MethodGet).Name("listrpcmethod")
+	r.HandleFunc("/rpcmethod/rpcconfig/{rpc_config_id}", rpcMethodService.GetByRpcConfigIdHandler).Methods(http.MethodGet).Name("rpcmethodbyrpcconfig")
+	r.HandleFunc("/rpcmethod", rpcMethodService.CreateHandler).Methods(http.MethodPost).Name("createrpcmethod")
+	r.HandleFunc("/rpcmethod", rpcMethodService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcmethod")
+	r.HandleFunc("/rpcmethod/{id}/rpcconfig/{rpc_config_id}", rpcMethodService.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcmethod")
+
+	rpcRequestService := hrrq.NewRpcRequestService(rpcRequestRepo)
+	r.HandleFunc("/rpcrequest/rpcmethod/{rpc_method_id}", rpcRequestService.GetByRpcMethodIdHandler).Methods(http.MethodGet).Name("rpcrequestbyrpcmethod")
+	r.HandleFunc("/rpcrequest", rpcRequestService.CreateHandler).Methods(http.MethodPost).Name("createrpcrequest")
+	r.HandleFunc("/rpcrequest", rpcRequestService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcrequest")
+	r.HandleFunc("/rpcrequest/{id}/rpcmethod/{rpc_method_id}", rpcRequestService.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcrequest")
+
+	rpcResponseService := hrrs.NewRpcResponseService(rpcResponseRepo)
+	r.HandleFunc("/rpcresponse/rpcmethod/{rpc_method_id}", rpcResponseService.GetByRpcMethodIdHandler).Methods(http.MethodGet).Name("rpcresponsebyrpcmethod")
+	r.HandleFunc("/rpcresponse", rpcResponseService.CreateHandler).Methods(http.MethodPost).Name("createrpcresponse")
+	r.HandleFunc("/rpcresponse", rpcResponseService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcresponse")
+	r.HandleFunc("/rpcresponse/{id}/rpcmethod/{rpc_method_id}", rpcResponseService.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcresponse")
 	
 	// -- Cold Wallet management
 	coldWalletService := hcw.NewColdWalletService(coldbalanceRepo)

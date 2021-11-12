@@ -71,10 +71,10 @@ INSERT INTO `permissions` (`id`, `name`) VALUES
 (23, 'updatemaintlist'),
 
 -- frontend page names --
-(24, 'UserList'),
-(25, 'RoleList'),
-(26, 'PermissionList'),
-(27, 'NodesInfo');
+(24, 'User List'),
+(25, 'Role List'),
+(26, 'Permission List'),
+(27, 'Nodes Info');
 
 INSERT INTO `roles` (`id`, `name`) VALUES
 (1, 'admin'),
