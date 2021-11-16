@@ -20,7 +20,6 @@ import (
 	hrrs "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcresponse"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
-	c "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
 	authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
@@ -158,7 +157,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	userWalletService := huw.NewUserWalletService(userBalanceRepo)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
-	walletService := hw.NewWalletService(ModuleServices, *coldWalletService, *MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
+	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
 	r.HandleFunc("/wallet/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
 	r.HandleFunc("/wallet/{currency_id}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
 	
@@ -199,16 +198,6 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	   curl example:
 	   curl --request PUT localhost:3000/systemconfig/maintenancelist/add/BTC
 	*/
-
-	// CRON ROUTES
-
-	// -- GET healthcheck
-	healthCheckService := c.NewHealthCheckService(ModuleServices, healthCheckRepo, systemConfigRepo)
-	r.HandleFunc("/cron/healthcheck", healthCheckService.HealthCheckHandler).Methods(http.MethodGet).Name("cronhealthcheck")
-
-	// -- GET checkbalance
-	checkBalanceService := c.NewCheckBalanceService(walletService, coldWalletService, MarketService, ModuleServices, hotLimitRepo, userRepo)
-	r.HandleFunc("/cron/checkbalance", checkBalanceService.CheckBalanceHandler).Methods(http.MethodGet)
 
 	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)
 	r.Use(auth.Authenticate)

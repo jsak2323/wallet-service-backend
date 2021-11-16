@@ -3,7 +3,6 @@ package cron
 import (
     "fmt"
     "strconv"
-    "net/http"
 
     h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
@@ -32,7 +31,7 @@ func NewHealthCheckService(
     }
 }
 
-func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *http.Request) {
+func (hcs *HealthCheckService) HealthCheckHandler() {
     isPing := false
 
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
@@ -49,7 +48,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     maintenanceList, err := h.GetMaintenanceList(hcs.systemConfigRepo)
     if err != nil { logger.ErrorLog(" - HealthCheckHandler h.GetMaintenanceList err: "+err.Error()) }
 
-    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
+    logger.Log(" - HealthCheckHandler Getting node blockcounts ...")
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "", "")
     logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." )
 

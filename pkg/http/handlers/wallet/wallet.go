@@ -11,8 +11,8 @@ import (
 
 type WalletService struct {
 	moduleServices  	*modules.ModuleServiceMap
-    coldWalletService 	hcw.ColdWalletService
-	marketService 		h.MarketService
+    coldWalletService 	*hcw.ColdWalletService
+	marketService 		*h.MarketService
 	withdrawRepo 		w.Repository
 	hotLimitRepo   		hl.Repository
     userBalanceRepo 	ub.Repository
@@ -20,8 +20,8 @@ type WalletService struct {
 
 func NewWalletService(
 	moduleServices  	*modules.ModuleServiceMap,
-    coldWalletService 	hcw.ColdWalletService,
-	marketService 		h.MarketService,
+    coldWalletService 	*hcw.ColdWalletService,
+	marketService 		*h.MarketService,
 	withdrawRepo 		w.Repository,
 	hotLimitRepo   		hl.Repository,
     userBalanceRepo 	ub.Repository,
