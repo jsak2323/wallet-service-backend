@@ -20,10 +20,33 @@ func NewMysqlRpcRequestRepository(db *sql.DB) rr.Repository {
 	}
 }
 
-func (r *rpcRequestRepository) GetByRpcMethodId(rpcConfigId int) (rpcRequests []rr.RpcRequest, err error) {
+func (r *rpcRequestRepository) Create(rpcRequest rr.RpcRequest) error {
+	return r.db.QueryRow(`
+        INSERT INTO `+rpcRequestTable+`(
+            arg_name,
+            type,
+            arg_order,
+            source,
+			runtime_var_name,
+			value,
+			rpc_method_id
+		)
+        VALUES (?,?,?,?,?,?,?);
+        `,
+		rpcRequest.ArgName,
+		rpcRequest.Type,
+		rpcRequest.ArgOrder,
+		rpcRequest.Source,
+		rpcRequest.RuntimeVarName,
+		rpcRequest.Value,
+		rpcRequest.RpcMethodId,
+	).Err()
+}
+
+func (r *rpcRequestRepository) GetByRpcMethodId(rpcMethodId int) (rpcRequests []rr.RpcRequest, err error) {
 	query := `SELECT id, arg_name, type, arg_order, source, runtime_var_name, value, rpc_method_id value FROM ` + rpcRequestTable + ` WHERE rpc_method_id = ? ORDER BY arg_order`
 
-	rows, err := r.db.Query(query, rpcConfigId)
+	rows, err := r.db.Query(query, rpcMethodId)
 	if err != nil {
 		return []rr.RpcRequest{}, err
 	}
@@ -42,6 +65,29 @@ func (r *rpcRequestRepository) GetByRpcMethodId(rpcConfigId int) (rpcRequests []
 	return rpcRequests, nil
 }
 
+func (r *rpcRequestRepository) Update(rpcRequest rr.RpcRequest) error {
+	return r.db.QueryRow(`
+        UPDATE `+rpcRequestTable+`
+        SET 
+			arg_name = ?,
+            type = ?,
+			arg_order = ?,
+			source = ?,
+			runtime_var_name = ?,
+			value = ?,
+			rpc_method_id = ?
+        WHERE id = ?`,
+		rpcRequest.ArgName,
+		rpcRequest.Type,
+		rpcRequest.ArgOrder,
+		rpcRequest.Source,
+		rpcRequest.RuntimeVarName,
+		rpcRequest.Value,
+		rpcRequest.RpcMethodId,
+		rpcRequest.Id,
+	).Err()
+}
+
 func mapRpcRequest(rows *sql.Rows, rpcRequest *rr.RpcRequest) error {
 	err := rows.Scan(
 		&rpcRequest.Id,
@@ -58,4 +104,10 @@ func mapRpcRequest(rows *sql.Rows, rpcRequest *rr.RpcRequest) error {
 		return err
 	}
 	return nil
+}
+
+func (r *rpcRequestRepository) Delete(Id int) (err error) {
+	query := "DELETE FROM " + rpcRequestTable + " WHERE id = ?"
+
+	return r.db.QueryRow(query, Id).Err()
 }

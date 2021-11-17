@@ -106,6 +106,7 @@ CREATE TABLE rpc_method (
     id          INT(11) NOT NULL AUTO_INCREMENT,
     name        VARCHAR(50) NOT NULL DEFAULT "",
     type        VARCHAR(50) NOT NULL DEFAULT "",
+    network     VARCHAR(50) NOT NULL DEFAULT "",
     num_of_args INT(11) NOT NULL DEFAULT 6,
 
     PRIMARY KEY (id)
@@ -123,7 +124,7 @@ CREATE TABLE rpc_request (
     id                INT(11) NOT NULL AUTO_INCREMENT,
     arg_name          VARCHAR(50) NOT NULL DEFAULT "",
     type              VARCHAR(50) NOT NULL DEFAULT "",
-    arg_order         INT(11) NOT NULL DEFAULT 0,
+    arg_order         INT(11) NOT NULL DEFAULT -1,
     source            VARCHAR(50) NOT NULL DEFAULT "",
     runtime_var_name  VARCHAR(50) NOT NULL DEFAULT "",
     value             VARCHAR(255) NOT NULL DEFAULT "",

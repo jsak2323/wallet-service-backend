@@ -14,6 +14,11 @@ type ListRes struct {
 	Error      string             `json:"error"`
 }
 
+type RpcConfigRpcMethodReq struct {
+	RpcConfigId int `json:"rpc_config_id"`
+	RpcMethodId int `json:"rpc_method_id"`
+}
+
 type StandardRes struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
