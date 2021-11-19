@@ -24,11 +24,13 @@ func runCheckBalance(sleep time.Duration, mysqlRepos mysql.MysqlRepositories, ex
 
 	func() {
 		for {
+			fmt.Println()
 			fmt.Println("- Running checkbalance ...")
 			checkBalanceService.CheckBalanceHandler()
 
 			fmt.Println("- Finished running checkbalance, sleeping for " + sleep.String() + " ...")
 			countDownSleep("checkbalance", int(sleep.Seconds()))
+			fmt.Println()
 		}
 	}()
 }

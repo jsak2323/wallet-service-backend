@@ -17,11 +17,13 @@ func runHealthCheck(sleep time.Duration, mysqlRepos mysql.MysqlRepositories) {
 
 	func() {
 		for {
+			fmt.Println()
 			fmt.Println("- Running healthcheck ...")
 			healthCheckService.HealthCheckHandler()
 
 			fmt.Println("- Finished running healthcheck, sleeping for " + sleep.String() + " ...")
 			countDownSleep("healthcheck", int(sleep.Seconds()))
+			fmt.Println()
 		}
 	}()
 }
