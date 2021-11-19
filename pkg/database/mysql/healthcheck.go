@@ -15,7 +15,7 @@ type healthCheckRepository struct {
     db *sql.DB
 }
 
-func NewMysqlHealthCheckRepository(db *sql.DB) hc.HealthCheckRepository {
+func NewMysqlHealthCheckRepository(db *sql.DB) hc.Repository {
     return &healthCheckRepository{
         db,
     }

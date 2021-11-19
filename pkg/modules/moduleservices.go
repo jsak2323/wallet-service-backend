@@ -21,8 +21,8 @@ import (
 type ModuleServiceMap map[int]modules_m.ModuleService
 
 func NewModuleServices(
-    healthCheckRepo hc.HealthCheckRepository, 
-    systemConfigRepo sc.SystemConfigRepository,
+    healthCheckRepo hc.Repository, 
+    systemConfigRepo sc.Repository,
     rpcMethodRepo rm.Repository,
     rpcRequestRepo rrq.Repository,
     rpcResponseRepo rrs.Repository,

@@ -20,12 +20,12 @@ type GetBlockCountHandlerResponseMap map[string]map[string][]GetBlockCountRes
 
 type GetBlockCountService struct {
     moduleServices   *modules.ModuleServiceMap
-    systemConfigRepo sc.SystemConfigRepository
+    systemConfigRepo sc.Repository
 }
 
 func NewGetBlockCountService(
     moduleServices *modules.ModuleServiceMap, 
-    systemConfigRepo sc.SystemConfigRepository,
+    systemConfigRepo sc.Repository,
 ) *GetBlockCountService {
     return &GetBlockCountService{
         moduleServices,

@@ -8,11 +8,11 @@ import (
 const errInternalServer = "Internal server error"
 
 type RpcConfigService struct {
-	rcRepo   domain.RpcConfigRepository
+	rcRepo   domain.Repository
 	rcrmRepo rcrmDomain.Repository
 }
 
-func NewRpcConfigService(rcRepo domain.RpcConfigRepository, rcrmRepo rcrmDomain.Repository) *RpcConfigService {
+func NewRpcConfigService(rcRepo domain.Repository, rcrmRepo rcrmDomain.Repository) *RpcConfigService {
 	return &RpcConfigService{
 		rcRepo: rcRepo,
 		rcrmRepo: rcrmRepo,

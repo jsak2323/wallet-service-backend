@@ -24,18 +24,18 @@ import (
 
 type MysqlRepositories struct {
 	ColdBalance        coldbalance.Repository
-	CurrencyConfig     currencyconfig.CurrencyConfigRepository
+	CurrencyConfig     currencyconfig.Repository
 	CurrencyRpc        currencyrpc.Repository
-	HealthCheck        healthcheck.HealthCheckRepository
+	HealthCheck        healthcheck.Repository
 	Permission         permission.Repository
 	Role               role.Repository
 	RolePermission     rolepermission.Repository
-	RpcConfig          rpcconfig.RpcConfigRepository
+	RpcConfig          rpcconfig.Repository
 	RpcConfigRpcMethod rpcconfigrpcmethod.Repository
 	RpcMethod          rpcmethod.Repository
 	RpcRequest         rpcrequest.Repository
 	RpcResponse        rpcresponse.Repository
-	SystemConfig       systemconfig.SystemConfigRepository
+	SystemConfig       systemconfig.Repository
 	User               user.Repository
 	UserBalance        userbalance.Repository
 	UserRole           userrole.Repository

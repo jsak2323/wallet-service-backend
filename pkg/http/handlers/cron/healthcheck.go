@@ -16,14 +16,14 @@ import (
 
 type HealthCheckService struct {
     moduleServices  *modules.ModuleServiceMap
-    healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.SystemConfigRepository
+    healthCheckRepo  hc.Repository
+    systemConfigRepo sc.Repository
 }
 
 func NewHealthCheckService(
     moduleServices  *modules.ModuleServiceMap,
-    healthCheckRepo  hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository,
+    healthCheckRepo  hc.Repository,
+    systemConfigRepo sc.Repository,
 ) *HealthCheckService {
     return &HealthCheckService{
         moduleServices,

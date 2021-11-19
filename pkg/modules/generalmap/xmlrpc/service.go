@@ -13,8 +13,8 @@ type GeneralMapService struct {
 	ParentSymbol     string
 	Symbol           string
 	CurrencyConfigId int
-	healthCheckRepo  hc.HealthCheckRepository
-	systemConfigRepo sc.SystemConfigRepository
+	healthCheckRepo  hc.Repository
+	systemConfigRepo sc.Repository
 	rpcMethodRepo    rm.Repository
 	rpcRequestRepo   rrq.Repository
 	rpcResponseRepo  rrs.Repository
@@ -28,14 +28,14 @@ func (gms *GeneralMapService) GetParentSymbol() string {
 	return gms.ParentSymbol
 }
 
-func (gms *GeneralMapService) GetHealthCheckRepo() hc.HealthCheckRepository {
+func (gms *GeneralMapService) GetHealthCheckRepo() hc.Repository {
 	return gms.healthCheckRepo
 }
 
 func NewGeneralMapService(
 	currencyConfig cc.CurrencyConfig,
-	healthCheckRepo hc.HealthCheckRepository,
-	systemConfigRepo sc.SystemConfigRepository,
+	healthCheckRepo hc.Repository,
+	systemConfigRepo sc.Repository,
 	rpcMethodRepo rm.Repository,
 	rpcRequestRepo rrq.Repository,
 	rpcResponsRepo rrs.Repository,

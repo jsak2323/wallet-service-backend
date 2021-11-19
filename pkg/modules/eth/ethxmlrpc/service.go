@@ -7,19 +7,19 @@ import (
 
 type EthService struct {
     currencyConfigId int
-    healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.SystemConfigRepository
+    healthCheckRepo  hc.Repository
+    systemConfigRepo sc.Repository
 }
 
 func (es *EthService) GetSymbol() string {
     return "ETH"
 }
 
-func (es *EthService) GetHealthCheckRepo() hc.HealthCheckRepository {
+func (es *EthService) GetHealthCheckRepo() hc.Repository {
     return es.healthCheckRepo
 }
 
-func NewEthService(currencyConfigId int, healthCheckRepo hc.HealthCheckRepository, systemConfigRepo sc.SystemConfigRepository) *EthService{
+func NewEthService(currencyConfigId int, healthCheckRepo hc.Repository, systemConfigRepo sc.Repository) *EthService{
     return &EthService{
         currencyConfigId,
         healthCheckRepo,

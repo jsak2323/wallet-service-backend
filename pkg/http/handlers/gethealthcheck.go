@@ -18,14 +18,14 @@ type GetHealthCheckHandlerResponseMap map[string]map[string][]GetHealthCheckRes 
 
 type GetHealthCheckService struct {
     moduleServices   *modules.ModuleServiceMap
-    healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.SystemConfigRepository
+    healthCheckRepo  hc.Repository
+    systemConfigRepo sc.Repository
 }
 
 func NewGetHealthCheckService(
     moduleServices *modules.ModuleServiceMap, 
-    healthCheckRepo hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository,
+    healthCheckRepo hc.Repository,
+    systemConfigRepo sc.Repository,
 ) *GetHealthCheckService {
     return &GetHealthCheckService{
         moduleServices,

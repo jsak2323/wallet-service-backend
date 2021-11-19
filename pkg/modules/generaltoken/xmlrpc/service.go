@@ -10,8 +10,8 @@ type GeneralTokenService struct {
     ParentSymbol     string
     Symbol           string
     TokenType        string
-    healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.SystemConfigRepository
+    healthCheckRepo  hc.Repository
+    systemConfigRepo sc.Repository
 }
 
 func (gts *GeneralTokenService) GetSymbol() string {
@@ -22,14 +22,14 @@ func (gts *GeneralTokenService) GetParentSymbol() string {
     return gts.ParentSymbol
 }
 
-func (gts *GeneralTokenService) GetHealthCheckRepo() hc.HealthCheckRepository {
+func (gts *GeneralTokenService) GetHealthCheckRepo() hc.Repository {
     return gts.healthCheckRepo
 }
 
 func NewGeneralTokenService(
     currencyConfig cc.CurrencyConfig,
-    healthCheckRepo hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository,
+    healthCheckRepo hc.Repository,
+    systemConfigRepo sc.Repository,
 ) *GeneralTokenService {
     return &GeneralTokenService{
         currencyConfig.ParentSymbol,

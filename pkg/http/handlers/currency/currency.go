@@ -9,15 +9,15 @@ import (
 const errInternalServer = "Internal server error"
 
 type CurrencyConfigService struct {
-	ccRepo cc.CurrencyConfigRepository
+	ccRepo cc.Repository
 	crRepo cr.Repository
-	rcRepo rc.RpcConfigRepository
+	rcRepo rc.Repository
 }
 
 func NewCurrencyConfigService(
-		ccRepo cc.CurrencyConfigRepository,
+		ccRepo cc.Repository,
 		crRepo cr.Repository,
-		rcRepo rc.RpcConfigRepository,
+		rcRepo rc.Repository,
 	) *CurrencyConfigService {
 	return &CurrencyConfigService{
 		ccRepo: ccRepo,
