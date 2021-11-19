@@ -1,55 +1,43 @@
 package main
 
-import(
-    "fmt"
-    "log"
-    "time"
-    "net/http"
+import (
+	"flag"
+	"fmt"
+	"time"
 
-    "github.com/gorilla/mux"
-    "github.com/rs/cors"
-
-    logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
-    "github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/cmd/server/cron"
+	"github.com/btcid/wallet-services-backend-go/cmd/server/http"
+	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 )
 
 func main() {
-    mysqlDbConn := config.MysqlDbConn()
-    defer mysqlDbConn.Close()
+	appPtr := flag.String("app", "http", "Specifies which app to run.")
+	funcPtr := flag.String("function", "all", "Specifies which functions to run.")
+	sleepPtr := flag.Duration("sleep", time.Minute*10, `A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".`)
 
-    exchangeSlaveMysqlDbConn := config.ExchangeSlaveMysqlDbConn()
-    defer exchangeSlaveMysqlDbConn.Close()
-    
-    r := mux.NewRouter()
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(" - panic: ", err)
+		}
+	}()
 
-	SetRoutes(r, mysqlDbConn, exchangeSlaveMysqlDbConn)
+	flag.Parse()
 
-    corsOpts := cors.New(cors.Options{
-        AllowedMethods: []string{
-            http.MethodGet,
-            http.MethodPost,
-            http.MethodPut,
-            http.MethodDelete,
-            http.MethodOptions,
-            http.MethodHead,
-        },
-        AllowedHeaders: []string{
-            "*",
-        },
-    })
+	localMysqlDbConn := config.MysqlDbConn()
+	defer localMysqlDbConn.Close()
 
-	r.Use(logm.LogMiddleware)
+	exchangeSlaveMysqlDbConn := config.ExchangeSlaveMysqlDbConn()
+	defer exchangeSlaveMysqlDbConn.Close()
 
-    server := &http.Server{
-        Handler         : corsOpts.Handler(r),
-        Addr            : ":"+config.CONF.Port,
-        WriteTimeout    : 120 * time.Second,
-        ReadTimeout     : 120 * time.Second,
-    }
+	mysqlRepos := mysql.NewMysqlRepositories(localMysqlDbConn, exchangeSlaveMysqlDbConn)
+	exchangeApiRepos := exchange.NewAPIRepositories()
 
-    fmt.Println()
-    fmt.Println("Running server on localhost:"+config.CONF.Port)
-    fmt.Println("\n\n\n")
-
-    log.Fatal(server.ListenAndServe())
+	switch *appPtr {
+	case "http":
+		http.Run(mysqlRepos, exchangeApiRepos)
+	case "cron":
+		cron.Run(*funcPtr, *sleepPtr, mysqlRepos, exchangeApiRepos)
+	}
 }

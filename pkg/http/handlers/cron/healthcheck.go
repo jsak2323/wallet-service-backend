@@ -3,6 +3,7 @@ package cron
 import (
     "fmt"
     "strconv"
+    "time"
 
     h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
@@ -32,6 +33,8 @@ func NewHealthCheckService(
 }
 
 func (hcs *HealthCheckService) HealthCheckHandler() {
+	startTime := time.Now()
+
     isPing := false
 
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
@@ -94,6 +97,9 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
             }
         }
     }
+
+    elapsedTime := time.Since(startTime)
+    fmt.Println(" - HealthCheckHandler Time elapsed: "+fmt.Sprintf("%f", elapsedTime.Minutes())+ " minutes.")
 }
 
 func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, blockDiff int, isBlockCountHealthy bool) error {

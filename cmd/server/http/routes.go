@@ -1,62 +1,37 @@
-package main
+package http
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
 	hc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/currency"
-	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
-	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
-	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
+	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
 	hrc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcconfig"
 	hrm "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcmethod"
 	hrrq "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcrequest"
 	hrrs "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcresponse"
-	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
+	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
+	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
+	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
 	authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
+	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 )
 
-func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql.DB) {
-	// REPOSITORIES
-	userRepo := mysql.NewMysqlUserRepository(mysqlDbConn)
-	roleRepo := mysql.NewMysqlRoleRepository(mysqlDbConn)
-	urRepo := mysql.NewMysqlUserRoleRepository(mysqlDbConn)
-	permissionRepo := mysql.NewMysqlPermissionRepository(mysqlDbConn)
-	rolePermissionRepo := mysql.NewMysqlRolePermissionRepository(mysqlDbConn)
-
-	currencyConfigRepo := mysql.NewMysqlCurrencyConfigRepository(mysqlDbConn)
-	rpcConfigRepo := mysql.NewMysqlRpcConfigRepository(mysqlDbConn)
-	rpcConfigRpcMethodRepo := mysql.NewMysqlRpcConfigRpcMethodRepository(mysqlDbConn)
-	currencyRpcRepo := mysql.NewMysqlCurrencyRpcRepository(mysqlDbConn)
-	rpcMethodRepo := mysql.NewMysqlRpcMethodRepository(mysqlDbConn)
-	rpcRequestRepo := mysql.NewMysqlRpcRequestRepository(mysqlDbConn)
-	rpcResponseRepo := mysql.NewMysqlRpcResponseRepository(mysqlDbConn)
-	healthCheckRepo := mysql.NewMysqlHealthCheckRepository(mysqlDbConn)
-	systemConfigRepo := mysql.NewMysqlSystemConfigRepository(mysqlDbConn)
-
-	coldbalanceRepo := mysql.NewMysqlColdBalanceRepository(mysqlDbConn)
-	hotLimitRepo := exchange.NewExchangeHotLimitRepository()
-
-	userBalanceRepo := mysql.NewMysqlUserBalanceRepository(exchangeSlaveMysqlDbConn)
-	withdrawRepo := mysql.NewMysqlWithdrawRepository(exchangeSlaveMysqlDbConn)
-	marketRepo := exchange.NewExchangeMarketRepository()
-
+func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories) {
 	// -- Auth
-	userService := hu.NewUserService(userRepo, roleRepo, urRepo, permissionRepo)
+	userService := hu.NewUserService(mysqlRepos.User, mysqlRepos.Role, mysqlRepos.UserRole, mysqlRepos.Permission)
 	r.HandleFunc("/login", userService.LoginHandler).Methods(http.MethodPost).Name("login")
 	r.HandleFunc("/logout", userService.LogoutHandler).Methods(http.MethodPost)
 
 	// MODULE SERVICES
-	ModuleServices := modules.NewModuleServices(healthCheckRepo, systemConfigRepo, rpcMethodRepo, rpcRequestRepo, rpcResponseRepo)
-	MarketService := h.NewMarketService(marketRepo)
+	ModuleServices := modules.NewModuleServices(mysqlRepos.HealthCheck, mysqlRepos.SystemConfig, mysqlRepos.RpcMethod, mysqlRepos.RpcRequest, mysqlRepos.RpcResponse)
+	MarketService := h.NewMarketService(exchangeApiRepos.Market)
 
 	// API ROUTES
 
@@ -70,7 +45,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/user/{user_id}/role/{role_id}", userService.DeleteRoleHandler).Methods(http.MethodDelete).Name("deleteuserrole")
 
 	// -- Role management
-	roleService := hr.NewRoleService(roleRepo, permissionRepo, rolePermissionRepo, urRepo)
+	roleService := hr.NewRoleService(mysqlRepos.Role, mysqlRepos.Permission, mysqlRepos.RolePermission, mysqlRepos.UserRole)
 	r.HandleFunc("/role/list", roleService.ListRoleHandler).Methods(http.MethodGet).Name("listroles")
 	r.HandleFunc("/role", roleService.CreateRoleHandler).Methods(http.MethodPost).Name("createrole")
 	r.HandleFunc("/role", roleService.UpdateRoleHandler).Methods(http.MethodPut).Name("updaterole")
@@ -79,19 +54,19 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/role/{role_id}/permission/{permission_id}", roleService.DeletePermissionHandler).Methods(http.MethodDelete).Name("deleterolepermission")
 
 	// -- Permission management
-	permissionService := hp.NewPermissionService(permissionRepo, rolePermissionRepo)
+	permissionService := hp.NewPermissionService(mysqlRepos.Permission, mysqlRepos.RolePermission)
 	r.HandleFunc("/permission/list", permissionService.ListPermissionHandler).Methods(http.MethodGet).Name("listpermissions")
 	r.HandleFunc("/permission", permissionService.CreatePermissionHandler).Methods(http.MethodPost).Name("createpermission")
 	r.HandleFunc("/permission", permissionService.UpdatePermissionHandler).Methods(http.MethodPut).Name("updatepermission")
 	r.HandleFunc("/permission/{id}", permissionService.DeletePermissionHandler).Methods(http.MethodDelete).Name("deletepermission")
 
 	// -- GET getblockcount
-	getBlockCountService := h.NewGetBlockCountService(ModuleServices, systemConfigRepo)
+	getBlockCountService := h.NewGetBlockCountService(ModuleServices, mysqlRepos.SystemConfig)
 	r.HandleFunc("/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcount")
 	r.HandleFunc("/{symbol}/getblockcount", getBlockCountService.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcountbysymbol")
 
 	// -- GET gethealthcheck
-	getHealthCheckService := h.NewGetHealthCheckService(ModuleServices, healthCheckRepo, systemConfigRepo)
+	getHealthCheckService := h.NewGetHealthCheckService(ModuleServices, mysqlRepos.HealthCheck, mysqlRepos.SystemConfig)
 	r.HandleFunc("/gethealthcheck", getHealthCheckService.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheck")
 	r.HandleFunc("/{symbol}/gethealthcheck", getHealthCheckService.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheckbysymbol")
 
@@ -100,7 +75,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", getLogService.GetLogHandler).Methods(http.MethodGet).Name("getlog")
 
 	// -- Currency Config management
-	currencyConfigService := hc.NewCurrencyConfigService(currencyConfigRepo, currencyRpcRepo, rpcConfigRepo)
+	currencyConfigService := hc.NewCurrencyConfigService(mysqlRepos.CurrencyConfig, mysqlRepos.CurrencyRpc, mysqlRepos.RpcConfig)
 	r.HandleFunc("/currency/list", currencyConfigService.ListHandler).Methods(http.MethodGet).Name("listcurrency")
 	r.HandleFunc("/currency", currencyConfigService.CreateHandler).Methods(http.MethodPost).Name("createcurrency")
 	r.HandleFunc("/currency", currencyConfigService.UpdateHandler).Methods(http.MethodPut).Name("updatecurrency")
@@ -114,7 +89,7 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/nodes/{symbol}/getbalance", getBalanceService.GetBalanceHandler).Methods(http.MethodGet)
 
 	// -- Rpc Config management
-	rpcConfigService := hrc.NewRpcConfigService(rpcConfigRepo, rpcConfigRpcMethodRepo)
+	rpcConfigService := hrc.NewRpcConfigService(mysqlRepos.RpcConfig, mysqlRepos.RpcConfigRpcMethod)
 	r.HandleFunc("/rpcconfig/list", rpcConfigService.ListHandler).Methods(http.MethodGet).Name("listrpcconfig")
 	r.HandleFunc("/rpcconfig/id/{id}", rpcConfigService.GetByIdHandler).Methods(http.MethodGet).Name("getrpcconfigbyid")
 	r.HandleFunc("/rpcconfig", rpcConfigService.CreateHandler).Methods(http.MethodPost).Name("createrpcconfig")
@@ -124,27 +99,27 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/rpcconfig/{rpcconfig_id}/rpcmethod/{rpcmethod_id}", rpcConfigService.DeleteRpcMethodHandler).Methods(http.MethodDelete).Name("deleterpcconfigrpcmethod")
 	r.HandleFunc("/rpcconfig/activate/{id}", rpcConfigService.ActivateHandler).Methods(http.MethodPost).Name("activaterpcconfig")
 
-	rpcMethodService := hrm.NewRpcMethodService(rpcMethodRepo, rpcConfigRpcMethodRepo)
+	rpcMethodService := hrm.NewRpcMethodService(mysqlRepos.RpcMethod, mysqlRepos.RpcConfigRpcMethod)
 	r.HandleFunc("/rpcmethod/list", rpcMethodService.ListHandler).Methods(http.MethodGet).Name("listrpcmethod")
 	r.HandleFunc("/rpcmethod/rpcconfig/{rpc_config_id}", rpcMethodService.GetByRpcConfigIdHandler).Methods(http.MethodGet).Name("rpcmethodbyrpcconfig")
 	r.HandleFunc("/rpcmethod", rpcMethodService.CreateHandler).Methods(http.MethodPost).Name("createrpcmethod")
 	r.HandleFunc("/rpcmethod", rpcMethodService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcmethod")
 	r.HandleFunc("/rpcmethod/{id}/rpcconfig/{rpc_config_id}", rpcMethodService.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcmethod")
 
-	rpcRequestService := hrrq.NewRpcRequestService(rpcRequestRepo)
+	rpcRequestService := hrrq.NewRpcRequestService(mysqlRepos.RpcRequest)
 	r.HandleFunc("/rpcrequest/rpcmethod/{rpc_method_id}", rpcRequestService.GetByRpcMethodIdHandler).Methods(http.MethodGet).Name("rpcrequestbyrpcmethod")
 	r.HandleFunc("/rpcrequest", rpcRequestService.CreateHandler).Methods(http.MethodPost).Name("createrpcrequest")
 	r.HandleFunc("/rpcrequest", rpcRequestService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcrequest")
 	r.HandleFunc("/rpcrequest/{id}/rpcmethod/{rpc_method_id}", rpcRequestService.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcrequest")
 
-	rpcResponseService := hrrs.NewRpcResponseService(rpcResponseRepo)
+	rpcResponseService := hrrs.NewRpcResponseService(mysqlRepos.RpcResponse)
 	r.HandleFunc("/rpcresponse/rpcmethod/{rpc_method_id}", rpcResponseService.GetByRpcMethodIdHandler).Methods(http.MethodGet).Name("rpcresponsebyrpcmethod")
 	r.HandleFunc("/rpcresponse", rpcResponseService.CreateHandler).Methods(http.MethodPost).Name("createrpcresponse")
 	r.HandleFunc("/rpcresponse", rpcResponseService.UpdateHandler).Methods(http.MethodPut).Name("updaterpcresponse")
 	r.HandleFunc("/rpcresponse/{id}/rpcmethod/{rpc_method_id}", rpcResponseService.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcresponse")
-	
+
 	// -- Cold Wallet management
-	coldWalletService := hcw.NewColdWalletService(coldbalanceRepo)
+	coldWalletService := hcw.NewColdWalletService(mysqlRepos.ColdBalance)
 	r.HandleFunc("/coldwallet", coldWalletService.CreateHandler).Methods(http.MethodPost).Name("createcoldwallet")
 	// TODO get by currency
 	r.HandleFunc("/coldwallet", coldWalletService.ListHandler).Methods(http.MethodGet).Name("listcoldwallet")
@@ -154,27 +129,27 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	r.HandleFunc("/coldwallet/deactivate/{id}", coldWalletService.DeactivateHandler).Methods(http.MethodPost).Name("deactivatecoldwallet")
 	r.HandleFunc("/coldwallet/activate/{id}", coldWalletService.ActivateHandler).Methods(http.MethodPost).Name("activatecoldwallet")
 
-	userWalletService := huw.NewUserWalletService(userBalanceRepo)
+	userWalletService := huw.NewUserWalletService(mysqlRepos.UserBalance)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
-	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, withdrawRepo, hotLimitRepo, userBalanceRepo)
+	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, mysqlRepos.Withdraw, exchangeApiRepos.HotLimit, mysqlRepos.UserBalance)
 	r.HandleFunc("/wallet/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
 	r.HandleFunc("/wallet/{currency_id}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
-	
+
 	// -- GET listtransactions (disabled)
 	/*
-	listTransactionsService := h.NewListTransactionsService(ModuleServices)
-	r.HandleFunc("/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
-	r.HandleFunc("/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
-	r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
-	r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+		listTransactionsService := h.NewListTransactionsService(ModuleServices)
+		r.HandleFunc("/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+		r.HandleFunc("/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+		r.HandleFunc("/{symbol}/listtransactions", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
+		r.HandleFunc("/{symbol}/listtransactions/{limit}", listTransactionsService.ListTransactionsHandler).Methods(http.MethodGet)
 	*/
-	
+
 	// -- GET getnewaddress (disabled)
 	/*
-	getNewAddressService := h.NewGetNewAddressService(ModuleServices)
-	r.HandleFunc("/{symbol}/getnewaddress", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
-	r.HandleFunc("/{symbol}/getnewaddress/{type}", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
+		getNewAddressService := h.NewGetNewAddressService(ModuleServices)
+		r.HandleFunc("/{symbol}/getnewaddress", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
+		r.HandleFunc("/{symbol}/getnewaddress/{type}", getNewAddressService.GetNewAddressHandler).Methods(http.MethodGet)
 	*/
 
 	// -- GET addresstype (disabled)
@@ -192,14 +167,17 @@ func SetRoutes(r *mux.Router, mysqlDbConn *sql.DB, exchangeSlaveMysqlDbConn *sql
 	*/
 
 	// -- PUT systemconfig
-	systemConfigService := h.NewSystemConfigService(systemConfigRepo)
+	systemConfigService := h.NewSystemConfigService(mysqlRepos.SystemConfig)
 	r.HandleFunc("/systemconfig/maintenancelist/{action}/{value}", systemConfigService.MaintenanceListHandler).Methods(http.MethodPut).Name("updatemaintlist")
 	/*
 	   curl example:
 	   curl --request PUT localhost:3000/systemconfig/maintenancelist/add/BTC
 	*/
 
-	auth := authm.NewAuthMiddleware(roleRepo, permissionRepo, rolePermissionRepo)
+	fireblocksService := h.NewFireblocksService()
+	r.HandleFunc("/fireblocks/tx_sign_request", fireblocksService.CallbackHandler).Methods(http.MethodPost).Name("fireblockscallback")
+
+	auth := authm.NewAuthMiddleware(mysqlRepos.Role, mysqlRepos.Permission, mysqlRepos.RolePermission)
 	r.Use(auth.Authenticate)
 	r.Use(auth.Authorize)
 }

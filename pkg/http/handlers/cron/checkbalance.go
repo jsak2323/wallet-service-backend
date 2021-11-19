@@ -2,16 +2,19 @@ package cron
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	hl "github.com/btcid/wallet-services-backend-go/pkg/domain/hotlimit"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	"github.com/btcid/wallet-services-backend-go/pkg/domain/user"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
@@ -20,7 +23,6 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
-	"github.com/btcid/wallet-services-backend-go/pkg/domain/user"
 )
 
 type CheckBalanceService struct {
@@ -54,6 +56,7 @@ const adminRoleName = "admin"
 const defaultMemo = "0000"
 
 func (s *CheckBalanceService) CheckBalanceHandler() {
+	startTime := time.Now()
 	var walletBalances []hw.GetBalanceRes
 
 	for _, curr := range config.CURRRPC {	
@@ -66,6 +69,9 @@ func (s *CheckBalanceService) CheckBalanceHandler() {
 	}
 
 	s.sendReportEmail(walletBalances)
+
+	elapsedTime := time.Since(startTime)
+	fmt.Println(" - CheckBalanceHandler Time elapsed: "+fmt.Sprintf("%f", elapsedTime.Minutes())+ " minutes.")
 }
 
 func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {

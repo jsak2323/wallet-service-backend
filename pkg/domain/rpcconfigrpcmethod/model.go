@@ -1,4 +1,4 @@
-package rpcconfigmethod
+package rpcconfigrpcmethod
 
 type RpcConfigRpcMethod struct {
 	RpcConfigId int

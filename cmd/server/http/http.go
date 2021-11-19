@@ -1,4 +1,4 @@
-package main
+package http
 
 import (
 	"fmt"
@@ -10,22 +10,22 @@ import (
 	"github.com/rs/cors"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
-	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
+	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 )
 
-func main() {
-	mysqlDbConn := config.MysqlDbConn()
-	defer mysqlDbConn.Close()
-
+func Run(mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories) {
 	r := mux.NewRouter()
 
-	fireblocksService := h.NewFireblocksService()
-	r.HandleFunc("/fireblocks/tx_sign_request", fireblocksService.CallbackHandler).Methods(http.MethodPost).Name("fireblockscallback")
+	setRoutes(r, mysqlRepos, exchangeApiRepos)
 
 	corsOpts := cors.New(cors.Options{
 		AllowedMethods: []string{
+			http.MethodGet,
 			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
 			http.MethodOptions,
 			http.MethodHead,
 		},
@@ -38,14 +38,14 @@ func main() {
 
 	server := &http.Server{
 		Handler:      corsOpts.Handler(r),
-		Addr:         ":" + config.CONF.FireblocksCallbackPort,
+		Addr:         ":" + config.CONF.Port,
 		WriteTimeout: 120 * time.Second,
 		ReadTimeout:  120 * time.Second,
 	}
 
 	fmt.Println()
-	fmt.Println("Running server on localhost:"+config.CONF.FireblocksCallbackPort)
+	fmt.Println("Running server on localhost:" + config.CONF.Port)
 	fmt.Println("\n\n\n")
-	
-	log.Fatal(server.ListenAndServeTLS(config.CONF.FireblocksCallbackSSLCert, config.CONF.FireblocksCallbackSSLKey))
+
+	log.Fatal(server.ListenAndServe())
 }
