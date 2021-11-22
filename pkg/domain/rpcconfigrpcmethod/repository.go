@@ -1,4 +1,4 @@
-package rpcconfigmethod
+package rpcconfigrpcmethod
 
 type Repository interface {
 	Create(rpcConfigId, rpcMethodId int) error

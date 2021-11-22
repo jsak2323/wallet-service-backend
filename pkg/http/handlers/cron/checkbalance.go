@@ -2,16 +2,19 @@ package cron
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	hl "github.com/btcid/wallet-services-backend-go/pkg/domain/hotlimit"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	"github.com/btcid/wallet-services-backend-go/pkg/domain/user"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
@@ -20,7 +23,6 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
-	"github.com/btcid/wallet-services-backend-go/pkg/domain/user"
 )
 
 type CheckBalanceService struct {
@@ -53,7 +55,8 @@ func NewCheckBalanceService(
 const adminRoleName = "admin"
 const defaultMemo = "0000"
 
-func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *http.Request) {
+func (s *CheckBalanceService) CheckBalanceHandler() {
+	startTime := time.Now()
 	var walletBalances []hw.GetBalanceRes
 
 	for _, curr := range config.CURRRPC {	
@@ -66,9 +69,14 @@ func (s *CheckBalanceService) CheckBalanceHandler(w http.ResponseWriter, req *ht
 	}
 
 	s.sendReportEmail(walletBalances)
+
+	elapsedTime := time.Since(startTime)
+	fmt.Println(" - CheckBalanceHandler Time elapsed: "+fmt.Sprintf("%f", elapsedTime.Minutes())+ " minutes.")
 }
 
 func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
+	logger.Log(" - CheckBalanceService -- Checking "+walletBalance.CurrencyConfig.Symbol+" "+walletBalance.CurrencyConfig.TokenType+" user balance...")
+
 	var err error
 	var totalCoin string = "0"
 	var cmpResult int
@@ -85,7 +93,7 @@ func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
 		walletBalanceFormatted := s.walletService.FormatWalletBalanceCurrency(walletBalance)
 		s.sendUserBalanceAlertTelegram(walletBalanceFormatted, totalCoin)
 		s.sendUserBalanceAlertEmail(walletBalanceFormatted, totalCoin)
-	}
+	} else { logger.Log(" - CheckBalanceService -- Finished checking "+walletBalance.CurrencyConfig.Symbol+" "+walletBalance.CurrencyConfig.TokenType+" user balance") }
 }
 
 func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetBalanceRes, totalCoin string) {
@@ -200,7 +208,7 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
 
 // TODO check per network
 func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBalance hw.GetBalanceRes) {
-	logger.Log(" - CheckBalanceService -- Checking "+currency.Symbol+" hot limit...")
+	logger.Log(" - CheckBalanceService -- Checking "+currency.Symbol+" " + currency.TokenType + " hot limit...")
 	
 	limits, err := s.hotLimitRepo.GetBySymbol(currency.Symbol)
 	if err != nil {
@@ -317,4 +325,6 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 			} else { logger.InfoLog("checkHotLimit("+currency.Symbol+") Sent from fireblocks res: "+res.Id, &http.Request{}) }
 		}		
 	}
+
+	logger.Log(" - CheckBalanceService -- Finished checking "+walletBalance.CurrencyConfig.Symbol+" "+walletBalance.CurrencyConfig.TokenType+" hot limit")
 }

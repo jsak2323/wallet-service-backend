@@ -14,7 +14,7 @@ type systemConfigRepository struct {
     db *sql.DB
 }
 
-func NewMysqlSystemConfigRepository(db *sql.DB) sc.SystemConfigRepository {
+func NewMysqlSystemConfigRepository(db *sql.DB) sc.Repository {
     return &systemConfigRepository{
         db,
     }

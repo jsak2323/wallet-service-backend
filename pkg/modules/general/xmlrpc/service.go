@@ -9,22 +9,22 @@ import(
 type GeneralService struct {
     Symbol           string
     CurrencyConfigId int
-    healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.SystemConfigRepository
+    healthCheckRepo  hc.Repository
+    systemConfigRepo sc.Repository
 }
 
 func (gs *GeneralService) GetSymbol() string {
     return gs.Symbol
 }
 
-func (gs *GeneralService) GetHealthCheckRepo() hc.HealthCheckRepository {
+func (gs *GeneralService) GetHealthCheckRepo() hc.Repository {
     return gs.healthCheckRepo
 }
 
 func NewGeneralService(
     currencyConfig cc.CurrencyConfig,
-    healthCheckRepo hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository,
+    healthCheckRepo hc.Repository,
+    systemConfigRepo sc.Repository,
 ) *GeneralService {
     return &GeneralService{
         currencyConfig.Symbol,

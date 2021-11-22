@@ -12,10 +12,10 @@ import (
 )
 
 type SystemConfigService struct {
-    systemConfigRepo sc.SystemConfigRepository
+    systemConfigRepo sc.Repository
 }
 
-func NewSystemConfigService(systemConfigRepo sc.SystemConfigRepository) *SystemConfigService {
+func NewSystemConfigService(systemConfigRepo sc.Repository) *SystemConfigService {
     return &SystemConfigService{
         systemConfigRepo,
     }

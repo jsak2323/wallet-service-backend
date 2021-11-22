@@ -15,7 +15,7 @@ type rpcConfigRepository struct {
 	db *sql.DB
 }
 
-func NewMysqlRpcConfigRepository(db *sql.DB) rc.RpcConfigRepository {
+func NewMysqlRpcConfigRepository(db *sql.DB) rc.Repository {
 	return &rpcConfigRepository{
 		db,
 	}

@@ -57,10 +57,6 @@ type Configuration struct {
 
 	JWTSecret string `json:"jwt_secret"`
 
-    FireblocksCallbackPort    string `json:"fireblocks_callback_port"`
-    FireblocksCallbackSSLCert string `json:"fireblocks_callback_ssl_cert"`
-    FireblocksCallbackSSLKey  string `json:"fireblocks_callback_ssl_key"`
-
 	FireblocksHost          string `json:"fireblocks_host"`
 	FireblocksServeruser    string `json:"fireblocks_serveruser"`
 	FireblocksServerpass    string `json:"fireblocks_serverpass"`

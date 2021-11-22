@@ -18,7 +18,7 @@ type AddressTypeRpcRes struct {
 
 type ModuleService interface {
     GetSymbol() (string)
-    GetHealthCheckRepo() (hc.HealthCheckRepository)
+    GetHealthCheckRepo() (hc.Repository)
     IsBlockCountHealthy(nodeBlockCount int, rpcConfigId int) (bool, int, error)
 
     GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)

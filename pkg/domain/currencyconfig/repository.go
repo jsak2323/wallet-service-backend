@@ -1,6 +1,6 @@
 package currencyconfig
 
-type CurrencyConfigRepository interface {
+type Repository interface {
     Create(CurrencyConfig) error
     GetAll() ([]CurrencyConfig, error)
     GetBySymbol(symbol string) (*CurrencyConfig, error)

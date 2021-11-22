@@ -20,12 +20,12 @@ type GetBlockCountHandlerResponseMap map[string]map[string][]GetBlockCountRes
 
 type GetBlockCountService struct {
     moduleServices   *modules.ModuleServiceMap
-    systemConfigRepo sc.SystemConfigRepository
+    systemConfigRepo sc.Repository
 }
 
 func NewGetBlockCountService(
     moduleServices *modules.ModuleServiceMap, 
-    systemConfigRepo sc.SystemConfigRepository,
+    systemConfigRepo sc.Repository,
 ) *GetBlockCountService {
     return &GetBlockCountService{
         moduleServices,
@@ -83,8 +83,8 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
             _RES := GetBlockCountRes{
                 RpcConfig: RpcConfigResDetail{
                     RpcConfigId             : rpcConfig.Id,
-                    Symbol                  : SYMBOL,
-                    TokenType               : TOKENTYPE,
+                    Symbol                  : currRpc.Config.Symbol,
+                    TokenType               : currRpc.Config.TokenType,
                     Name                    : rpcConfig.Name,
                     Host                    : rpcConfig.Host,
                     Type                    : rpcConfig.Type,

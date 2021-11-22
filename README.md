@@ -57,6 +57,8 @@
     git clone git@35.240.159.3:btcid/wallet/wallet-services-backend-go.git
     cd wallet-services-backend-go
     mkdir logs
+
+## Run HTTP App
     go mod init
 
     // build app
@@ -67,4 +69,12 @@
     // run app
     ./main
 
+## Run Cron App
+    // build app
+    go build cmd/server/main.go
 
+    // setup database
+
+    // run app
+    // sleep duration e.g. "300ms", "1.5m" or "60s". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h" 
+    ./main -app cron -function [[function name]] -sleep [[ sleep duration ]]

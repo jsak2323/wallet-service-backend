@@ -1,6 +1,6 @@
 package rpcconfig
 
-type RpcConfigRepository interface {
+type Repository interface {
 	Create(RpcConfig) error
 	GetAll(page, limit int) ([]RpcConfig, error)
 	GetById(id int) (RpcConfig, error)

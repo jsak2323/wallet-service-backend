@@ -14,7 +14,7 @@ type currencyConfigRepository struct {
     db *sql.DB
 }
 
-func NewMysqlCurrencyConfigRepository(db *sql.DB) cc.CurrencyConfigRepository {
+func NewMysqlCurrencyConfigRepository(db *sql.DB) cc.Repository {
     return &currencyConfigRepository{
         db,
     }

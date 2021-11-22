@@ -3,7 +3,7 @@ package cron
 import (
     "fmt"
     "strconv"
-    "net/http"
+    "time"
 
     h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
@@ -16,14 +16,14 @@ import (
 
 type HealthCheckService struct {
     moduleServices  *modules.ModuleServiceMap
-    healthCheckRepo  hc.HealthCheckRepository
-    systemConfigRepo sc.SystemConfigRepository
+    healthCheckRepo  hc.Repository
+    systemConfigRepo sc.Repository
 }
 
 func NewHealthCheckService(
     moduleServices  *modules.ModuleServiceMap,
-    healthCheckRepo  hc.HealthCheckRepository,
-    systemConfigRepo sc.SystemConfigRepository,
+    healthCheckRepo  hc.Repository,
+    systemConfigRepo sc.Repository,
 ) *HealthCheckService {
     return &HealthCheckService{
         moduleServices,
@@ -32,7 +32,9 @@ func NewHealthCheckService(
     }
 }
 
-func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *http.Request) {
+func (hcs *HealthCheckService) HealthCheckHandler() {
+	startTime := time.Now()
+
     isPing := false
 
     gbcRES := make(h.GetBlockCountHandlerResponseMap)
@@ -49,7 +51,7 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
     maintenanceList, err := h.GetMaintenanceList(hcs.systemConfigRepo)
     if err != nil { logger.ErrorLog(" - HealthCheckHandler h.GetMaintenanceList err: "+err.Error()) }
 
-    logger.InfoLog(" - HealthCheckHandler Getting node blockcounts ..." , req)
+    logger.Log(" - HealthCheckHandler Getting node blockcounts ...")
     getBlockCountService.InvokeGetBlockCount(&gbcRES, "", "")
     logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results." )
 
@@ -95,6 +97,9 @@ func (hcs *HealthCheckService) HealthCheckHandler(w http.ResponseWriter, req *ht
             }
         }
     }
+
+    elapsedTime := time.Since(startTime)
+    fmt.Println(" - HealthCheckHandler Time elapsed: "+fmt.Sprintf("%f", elapsedTime.Minutes())+ " minutes.")
 }
 
 func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, blockDiff int, isBlockCountHealthy bool) error {

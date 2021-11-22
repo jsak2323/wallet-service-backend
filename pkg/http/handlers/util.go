@@ -22,7 +22,7 @@ func DecodeAndLogPostRequest(req *http.Request, output interface{}) error {
     return nil
 }
 
-func GetMaintenanceList(systemConfigRepo sc.SystemConfigRepository) (map[string]bool, error) {
+func GetMaintenanceList(systemConfigRepo sc.Repository) (map[string]bool, error) {
     maintenanceList := map[string]bool{}
     maintenanceListObj, err := systemConfigRepo.GetByName(sc.MAINTENANCE_LIST)
     if err != nil { return maintenanceList, err }

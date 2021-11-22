@@ -1,6 +1,6 @@
 package healthcheck
 
-type HealthCheckRepository interface {
+type Repository interface {
     GetAll() ([]HealthCheck, error)
     GetAllWithRpcConfig() ([]HealthCheckWithRpcConfig, error)
     GetByRpcConfigId(rpcConfigId int) (HealthCheck, error)
