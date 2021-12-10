@@ -28,7 +28,7 @@ func (s *DepositService) ListHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	defer handleResponse()
 
-	logger.InfoLog(" - deposit.ListHandler For all symbols, Requesting ...", req)
+	logger.InfoLog(" - deposit.ListHandler, Requesting ...", req)
 
 	if filters, err = parseFilters(req); err != nil {
 		logger.ErrorLog(" -- deposit.ListHandler parseFilters Error: " + err.Error())

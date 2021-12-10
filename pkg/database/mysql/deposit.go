@@ -66,9 +66,6 @@ func (r *depositRepository) Get(page, limit int, filters []map[string]interface{
 	query = query + " limit ?, ? "
 	params = append(params, page, limit)
 
-	fmt.Println("--a", query)
-	fmt.Println("--a", params)
-
 	return r.queryRows(query, params...)
 }
 
@@ -119,7 +116,6 @@ func (r *depositRepository) queryRows(query string, params ...interface{}) (depo
 	return deposits, nil
 }
 
-// not updating deposit
 func (r *depositRepository) Update(deposit domain.Deposit) (err error) {
 	return r.db.QueryRow(`
         UPDATE `+depositTable+`
