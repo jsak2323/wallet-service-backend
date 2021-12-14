@@ -1,9 +1,9 @@
 package model
 
 import (
-	"errors"
+	"fmt"
 
-	rr "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
+	rrs "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
 )
 
 type GetBalanceRpcRes struct {
@@ -11,16 +11,25 @@ type GetBalanceRpcRes struct {
     Error   string
 }
 
-func (r *GetBalanceRpcRes) SetFromMapValues(mapValues map[string]interface{}) (err error) {
+func (r *GetBalanceRpcRes) SetFromMapValues(mapValues map[string]interface{}, resFieldMap map[string]rrs.RpcResponse) (err error) {
 	var ok bool
+	var errRpcResp, balanceRpcResp rrs.RpcResponse
 
-	if r.Balance, ok = mapValues[rr.FieldNameBalance].(string); ok {
+	if errRpcResp, ok = resFieldMap[rrs.FieldNameError]; !ok {
+		return fmt.Errorf("Error rpc_response not configured")
+	}
+	
+	// if error found, assign error to error field and return
+	if ok := errRpcResp.ParseField(mapValues[rrs.FieldNameError], &r.Error); ok {
 		return nil
 	}
 
-	// if not ok, look for error tag
-	if r.Error, ok = mapValues[rr.FieldNameError].(string); !ok {
-		return errors.New("mismatched rpc response data type")
+	if balanceRpcResp, ok = resFieldMap[rrs.FieldNameBalance]; !ok {
+		return fmt.Errorf("Balance rpc_response not configured")
+	}
+
+	if ok = balanceRpcResp.ParseField(mapValues[rrs.FieldNameBalance], &r.Balance); !ok {
+		return fmt.Errorf("misconfigured rpc_response", )
 	}
 
 	return nil

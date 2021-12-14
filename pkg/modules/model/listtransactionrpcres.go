@@ -1,26 +1,55 @@
 package model
 
 import (
-	"errors"
+	"fmt"
+	"github.com/mitchellh/mapstructure"
 
-	rr "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
+	rrs "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
 )
 
 type ListTransactionsRpcRes struct {
-    Transactions string
-    Error        string
+	Transactions []Transaction
+	Error        string
 }
 
-func (r *ListTransactionsRpcRes) SetFromMapValues(mapValues map[string]interface{}) (err error) {
-	var ok bool
+type Transaction struct {
+	AddressTo   string `json:"to"`
+	Tx          string `json:"hash"`
+	Amount      string `json:"amount"`
+	Memo        string `json:"memo"`
+	SuccessTime string `json:"success_time"`
+}
 
-	if r.Transactions, ok = mapValues[rr.FieldNameBlockCount].(string); ok {
+func (r *ListTransactionsRpcRes) SetFromMapValues(mapValues map[string]interface{}, resFieldMap map[string]rrs.RpcResponse) (err error) {
+	var ok bool
+	var errRpcResp, transactionRpcresp rrs.RpcResponse
+
+	if errRpcResp, ok = resFieldMap[rrs.FieldNameError]; !ok {
+		return fmt.Errorf("Error rpc_response not configured")
+	}
+
+	// if error found, assign error to error field and return
+	if ok = errRpcResp.ParseField(mapValues[rrs.FieldNameError], &r.Error); ok {
 		return nil
 	}
 
-	// if not ok, look for error tag
-	if r.Error, ok = mapValues[rr.FieldNameError].(string); !ok {
-		return errors.New("mismatched rpc response data type")
+	if transactionRpcresp, ok = resFieldMap[rrs.FieldNameTransactions]; !ok {
+		return fmt.Errorf("Error rpc_response not configured")
+	}
+
+	tempResult, err := transactionRpcresp.ParseArrayOfJson(mapValues[rrs.FieldNameTransactions])
+	if err != nil {
+		return err
+	}
+
+	for _, temp := range tempResult {
+		transaction := Transaction{}
+
+		if err = mapstructure.Decode(temp, &transaction); err != nil {
+			return err
+		}
+
+		r.Transactions = append(r.Transactions, transaction)
 	}
 
 	return nil

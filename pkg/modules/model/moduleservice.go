@@ -4,6 +4,7 @@ import (
     "errors"
 
     rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	rrs "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
     hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 )
 
@@ -30,6 +31,6 @@ type ModuleService interface {
 }
 
 type RpcRes interface {
-    SetFromMapValues(mapValues map[string]interface{}) (err error)
+    SetFromMapValues(mapValues map[string]interface{}, resFieldMap map[string]rrs.RpcResponse) (err error)
 }
 

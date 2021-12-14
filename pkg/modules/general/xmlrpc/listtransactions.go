@@ -1,12 +1,13 @@
 package xmlrpc
 
 import (
-    "errors"
-    "strconv"
+    "encoding/json"
+	"errors"
+	"strconv"
 
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 type ListTransactionsXmlRpcRes struct {
@@ -37,7 +38,10 @@ func (gs *GeneralService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*
         return &res, errors.New("Unexpected error occured in Node.")
     }
 
-    res.Transactions = rpcRes.Content.Transactions
+    if err = json.Unmarshal([]byte(rpcRes.Content.Transactions), &res.Transactions); err != nil {
+        return nil, err
+    }
+    
     return &res, nil
 }
 

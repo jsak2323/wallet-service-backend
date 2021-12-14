@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"database/sql"
-	"fmt"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/deposit"
 )
@@ -20,11 +19,10 @@ func NewMysqlDepositRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *depositRepository) Create(deposit domain.Deposit) (id int, err error) {
+func (r *depositRepository) CreateOrUpdate(deposit domain.Deposit) (id int, err error) {
 	query := `
-		INSERT INTO ` + depositTable + ` (currency_id, tx, address_to, memo, amount, success_time, last_updated) 
-		VALUES(?, ?, ?, ?, ?, now())
-	`
+		INSERT INTO ` + depositTable + ` (currency_id, tx, address_to, memo, amount, log_index, confirmations, last_updated)
+		VALUES(?, ?, ?, ?, ?, ?, ?, now()) ON DUPLICATE KEY UPDATE confirmations = ?`
 
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
@@ -32,7 +30,7 @@ func (r *depositRepository) Create(deposit domain.Deposit) (id int, err error) {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(deposit.CurrencyId, deposit.Tx, deposit.AddressTo, deposit.Memo, deposit.SuccessTime)
+	res, err := stmt.Exec(deposit.CurrencyId, deposit.Tx, deposit.AddressTo, deposit.Memo, deposit.Amount, deposit.LogIndex, deposit.Confirmations, deposit.Confirmations)
 	if err != nil {
 		return 0, err
 	}
@@ -49,7 +47,7 @@ func (r *depositRepository) Get(page, limit int, filters []map[string]interface{
 	var params []interface{}
 	var query string
 
-	query = "SELECT id, currency_id, tx, address_to, memo, amount, success_time, last_updated FROM " + depositTable
+	query = "SELECT id, currency_id, tx, address_to, memo, amount, log_index, confirmations, success_time, last_updated FROM " + depositTable
 
 	if err := parseFilters(filters, &query, &params); err != nil {
 		return []domain.Deposit{}, err
@@ -70,7 +68,9 @@ func (r *depositRepository) Get(page, limit int, filters []map[string]interface{
 }
 
 func (r *depositRepository) GetById(id int) (deposit domain.Deposit, err error) {
-	query := "SELECT id, currency_id, tx, address_to, memo, amount, success_time, last_updated FROM " + depositTable + " where id = ?"
+	var successTime sql.NullTime
+
+	query := "SELECT id, currency_id, tx, address_to, memo, amount, log_index, confirmations, success_time, last_updated FROM " + depositTable + " where id = ?"
 
 	if err = r.db.QueryRow(query, id).Scan(
 		&deposit.Id,
@@ -78,16 +78,25 @@ func (r *depositRepository) GetById(id int) (deposit domain.Deposit, err error) 
 		&deposit.Tx,
 		&deposit.AddressTo,
 		&deposit.Memo,
-		&deposit.SuccessTime,
+		&deposit.Amount,
+		&deposit.LogIndex,
+		&deposit.Confirmations,
+		&successTime,
 		&deposit.LastUpdated,
 	); err != nil {
 		return domain.Deposit{}, err
+	}
+
+	if successTime.Valid {
+		deposit.SuccessTime = successTime.Time.String()
 	}
 
 	return deposit, nil
 }
 
 func (r *depositRepository) queryRows(query string, params ...interface{}) (deposits []domain.Deposit, err error) {
+	var successTime sql.NullTime
+
 	rows, err := r.db.Query(query, params...)
 	if err != nil {
 		return []domain.Deposit{}, err
@@ -104,10 +113,16 @@ func (r *depositRepository) queryRows(query string, params ...interface{}) (depo
 			&deposit.AddressTo,
 			&deposit.Memo,
 			&deposit.Amount,
-			&deposit.SuccessTime,
+			&deposit.LogIndex,
+			&deposit.Confirmations,
+			&successTime,
 			&deposit.LastUpdated,
 		); err != nil {
 			return []domain.Deposit{}, err
+		}
+
+		if successTime.Valid {
+			deposit.SuccessTime = successTime.Time.String()
 		}
 
 		deposits = append(deposits, deposit)
@@ -125,6 +140,8 @@ func (r *depositRepository) Update(deposit domain.Deposit) (err error) {
             address_to = ?,
             memo = ?,
             amount = ?,
+            log_index = ?,
+            confirmations = ?,
             success_time = ?,
             last_updated = now()
         WHERE id = ?`,
@@ -133,6 +150,8 @@ func (r *depositRepository) Update(deposit domain.Deposit) (err error) {
 		deposit.AddressTo,
 		deposit.Memo,
 		deposit.Amount,
+		deposit.LogIndex,
+		deposit.Confirmations,
 		deposit.SuccessTime,
 		deposit.Id,
 	).Err()
