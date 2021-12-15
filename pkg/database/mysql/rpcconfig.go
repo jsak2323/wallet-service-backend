@@ -38,7 +38,7 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
             is_health_check_enabled,
             atom_feed,
 			address)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);
         `,
 		rpcConfig.Type,
 		rpcConfig.Name,
