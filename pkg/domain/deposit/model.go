@@ -8,7 +8,7 @@ type Deposit struct {
 	Memo          string
 	Amount        string
 	Confirmations int
-	LogIndex      int
+	LogIndex      string
 	SuccessTime   string
 	LastUpdated   string
 }

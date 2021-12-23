@@ -160,10 +160,10 @@ CREATE TABLE deposit (
   last_updated  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
 
   PRIMARY KEY (id),
-  FOREIGN KEY (currency_id) REFERENCES currency_config(id)
-  UNIQUE KEY (tx)
-  INDEX (currency_id, address_to)
-  INDEX (currency_id, tx)
+  FOREIGN KEY (currency_id) REFERENCES currency_config(id),
+  UNIQUE KEY (tx),
+  INDEX (currency_id, address_to),
+  INDEX (currency_id, tx),
   INDEX (currency_id, success_time)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
