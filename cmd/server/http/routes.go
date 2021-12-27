@@ -18,6 +18,7 @@ import (
 	hu "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/user"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
+	hwd "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/withdraw"
 	huw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/user"
 	authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
@@ -25,6 +26,10 @@ import (
 )
 
 func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories) {
+	r.HandleFunc("/health", func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(200)
+	})
+	
 	// -- Auth
 	userService := hu.NewUserService(mysqlRepos.User, mysqlRepos.Role, mysqlRepos.UserRole, mysqlRepos.Permission)
 	r.HandleFunc("/login", userService.LoginHandler).Methods(http.MethodPost).Name("login")
@@ -133,12 +138,15 @@ func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRep
 	userWalletService := huw.NewUserWalletService(mysqlRepos.UserBalance)
 	r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
 
-	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, mysqlRepos.Withdraw, exchangeApiRepos.HotLimit, mysqlRepos.UserBalance)
+	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, mysqlRepos.WithdrawExchange, exchangeApiRepos.HotLimit, mysqlRepos.UserBalance)
 	r.HandleFunc("/wallet/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
 	r.HandleFunc("/wallet/{currency_id}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
 
 	depositService := hd.NewDepositService(mysqlRepos.Deposit)
 	r.HandleFunc("/deposit", depositService.ListHandler).Methods(http.MethodGet).Name("listdeposits")
+
+	withdrawService := hwd.NewWithdrawService(mysqlRepos.Withdraw)
+	r.HandleFunc("/withdraw", withdrawService.ListHandler).Methods(http.MethodGet).Name("listwithdraws")
 	
 	// -- GET listtransactions (disabled)
 	/*
