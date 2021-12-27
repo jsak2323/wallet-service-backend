@@ -75,5 +75,10 @@ func validateUpdateReq(rpcResponse domain.RpcResponse) error {
 		return errors.New("RPC Method Id")
 	}
 
+	err := json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), rpcResponse.JsonFields)
+	if err != nil && rpcResponse.JsonFieldsStr != "" {
+		return errors.New("JSON data at JSON Field")
+	}
+
 	return nil
 }
