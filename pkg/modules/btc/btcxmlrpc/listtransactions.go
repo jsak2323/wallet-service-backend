@@ -40,7 +40,7 @@ type ListTransactionsNodeXmlRpcResStruct struct {
 
 // todo: add limit compatibility
 func (bs *BtcService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
-    res := model.ListTransactionsRpcRes{ Transactions: "" }
+    res := model.ListTransactionsRpcRes{}
 
     rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
     xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
@@ -57,7 +57,7 @@ func (bs *BtcService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*mode
         // }
         // res.Transactions = transactionsJson
 
-        res.Transactions = nodeRpcRes.Content.Transactions
+        // res.Transactions = nodeRpcRes.Content.Transactions
 
         return &res, nil
 

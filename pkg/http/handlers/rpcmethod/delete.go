@@ -56,10 +56,4 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 		RES.Error = errInternalServer
 		return
 	}
-
-	if err = s.rmRepo.Delete(id); err != nil {
-		logger.ErrorLog(" -- rpcmethod.DeleteHandler rmRepo.Delete Error: " + err.Error())
-		RES.Error = errInternalServer
-		return
-	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
 	hc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/currency"
+	hd "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/deposit"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
 	hrc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcconfig"
@@ -136,6 +137,9 @@ func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRep
 	r.HandleFunc("/wallet/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
 	r.HandleFunc("/wallet/{currency_id}/getbalance", walletService.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
 
+	depositService := hd.NewDepositService(mysqlRepos.Deposit)
+	r.HandleFunc("/deposit", depositService.ListHandler).Methods(http.MethodGet).Name("listdeposits")
+	
 	// -- GET listtransactions (disabled)
 	/*
 		listTransactionsService := h.NewListTransactionsService(ModuleServices)

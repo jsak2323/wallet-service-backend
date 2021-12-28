@@ -69,7 +69,7 @@ func (xrm *XmlRpcMap) XmlRpcMapCall(method string, args *XmlRpcMapReq, resFieldM
 		return err
 	}
 
-	if err = reply.SetFromMapValues(mapValues); err != nil {
+	if err = reply.SetFromMapValues(mapValues, resFieldMap); err != nil {
 		fmt.Println(" - reply.SetFromMapValues err: " + err.Error())
 		return err
 	}
@@ -169,19 +169,42 @@ func DecodeResponseToMap(resBody io.ReadCloser, rpcResMap map[string]rrs.RpcResp
 	resValues = make(map[string]interface{})
 
 	for _, rpcRes := range rpcResMap {
-		pathArr := strings.Split(rpcRes.XMLPath, ".")
+		// skip error first
+		if rpcRes.TargetFieldName == rrs.FieldNameError { continue }
 
-		for _, tag := range pathArr {
-			var ok bool
+		if resValues[rpcRes.TargetFieldName], err = getValueFromResMap(rpcRes, xmlResMap); err != nil {
+			return map[string]interface{}{}, err
+		}
+	}
 
-			xmlResMap, ok = xmlResMap[tag].(map[string]interface{})
-			if !ok && rpcRes.FieldName != rrs.FieldNameError {
-				return map[string]interface{}{}, errors.New("mismatched rpc response config: " + rpcRes.FieldName)
-			}
+	// configured path not matching xmlResMap: could be misconfiguration or response returned error
+	if err != nil {
+		// find error xml path in xmlResMap
+		errRpcRes, ok := rpcResMap[rrs.FieldNameError]
+		if !ok {
+			return map[string]interface{}{}, fmt.Errorf("rpc_method have no error field rpc_response %+v", rpcResMap)
 		}
 
-		resValues[rpcRes.FieldName] = xmlResMap[rpcRes.DataTypeTag]
+		if resValues[errRpcRes.TargetFieldName], err = getValueFromResMap(errRpcRes, xmlResMap); err != nil {
+			return map[string]interface{}{}, err
+		}
 	}
 
 	return resValues, nil
+}
+
+func getValueFromResMap(rpcRes rrs.RpcResponse, xmlResMap map[string]interface{}) (value interface{}, err error) {
+	pathArr := strings.Split(rpcRes.XMLPath, ".")
+
+	for _, tag := range pathArr {
+		var ok bool
+
+		xmlResMap, ok = xmlResMap[tag].(map[string]interface{})
+		if !ok {
+			err = errors.New("mismatched rpc response config: " + rpcRes.TargetFieldName)
+			break
+		}
+	}
+
+	return xmlResMap[rpcRes.DataTypeXMLTag], nil
 }

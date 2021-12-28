@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	rr "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
+	rrs "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
 )
 
 type SendToAddressRpcRes struct {
@@ -11,7 +12,7 @@ type SendToAddressRpcRes struct {
     Error   string
 }
 
-func (r *SendToAddressRpcRes) SetFromMapValues(mapValues map[string]interface{}) (err error) {
+func (r *SendToAddressRpcRes) SetFromMapValues(mapValues map[string]interface{}, resFieldMap map[string]rrs.RpcResponse) (err error) {
 	var ok bool
 
 	if r.TxHash, ok = mapValues[rr.FieldNameTxHash].(string); ok {

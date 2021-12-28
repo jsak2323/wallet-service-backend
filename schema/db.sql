@@ -82,7 +82,7 @@ CREATE TABLE cold_balance (
   name                  VARCHAR(50) NOT NULL DEFAULT "",
   type                  VARCHAR(20) NOT NULL DEFAULT "",
   fireblocks_name       VARCHAR(50) NOT NULL DEFAULT "",
-  balance               NUMERIC NOT NULL DEFAULT 0,
+  balance               VARCHAR(255) NOT NULL DEFAULT "",
   address               VARCHAR(255) NOT NULL DEFAULT "",
   active                TINYINT(1) NOT NULL DEFAULT 0,
   last_updated          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
@@ -96,7 +96,7 @@ CREATE TABLE hot_limit (
    id           INT(11) NOT NULL AUTO_INCREMENT,
    currency_id  INT(11) NOT NULL,
    type         VARCHAR(20) NOT NULL DEFAULT "",
-   amount       NUMERIC NOT NULL DEFAULT 0,
+   amount       VARCHAR(255) NOT NULL DEFAULT "",
 
    PRIMARY KEY (id),
    FOREIGN KEY (currency_id) REFERENCES currency_config(id)
@@ -139,8 +139,34 @@ CREATE TABLE rpc_response (
     xml_path      VARCHAR(255) NOT NULL DEFAULT "",
     field_name    VARCHAR(50) NOT NULL DEFAULT "",
     data_type_tag VARCHAR(50) NOT NULL DEFAULT "",
+    parse_type    VARCHAR(50) NOT NULL DEFAULT "",
+    json_fields   VARCHAR(255) NOT NULL DEFAULT "",
     rpc_method_id INT(11) NOT NULL,
 
     PRIMARY KEY (id),
     FOREIGN KEY (rpc_method_id) REFERENCES rpc_method(id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+CREATE TABLE deposit (
+  id            BIGINT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  currency_id   INT(11) NOT NULL,
+  address_to    VARCHAR(255) NOT NULL,
+  tx            VARCHAR(255) NOT NULL,
+  memo          VARCHAR(255) NOT NULL,
+  log_index     VARCHAR(255) NOT NULL,
+  confirmations INT(11) NOT NULL DEFAULT 0,
+  amount        VARCHAR(255) NOT NULL DEFAULT "",
+  success_time  DATETIME NULL,
+  last_updated  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+
+  PRIMARY KEY (id),
+  FOREIGN KEY (currency_id) REFERENCES currency_config(id),
+  UNIQUE KEY (tx),
+  INDEX (currency_id, address_to),
+  INDEX (currency_id, tx),
+  INDEX (currency_id, success_time)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+CREATE TABLE withdraw (
+
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;

@@ -1,7 +1,8 @@
 package handlers
 
 import (
-    hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+	hc "github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 const errInternalServer = "Internal server error"
@@ -40,7 +41,7 @@ type GetBalanceRes struct {
 
 type ListTransactionsRes struct {
     RpcConfig       RpcConfigResDetail
-    Transactions    string
+    Transactions    []model.Transaction
     Error           string
 }
 

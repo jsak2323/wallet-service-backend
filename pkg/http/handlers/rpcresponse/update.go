@@ -59,17 +59,25 @@ func validateUpdateReq(rpcResponse domain.RpcResponse) error {
 	if rpcResponse.Id == 0 {
 		return errors.New("ID")
 	}
-	if rpcResponse.FieldName == "" {
-		return errors.New("Field Name")
+	if rpcResponse.TargetFieldName == "" {
+		return errors.New("Target Field Name")
 	}
 	if rpcResponse.XMLPath == "" {
 		return errors.New("XML Path")
 	}
-	if rpcResponse.DataTypeTag == "" {
-		return errors.New("Data Type Tag")
+	if rpcResponse.DataTypeXMLTag == "" {
+		return errors.New("Data Type XML Tag")
+	}
+	if rpcResponse.ParseType == "" {
+		return errors.New("Parse Type")
 	}
 	if rpcResponse.RpcMethodId == 0 {
 		return errors.New("RPC Method Id")
+	}
+
+	err := json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), rpcResponse.JsonFields)
+	if err != nil && rpcResponse.JsonFieldsStr != "" {
+		return errors.New("JSON data at JSON Field")
 	}
 
 	return nil

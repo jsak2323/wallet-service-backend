@@ -1,7 +1,7 @@
 package ethxmlrpc
 
 import(
-    "errors"
+    // "errors"
     "strconv"
 
     rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
@@ -20,10 +20,12 @@ func (es *EthService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*mode
     if err != nil { 
         return &res, err
 
-    } else if res.Transactions == "" {
-        return &res, errors.New("Unexpected error occured in Node.")
-
     } else {
         return &res, nil
     }
+    // else if res.Transactions == "" {
+    //     return &res, errors.New("Unexpected error occured in Node.")
+
+    // } 
+    
 }
