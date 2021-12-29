@@ -2,13 +2,8 @@ package error
 
 import (
 	"fmt"
-	"reflect"
 	"runtime"
 )
-
-func GetFunctionName(i interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
-}
 
 func (err Error) Error() string {
 	return err.Title
@@ -22,25 +17,25 @@ func (err Error) GetTrace() string {
 	return err.Trace
 }
 
-func AddTrace(err error, functionName string) Error {
+func AddTrace(err error) Error {
 	var (
 		trace string
 	)
 
 	if newError, ok := err.(Error); ok {
-		_, file, ln, ok := runtime.Caller(1)
+		pc, file, ln, ok := runtime.Caller(1)
 		if ok {
-			trace = fmt.Sprintf("%s(%d) %s\n%s", file, ln, functionName, newError.GetTrace())
+			trace = fmt.Sprintf("%s(%d) %s\n%s", file, ln, runtime.FuncForPC(pc).Name(), newError.GetTrace())
 		}
 
 		return NewError(newError.Error(), newError.GetMessage(), trace)
 	}
 
 	if newErr, ok := err.(error); ok {
-		_, file, ln, ok := runtime.Caller(1)
+		pc, file, ln, ok := runtime.Caller(1)
 		if ok {
 
-			trace = fmt.Sprintf("%s(%d) %s\n", file, ln, functionName)
+			trace = fmt.Sprintf("%s(%d) %s\n", file, ln, runtime.FuncForPC(pc).Name())
 		}
 
 		return NewError(newErr.Error(), newErr.Error(), trace)

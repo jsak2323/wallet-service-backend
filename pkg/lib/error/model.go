@@ -3,7 +3,7 @@ package error
 type Error struct {
 	Title   string `json:"title"`
 	Message string `json:"message"`
-	Trace   string
+	Trace   string `json:"-"`
 }
 
 func NewError(title, message, trace string) Error {
