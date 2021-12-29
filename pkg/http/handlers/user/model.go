@@ -2,6 +2,7 @@ package user
 
 import (
 	userDmn "github.com/btcid/wallet-services-backend-go/pkg/domain/user"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 type CreateReq struct {
@@ -9,9 +10,9 @@ type CreateReq struct {
 }
 
 type CreateRes struct {
-	Id      int     `json:"id"`
-	Message string  `json:"message"`
-	Error   string	`json:"error"`
+	Id      int    `json:"id"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
 }
 
 type UpdateReq struct {
@@ -29,18 +30,18 @@ type LoginReq struct {
 }
 
 type LoginRes struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	Error 		 string `json:"error"`
+	AccessToken  string     `json:"access_token"`
+	RefreshToken string     `json:"refresh_token"`
+	Error        errs.Error `json:"error"`
 }
 
 type ListRes struct {
 	Users []userDmn.User `json:"users"`
-	Error string 		 `json:"error"`
+	Error string         `json:"error"`
 }
 
 type StandardRes struct {
-    Success bool	`json:"success"`
-	Message string  `json:"message"`
-    Error   string 	`json:"error"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
 }
