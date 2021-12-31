@@ -6,46 +6,54 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		updateReq   UpdateReq
-		RES         StandardRes
-		err         error
+		updateReq UpdateReq
+		RES       StandardRes
+		err       error
+		errTitle  string
 	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		RES.Success = true
+		RES.Message = "User successfully updated"
+
+		if err != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Success = true
-			RES.Message = "User successfully updated"
+			logger.ErrorLog(errs.Logged(RES.Error))
+			RES.Success = false
+			RES.Message = ""
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
+
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
-		logger.ErrorLog(" - UpdateUserHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		errTitle = errs.ErrorUnmarshalBodyRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 
 	if !updateReq.valid() {
-		logger.ErrorLog(" - UpdateUserHandler invalid request")
-		RES.Error = "Invalid request"
+		errTitle = errs.InvalidRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 
 	if updateReq.Password != "" {
 		hashPasswordByte, err := bcrypt.GenerateFromPassword([]byte(updateReq.Password), bcrypt.DefaultCost)
 		if err != nil {
-			logger.ErrorLog(" - UpdateUserHandler bcrypt.GenerateFromPassword err: " + err.Error())
-			RES.Error = errInternalServer
+			errTitle = errs.FailedGeneratePassword.Title
+			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 			return
 		}
 
@@ -53,8 +61,8 @@ func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Reque
 	}
 
 	if err = svc.userRepo.Update(updateReq.User); err != nil {
-		logger.ErrorLog(" - UpdateUserHandler svc.roleRepo.Update err: " + err.Error())
-		RES.Error = errInternalServer
+		errTitle = errs.FailedUpdateUser.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 }

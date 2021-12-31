@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/gorilla/mux"
 )
@@ -12,37 +13,42 @@ import (
 func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Request) {
 	var (
 		userId, roleId int
-		RES   				 StandardRes
-		err   				 error
+		RES            StandardRes
+		err            error
+		errTitle       string
 	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		RES.Success = true
+		RES.Message = "Role successfully removed from User"
+		if err != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Success = true
-			RES.Message = "Role successfully removed from User"
+			logger.ErrorLog(errs.Logged(RES.Error))
+			RES.Success = false
+			RES.Message = ""
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	vars := mux.Vars(req)
-    if userId, err = strconv.Atoi(vars["user_id"]); err != nil {
-		logger.ErrorLog(" - DeletePermissionHandler invalid request")
-		RES.Error = "Invalid request user_id"
+	if userId, err = strconv.Atoi(vars["user_id"]); err != nil {
+		errTitle = errs.InvalidRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 	}
 
-    if roleId, err = strconv.Atoi(vars["role_id"]); err != nil {
-		logger.ErrorLog(" - DeletePermissionHandler invalid request")
-		RES.Error = "Invalid request role_id"
+	if roleId, err = strconv.Atoi(vars["role_id"]); err != nil {
+		errTitle = errs.InvalidRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 	}
 
 	if err = svc.urRepo.Delete(userId, roleId); err != nil {
-		logger.ErrorLog(" - AddPermissionsHandler svc.userRepo.Delete err: " + err.Error())
-		RES.Error = err.Error()
+		errTitle = errs.FailedDeleteRoleUser.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 }

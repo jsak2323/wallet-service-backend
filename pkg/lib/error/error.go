@@ -5,29 +5,28 @@ import (
 	"runtime"
 )
 
-func (err Error) Error() string {
+func (err *Error) Error() string {
 	return err.Title
 }
 
-func (err Error) GetMessage() string {
+func (err *Error) GetMessage() string {
 	return err.Message
 }
 
-func (err Error) GetTrace() string {
+func (err *Error) GetTrace() string {
 	return err.Trace
 }
 
-func AddTrace(err error) Error {
+func AddTrace(err error) *Error {
 	var (
 		trace string
 	)
 
-	if newError, ok := err.(Error); ok {
+	if newError, ok := err.(*Error); ok {
 		pc, file, ln, ok := runtime.Caller(1)
 		if ok {
 			trace = fmt.Sprintf("%s(%d) %s\n%s", file, ln, runtime.FuncForPC(pc).Name(), newError.GetTrace())
 		}
-
 		return NewError(newError.Error(), newError.GetMessage(), trace)
 	}
 
@@ -44,8 +43,8 @@ func AddTrace(err error) Error {
 	return NewError("unrecognized error type", "", "")
 }
 
-func AssignErr(from error, to Error) Error {
-	if fromError, ok := from.(Error); ok {
+func AssignErr(from error, to *Error) *Error {
+	if fromError, ok := from.(*Error); ok {
 		return NewError(to.Error(), fromError.GetMessage(), fromError.GetTrace())
 	}
 
@@ -56,18 +55,12 @@ func AssignErr(from error, to Error) Error {
 	return NewError("unrecognized error type", "", "")
 }
 
-func logged(err error) Error {
-	if newErr, ok := err.(Error); ok {
-		fmt.Println(fmt.Sprintf("Title: %s\nMessage: %s\nTrace: \n%s\n", newErr.Error(), newErr.GetMessage(), newErr.GetTrace()))
-		res := Error{
-			Title:   newErr.Title,
-			Message: newErr.Message,
-			Trace:   newErr.Trace,
-		}
-		return res
+func Logged(err error) string {
+	if newErr, ok := err.(*Error); ok {
+		return fmt.Sprintf("Title: %s\nMessage: %s\nTrace: \n%s\n", newErr.Error(), newErr.GetMessage(), newErr.GetTrace())
 	}
 
-	return InternalServerErr
+	return fmt.Sprintf("Title: %s\nMessage: %s\nTrace: \n%s\n", InternalServerErr.Error(), InternalServerErr.GetMessage(), InternalServerErr.GetTrace())
 }
 
 // func func2() error {

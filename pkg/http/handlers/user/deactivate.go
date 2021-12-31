@@ -5,39 +5,46 @@ import (
 	"net/http"
 	"strconv"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/gorilla/mux"
 )
 
 func (svc *UserService) DeactivateUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		userId int
-		RES   	     StandardRes
-		err   	     error
+		userId   int
+		RES      StandardRes
+		err      error
+		errTitle string
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		RES.Success = true
+		RES.Message = "User successfully deactivated"
+		if err != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Success = true
-			RES.Message = "User successfully deactivated"
+			logger.ErrorLog(errs.Logged(RES.Error))
+			RES.Success = false
+			RES.Message = ""
 		}
+
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	vars := mux.Vars(req)
-    if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" - DeactivateUserHandler invalid request")
-		RES.Error = "Invalid request"
+	if userId, err = strconv.Atoi(vars["id"]); err != nil {
+		errTitle = errs.InvalidRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+
 	}
 
 	if err = svc.userRepo.ToggleActive(userId, false); err != nil {
-		logger.ErrorLog(" - DeactivateUserHandler svc.userRepo.ToggleActive err: " + err.Error())
-		RES.Error = err.Error()
+		errTitle = errs.FailedDeactivateUser.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 }

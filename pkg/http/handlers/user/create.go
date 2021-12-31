@@ -2,57 +2,64 @@ package user
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
-
 
 func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
 		createReq CreateReq
 		RES       CreateRes
 		err       error
+		errTitle  string
 	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		RES.Message = "User successfully created"
+		if err != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Message = "User successfully created"
+			RES.Message = ""
+			logger.ErrorLog(errs.Logged(RES.Error))
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		logger.ErrorLog(" - CreateUserHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		errTitle = errs.ErrorUnmarshalBodyRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 
 	if !createReq.valid() {
-		logger.ErrorLog(" - CreateUserHandler invalid request")
-		RES.Error = "Invalid request"
+		err = errs.InvalidRequest
+		errTitle = errs.InvalidRequest.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 
 	hashPasswordByte, err := bcrypt.GenerateFromPassword([]byte(createReq.Password), bcrypt.DefaultCost)
 	if err != nil {
-		logger.ErrorLog(" - CreateUserHandler bcrypt.GenerateFromPassword err: " + err.Error())
-		RES.Error = errInternalServer
+		errTitle = errs.FailedGeneratePassword.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 
 	createReq.Password = string(hashPasswordByte)
 
 	if RES.Id, err = svc.userRepo.Create(createReq.User); err != nil {
-		logger.ErrorLog(" - CreateUserHandler svc.userRepo.Create err: " + err.Error())
-		RES.Error = errInternalServer
+		log.Println(err)
+		errTitle = errs.FailedCreateUser.Title
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
 		return
 	}
 }
