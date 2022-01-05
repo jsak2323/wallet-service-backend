@@ -14,9 +14,8 @@ func (svc *UserService) LogoutHandler(w http.ResponseWriter, req *http.Request) 
 	var (
 		RES StandardRes
 
-		valid    bool
-		err      error
-		errTitle string
+		valid bool
+		err   error
 	)
 
 	handleResponse := func() {
@@ -36,14 +35,12 @@ func (svc *UserService) LogoutHandler(w http.ResponseWriter, req *http.Request) 
 	defer handleResponse()
 
 	if _, valid, err = jwt.ParseFromRequest(req); err != nil {
-		errTitle = errs.FailedCreateToken.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateToken.Title})
 		return
 	}
 
 	if !valid {
-		errTitle = errs.InvalidToken.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidToken.Title})
 		return
 	}
 }

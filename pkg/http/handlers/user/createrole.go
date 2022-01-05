@@ -10,10 +10,9 @@ import (
 
 func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		urReq    UserRoleReq
-		RES      StandardRes
-		err      error
-		errTitle string
+		urReq UserRoleReq
+		RES   StandardRes
+		err   error
 	)
 
 	handleResponse := func() {
@@ -35,20 +34,17 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 
 	if err = json.NewDecoder(req.Body).Decode(&urReq); err != nil {
 
-		errTitle = errs.ErrorUnmarshalBodyRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if !urReq.valid() {
-		errTitle = errs.InvalidRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = svc.urRepo.Create(urReq.UserId, urReq.RoleId); err != nil {
-		errTitle = errs.FailedCreateRoleUser.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRoleUser.Title})
 		return
 	}
 }

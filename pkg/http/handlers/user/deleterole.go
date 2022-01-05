@@ -15,7 +15,6 @@ func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		userId, roleId int
 		RES            StandardRes
 		err            error
-		errTitle       string
 	)
 
 	handleResponse := func() {
@@ -37,18 +36,15 @@ func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 
 	vars := mux.Vars(req)
 	if userId, err = strconv.Atoi(vars["user_id"]); err != nil {
-		errTitle = errs.InvalidRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 	}
 
 	if roleId, err = strconv.Atoi(vars["role_id"]); err != nil {
-		errTitle = errs.InvalidRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 	}
 
 	if err = svc.urRepo.Delete(userId, roleId); err != nil {
-		errTitle = errs.FailedDeleteRoleUser.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRoleUser.Title})
 		return
 	}
 }

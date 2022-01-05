@@ -12,10 +12,9 @@ import (
 
 func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		userId   int
-		RES      StandardRes
-		err      error
-		errTitle string
+		userId int
+		RES    StandardRes
+		err    error
 	)
 
 	handleResponse := func() {
@@ -37,13 +36,11 @@ func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Req
 
 	vars := mux.Vars(req)
 	if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		errTitle = errs.InvalidRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 	}
 
 	if err = svc.userRepo.ToggleActive(userId, true); err != nil {
-		errTitle = errs.FailedActivateUser.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedActivateUser.Title})
 		return
 	}
 }

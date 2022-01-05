@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/gorilla/mux"
 )
@@ -18,9 +19,11 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- currency.DeactivateHandler Success!", req)
 
@@ -29,6 +32,8 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -36,13 +41,12 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 
 	vars := mux.Vars(req)
 	if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" - currency.DeactivateHandler invalid request")
-		RES.Error = "Invalid request"
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		return
 	}
 
 	if err = svc.ccRepo.ToggleActive(userId, false); err != nil {
-		logger.ErrorLog(" - currency.DeactivateHandler svc.ccRepo.ToggleActive err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeactivateCurrencyConfig.Title})
 		return
 	}
 }

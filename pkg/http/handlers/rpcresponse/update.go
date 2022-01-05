@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,10 +19,13 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
+
 			logger.InfoLog(" -- rpcresponse.UpdateHandler Success!", req)
 
 			RES.Success = true
@@ -29,6 +33,8 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 
 			config.LoadRpcResponseByRpcMethodId(s.rrsRepo, rpcResponse.RpcMethodId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,20 +43,17 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 	logger.InfoLog(" -- rpcresponse.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcResponse); err != nil {
-		logger.ErrorLog(" -- rpcresponse.UpdateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if err = validateUpdateReq(rpcResponse); err != nil {
-		logger.ErrorLog(" -- rpcresponse.UpdateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = s.rrsRepo.Update(rpcResponse); err != nil {
-		logger.ErrorLog(" -- rpcresponse.UpdateHandler rrsRepo.Update Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRPCResponse.Title})
 		return
 	}
 }

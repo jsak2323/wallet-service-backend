@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,7 +15,6 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 		createReq CreateReq
 		RES       CreateRes
 		err       error
-		errTitle  string
 	)
 
 	handleResponse := func() {
@@ -35,31 +33,26 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		errTitle = errs.ErrorUnmarshalBodyRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if !createReq.valid() {
 		err = errs.InvalidRequest
-		errTitle = errs.InvalidRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	hashPasswordByte, err := bcrypt.GenerateFromPassword([]byte(createReq.Password), bcrypt.DefaultCost)
 	if err != nil {
-		errTitle = errs.FailedGeneratePassword.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGeneratePassword.Title})
 		return
 	}
 
 	createReq.Password = string(hashPasswordByte)
 
 	if RES.Id, err = svc.userRepo.Create(createReq.User); err != nil {
-		log.Println(err)
-		errTitle = errs.FailedCreateUser.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateUser.Title})
 		return
 	}
 }

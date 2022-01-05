@@ -17,10 +17,9 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 		loginReq LoginReq
 		RES      LoginRes
 
-		user     user.User
-		td       jwt.TokenDetails
-		err      error
-		errTitle string
+		user user.User
+		td   jwt.TokenDetails
+		err  error
 	)
 
 	handleResponse := func() {
@@ -39,38 +38,32 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&loginReq); err != nil {
-		errTitle = errs.ErrorUnmarshalBodyRequest.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if user, err = svc.userRepo.GetByUsername(loginReq.Username); err != nil {
-		errTitle = errs.UsernameNotFound.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.UsernameNotFound.Title})
 		return
 	}
 
 	if user.RoleNames, err = svc.roleRepo.GetNamesByUserId(user.Id); err != nil {
-		errTitle = errs.RolesNotFound.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetRolesByUserID.Title})
 		return
 	}
 
 	if user.PermissionNames, err = svc.permissionRepo.GetNamesByUserId(user.Id); err != nil {
-		errTitle = errs.Permissions.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.Permissions.Title})
 		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password)); err != nil {
-		errTitle = errs.IncorrectPassword.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.IncorrectPassword.Title})
 		return
 	}
 
 	if td, err = jwt.CreateToken(user); err != nil {
-		errTitle = errs.FailedCreateToken.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateToken.Title})
 		return
 	}
 

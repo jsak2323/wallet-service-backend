@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcmethod"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,9 +19,11 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcmethod.UpdateHandler Success!", req)
 
@@ -29,6 +32,8 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 
 			config.LoadRpcMethodByRpcConfigId(s.rmRepo, rpcMethod.RpcConfigId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,20 +42,17 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcmethod.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcMethod); err != nil {
-		logger.ErrorLog(" -- rpcmethod.UpdateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if err = validateUpdateReq(rpcMethod); err != nil {
-		logger.ErrorLog(" -- rpcmethod.UpdateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = s.rmRepo.Update(rpcMethod); err != nil {
-		logger.ErrorLog(" -- rpcmethod.UpdateHandler rmRepo.Update Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRPCMethod.Title})
 		return
 	}
 }

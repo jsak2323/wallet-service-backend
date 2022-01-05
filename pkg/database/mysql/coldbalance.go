@@ -2,8 +2,9 @@ package mysql
 
 import (
 	"database/sql"
-	
+
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const coldBalanceTable = "cold_balance"
@@ -14,9 +15,9 @@ type coldBalanceRepository struct {
 }
 
 func NewMysqlColdBalanceRepository(db *sql.DB) domain.Repository {
-    return &coldBalanceRepository{
-        db,
-    }
+	return &coldBalanceRepository{
+		db,
+	}
 }
 
 func (r *coldBalanceRepository) Create(coldBalance domain.ColdBalance) (id int, err error) {
@@ -27,40 +28,40 @@ func (r *coldBalanceRepository) Create(coldBalance domain.ColdBalance) (id int, 
 
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
-    defer stmt.Close()
+	defer stmt.Close()
 
-	res, err := stmt.Exec(coldBalance.CurrencyId, coldBalance.Name, coldBalance.Type, coldBalance.FireblocksName, coldBalance.Balance, coldBalance.Address); 
+	res, err := stmt.Exec(coldBalance.CurrencyId, coldBalance.Name, coldBalance.Type, coldBalance.FireblocksName, coldBalance.Balance, coldBalance.Address)
 	if err != nil {
-        return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	lastInsertId, err := res.LastInsertId()
-    if err != nil {
-        return 0, err
-    }
+	if err != nil {
+		return 0, errs.AddTrace(err)
+	}
 
 	return int(lastInsertId), nil
 }
 
-func(r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, error) {
+func (r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, error) {
 	var params []interface{}
-	
+
 	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable
 
 	if limit <= 0 {
 		limit = coldBalanceDefaultLimit
 	}
-	
+
 	if page > 0 {
 		query = query + " offset ?"
 		params = append(params, page*limit)
 	}
-	
+
 	query = query + " limit ?"
 	params = append(params, limit)
-	
+
 	return r.queryRows(query, params...)
 }
 
@@ -78,7 +79,7 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 		&balance.Active,
 		&balance.LastUpdated,
 	); err != nil {
-		return domain.ColdBalance{}, err
+		return domain.ColdBalance{}, errs.AddTrace(err)
 	}
 
 	return balance, nil
@@ -86,20 +87,20 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 
 func (r *coldBalanceRepository) GetByCurrencyId(currencyId int) (balances []domain.ColdBalance, err error) {
 	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
-	
+
 	return r.queryRows(query, currencyId)
 }
 
-func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (balances []domain.ColdBalance, err error) {
+func (r *coldBalanceRepository) queryRows(query string, params ...interface{}) (balances []domain.ColdBalance, err error) {
 	rows, err := r.db.Query(query, params...)
 	if err != nil {
-		return []domain.ColdBalance{}, err
+		return []domain.ColdBalance{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var balance domain.ColdBalance
-		
+
 		if err = rows.Scan(
 			&balance.Id,
 			&balance.CurrencyId,
@@ -111,7 +112,7 @@ func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (
 			&balance.Active,
 			&balance.LastUpdated,
 		); err != nil {
-			return []domain.ColdBalance{}, err
+			return []domain.ColdBalance{}, errs.AddTrace(err)
 		}
 
 		balances = append(balances, balance)
@@ -123,7 +124,7 @@ func (r *coldBalanceRepository) queryRows(query string, params... interface{}) (
 // not updating balance
 func (r *coldBalanceRepository) Update(coldBalance domain.ColdBalance) (err error) {
 	return r.db.QueryRow(`
-        UPDATE ` + coldBalanceTable + `
+        UPDATE `+coldBalanceTable+`
         SET 
             currency_id = ?,
             name = ?,
@@ -132,21 +133,31 @@ func (r *coldBalanceRepository) Update(coldBalance domain.ColdBalance) (err erro
             address = ?,
             last_updated = now()
         WHERE id = ?`,
-        coldBalance.CurrencyId,
-        coldBalance.Name,
-        coldBalance.Type,
-        coldBalance.FireblocksName,
-        coldBalance.Address,
-        coldBalance.Id,
-    ).Err()
+		coldBalance.CurrencyId,
+		coldBalance.Name,
+		coldBalance.Type,
+		coldBalance.FireblocksName,
+		coldBalance.Address,
+		coldBalance.Id,
+	).Err()
 }
 
 func (r *coldBalanceRepository) UpdateBalance(id int, balance string) (err error) {
-	return r.db.QueryRow("UPDATE cold_balance SET balance = ? WHERE id = ?", balance, id).Err()
+	err = r.db.QueryRow("UPDATE cold_balance SET balance = ? WHERE id = ?", balance, id).Err()
+	if err != nil {
+		errs.AddTrace(err)
+	}
+
+	return nil
 }
 
-func(r *coldBalanceRepository) ToggleActive(userId int, active bool) error {
+func (r *coldBalanceRepository) ToggleActive(userId int, active bool) error {
 	query := "UPDATE " + coldBalanceTable + " SET active = ? WHERE id = ?"
 
-	return r.db.QueryRow(query, active, userId).Err()
+	err := r.db.QueryRow(query, active, userId).Err()
+	if err != nil {
+		errs.AddTrace(err)
+	}
+
+	return nil
 }

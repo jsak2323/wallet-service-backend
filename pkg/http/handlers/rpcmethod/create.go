@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcmethod"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,9 +19,11 @@ func (s *RpcMethodService) CreateHandler(w http.ResponseWriter, req *http.Reques
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcmethod.CreateHandler Success!", req)
 
@@ -29,6 +32,8 @@ func (s *RpcMethodService) CreateHandler(w http.ResponseWriter, req *http.Reques
 
 			config.LoadRpcMethodByRpcConfigId(s.rmRepo, rpcMethod.RpcConfigId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,26 +42,22 @@ func (s *RpcMethodService) CreateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcmethod.CreateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcMethod); err != nil {
-		logger.ErrorLog(" -- rpcmethod.CreateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if err = validateCreateReq(rpcMethod); err != nil {
-		logger.ErrorLog(" -- rpcmethod.CreateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if rpcMethod.Id, err = s.rmRepo.Create(rpcMethod); err != nil {
-		logger.ErrorLog(" -- rpcmethod.CreateHandler rmRepo.Create Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCMethod.Title})
 		return
 	}
 
 	if err = s.rcrmRepo.Create(rpcMethod.RpcConfigId, rpcMethod.Id); err != nil {
-		logger.ErrorLog(" -- rpcmethod.CreateHandler rcrmRepo.Create Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCConfigRPCMethod.Title})
 		return
 	}
 }

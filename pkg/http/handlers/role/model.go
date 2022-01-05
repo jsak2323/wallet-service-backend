@@ -2,6 +2,7 @@ package role
 
 import (
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/role"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 type CreateReq struct {
@@ -9,9 +10,9 @@ type CreateReq struct {
 }
 
 type CreateRes struct {
-	Id  	int    `json:"id"`
-	Message string `json:"message"`
-	Error 	string `json:"error"`
+	Id      int         `json:"id"`
+	Message string      `json:"message"`
+	Error   *errs.Error `json:"error"`
 }
 
 type UpdateReq struct {
@@ -20,16 +21,16 @@ type UpdateReq struct {
 
 type ListRes struct {
 	Roles []domain.Role `json:"roles"`
-	Error string 		`json:"error"`
+	Error *errs.Error   `json:"error"`
 }
 
 type RolePermissionReq struct {
-	RoleId       int  `json:"role_id"`
+	RoleId       int `json:"role_id"`
 	PermissionId int `json:"permission_id"`
 }
 
 type StandardRes struct {
-    Success bool	`json:"success"`
-	Message string  `json:"message"`
-    Error   string 	`json:"error"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Error   *errs.Error `json:"error"`
 }

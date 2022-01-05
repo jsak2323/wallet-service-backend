@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -19,8 +20,9 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcconfig.CreateHandler Success!", req)
 
@@ -29,6 +31,8 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,33 +41,30 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcconfig.CreateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcConfig); err != nil {
-		logger.ErrorLog(" -- rpcconfig.CreateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if err = validateCreateReq(rpcConfig); err != nil {
-		logger.ErrorLog(" -- rpcconfig.CreateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = s.rcRepo.Create(rpcConfig); err != nil {
-		logger.ErrorLog(" -- rpcconfig.CreateHandler rcRepo.Create Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCConfig.Title})
 		return
 	}
 }
 
 func validateCreateReq(rpcConfig domain.RpcConfig) error {
 	if rpcConfig.Name == "" {
-		return errors.New("Name")
+		return errors.New("invalid Name")
 	}
 	if rpcConfig.Host == "" {
-		return errors.New("Host")
+		return errors.New("invalid Host")
 	}
 	if rpcConfig.Path == "" {
-		return errors.New("Path")
+		return errors.New("invalid Path")
 	}
 
 	return nil

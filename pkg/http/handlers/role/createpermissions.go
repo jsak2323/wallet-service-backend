@@ -5,22 +5,21 @@ import (
 	"net/http"
 
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
-
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
-func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Request) {
+func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		updateReq UpdateReq
-		RES       StandardRes
-		err       error
+		rpReq RolePermissionReq
+		RES   StandardRes
+		err   error
 	)
 
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
 		RES.Success = true
-		RES.Message = "Role successfully updated"
+		RES.Message = "Permission successfully added to Role"
 		if err != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
@@ -34,19 +33,20 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 	}
 	defer handleResponse()
 
-	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
+	if err = json.NewDecoder(req.Body).Decode(&rpReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
-	if !updateReq.valid() {
+	if !rpReq.valid() {
 		err = errs.InvalidRequest
 		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+
 		return
 	}
 
-	if err = svc.roleRepo.Update(updateReq.Role); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRole.Title})
+	if err = svc.rpRepo.Create(rpReq.RoleId, rpReq.PermissionId); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRolePermission.Title})
 		return
 	}
 }

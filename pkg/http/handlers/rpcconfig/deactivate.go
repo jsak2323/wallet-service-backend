@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/gorilla/mux"
 )
@@ -19,8 +20,9 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcconfig.DeactivateHandler Success!", req)
 
@@ -29,6 +31,8 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 
 			config.LoadAppConfig()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -36,13 +40,12 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 
 	vars := mux.Vars(req)
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" -- rpcconfig.DeactivateHandler invalid request")
-		RES.Error = "Invalid request"
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		return
 	}
 
 	if err = svc.rcRepo.ToggleActive(id, false); err != nil {
-		logger.ErrorLog(" -- rpcconfig.DeactivateHandler svc.ccRepo.ToggleActive err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeactivateRPCConfig.Title})
 		return
 	}
 }

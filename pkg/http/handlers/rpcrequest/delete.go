@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -21,9 +22,11 @@ func (s *RpcRequestService) DeleteHandler(w http.ResponseWriter, req *http.Reque
 	vars := mux.Vars(req)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcrequest.DeleteHandler Success!", req)
 
@@ -32,6 +35,8 @@ func (s *RpcRequestService) DeleteHandler(w http.ResponseWriter, req *http.Reque
 
 			config.LoadRpcRequestByRpcMethodId(s.rrqRepo, RpcMethodId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -40,20 +45,17 @@ func (s *RpcRequestService) DeleteHandler(w http.ResponseWriter, req *http.Reque
 	logger.InfoLog(" -- rpcrequest.DeleteHandler, Requesting ...", req)
 
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" -- rpcconfig.GetByRpcMethodIdHandler strconv.Atoi(" + vars["id"] + ") Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if RpcMethodId, err = strconv.Atoi(vars["rpc_method_id"]); err != nil {
-		logger.ErrorLog(" -- rpcconfig.GetByRpcMethodIdHandler strconv.Atoi(" + vars["rpc_method_id"] + ") Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = s.rrqRepo.Delete(id); err != nil {
-		logger.ErrorLog(" -- rpcrequest.DeleteHandler rrqRepo.Delete Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRPCRequestByID.Title})
 		return
 	}
 }

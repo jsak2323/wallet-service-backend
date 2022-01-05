@@ -13,9 +13,8 @@ import (
 
 func (svc *UserService) ListUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		RES      ListRes
-		err      error
-		errTitle string
+		RES ListRes
+		err error
 	)
 
 	handleResponse := func() {
@@ -38,16 +37,14 @@ func (svc *UserService) ListUserHandler(w http.ResponseWriter, req *http.Request
 
 	users, err := svc.userRepo.GetAll(page, limit)
 	if err != nil {
-		errTitle = errs.FailedGetAllUser.Title
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetAllUser.Title})
 		return
 	}
 
 	for i, user := range users {
 		users[i].Roles, err = svc.roleRepo.GetByUserId(user.Id)
 		if err != nil {
-			errTitle = errs.FailedGetRoleByUserId.Title
-			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errTitle})
+			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetRoleByUserID.Title})
 			return
 		}
 	}

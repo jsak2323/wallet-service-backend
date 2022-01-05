@@ -4,43 +4,46 @@ import (
 	"encoding/json"
 	"net/http"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		createReq   CreateReq
-		RES         CreateRes
-		err         error
+		createReq CreateReq
+		RES       CreateRes
+		err       error
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		RES.Message = "Permission successfully created"
+		if err != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Message = "Permission successfully created"
+			RES.Message = ""
+			logger.ErrorLog(errs.Logged(RES.Error))
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		logger.ErrorLog(" - CreatePermissionHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if !createReq.valid() {
-		logger.ErrorLog(" - CreatePermissionHandler invalid request")
-		RES.Error = "Invalid request"
+		err = errs.InvalidRequest
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if RES.Id, err = svc.permissionRepo.Create(createReq.Name); err != nil {
-		logger.ErrorLog(" - CreatePermissionHandler svc.permissionRepo.Create err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreatePermission.Title})
 		return
 	}
 }

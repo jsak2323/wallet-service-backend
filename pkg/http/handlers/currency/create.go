@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,17 +19,19 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 	)
 
 	handleResponse := func() {
-		resStatus := http.StatusOK
-		if RES.Error != "" {
-			resStatus = http.StatusInternalServerError
-		} else {
-			logger.InfoLog(" -- currency.CreateHandler Success!", req)
 
+		resStatus := http.StatusOK
+		if err != nil {
+			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
+		} else {
 			RES.Success = true
 			RES.Message = "Currency successfully created"
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,33 +40,30 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 	logger.InfoLog(" -- currency.CreateHandler For all symbols, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.CreateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if err = validateCreateReq(currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.CreateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = s.ccRepo.Create(currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.CreateHandler ccRepo.Create Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateCurrencyConfig.Title})
 		return
 	}
 }
 
 func validateCreateReq(currencyConfig domain.CurrencyConfig) error {
 	if currencyConfig.Symbol == "" {
-		return errors.New("Symbol")
+		return errors.New("invalid symbol")
 	}
 	if currencyConfig.Name == "" {
-		return errors.New("Name")
+		return errors.New("invalid name")
 	}
 	if currencyConfig.Unit == "" {
-		return errors.New("Unit")
+		return errors.New("invalid unit")
 	}
 
 	return nil

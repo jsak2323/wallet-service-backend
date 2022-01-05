@@ -1,10 +1,11 @@
 package mysql
 
 import (
-	"strconv"
 	"database/sql"
+	"strconv"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/role"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const roleTable = "roles"
@@ -23,7 +24,7 @@ func (r *roleRepository) Create(name string) (id int, err error) {
 	query := "INSERT INTO " + roleTable + " (name) VALUES(?);"
 
 	if err = r.db.QueryRow(query, name).Err(); err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	return id, nil
@@ -34,7 +35,7 @@ func (r *roleRepository) Update(role domain.Role) (err error) {
 
 	err = r.db.QueryRow(query, role.Name, role.Id).Err()
 	if err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 
 	return nil
@@ -42,26 +43,26 @@ func (r *roleRepository) Update(role domain.Role) (err error) {
 
 func (r *roleRepository) GetAll(page, limit int) (roles []domain.Role, err error) {
 	query := "SELECT id, name FROM " + roleTable
-	
+
 	if limit <= 0 {
 		limit = defaultLimit
 	}
-	
+
 	if page > 0 {
 		query = query + " offset " + strconv.Itoa(page) + " limit " + strconv.Itoa(limit)
 	}
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return []domain.Role{}, err
+		return []domain.Role{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		role := domain.Role{}
 
-		if err = rows.Scan(&role.Id,&role.Name); err != nil {
-			return []domain.Role{}, err
+		if err = rows.Scan(&role.Id, &role.Name); err != nil {
+			return []domain.Role{}, errs.AddTrace(err)
 		}
 
 		roles = append(roles, role)
@@ -74,7 +75,7 @@ func (r *roleRepository) GetByName(name string) (role domain.Role, err error) {
 	query := "SELECT id, name FROM " + roleTable + " where name = ? limit 1"
 
 	if err = r.db.QueryRow(query, name).Scan(&role.Id, &role.Name); err != nil {
-		return domain.Role{}, err
+		return domain.Role{}, errs.AddTrace(err)
 	}
 
 	return role, nil
@@ -84,7 +85,7 @@ func (r *roleRepository) GetById(id int) (role domain.Role, err error) {
 	query := "SELECT id, name FROM " + roleTable + " where id = ? limit 1"
 
 	if err = r.db.QueryRow(query, id).Scan(&role.Id, &role.Name); err != nil {
-		return domain.Role{}, err
+		return domain.Role{}, errs.AddTrace(err)
 	}
 
 	return role, nil
@@ -97,7 +98,7 @@ func (r *roleRepository) GetByUserId(userId int) (roles []domain.Role, err error
 
 	rows, err := r.db.Query(query, userId)
 	if err != nil {
-		return []domain.Role{}, err
+		return []domain.Role{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -105,7 +106,7 @@ func (r *roleRepository) GetByUserId(userId int) (roles []domain.Role, err error
 		var role domain.Role
 
 		if err = rows.Scan(&role.Id, &role.Name); err != nil {
-			return []domain.Role{}, err
+			return []domain.Role{}, errs.AddTrace(err)
 		}
 
 		roles = append(roles, role)
@@ -121,7 +122,7 @@ func (r *roleRepository) GetNamesByUserId(userId int) (roles []string, err error
 
 	rows, err := r.db.Query(query, userId)
 	if err != nil {
-		return []string{}, err
+		return []string{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -129,7 +130,7 @@ func (r *roleRepository) GetNamesByUserId(userId int) (roles []string, err error
 		var name string
 
 		if err = rows.Scan(&name); err != nil {
-			return []string{}, err
+			return []string{}, errs.AddTrace(err)
 		}
 
 		roles = append(roles, name)
@@ -138,8 +139,13 @@ func (r *roleRepository) GetNamesByUserId(userId int) (roles []string, err error
 	return roles, nil
 }
 
-func(r *roleRepository) Delete(roleId int) error {
+func (r *roleRepository) Delete(roleId int) error {
 	query := "DELETE FROM " + roleTable + " WHERE id = ?"
+	err := r.db.QueryRow(query, roleId).Err()
+	if err != nil {
+		errs.AddTrace(err)
 
-	return r.db.QueryRow(query, roleId).Err()
+	}
+
+	return errs.AddTrace(err)
 }

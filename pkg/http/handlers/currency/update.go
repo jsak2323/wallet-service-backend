@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,9 +19,11 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if err != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- currency.UpdateHandler Success!", req)
 
@@ -29,6 +32,8 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,36 +42,33 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 	logger.InfoLog(" -- currency.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.UpdateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
 		return
 	}
 
 	if err = validateUpdateReq(currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.UpdateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
 		return
 	}
 
 	if err = s.ccRepo.Update(currencyConfig); err != nil {
-		logger.ErrorLog(" -- currency.UpdateHandler ccRepo.Update Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateCurrencyConfig.Title})
 		return
 	}
 }
 
 func validateUpdateReq(currencyConfig domain.CurrencyConfig) error {
 	if currencyConfig.Id == 0 {
-		return errors.New("ID")
+		return errors.New("invalid ID")
 	}
 	if currencyConfig.Symbol == "" {
-		return errors.New("Symbol")
+		return errors.New("invalid Symbol")
 	}
 	if currencyConfig.Name == "" {
-		return errors.New("Name")
+		return errors.New("invalid Name")
 	}
 	if currencyConfig.Unit == "" {
-		return errors.New("Unit")
+		return errors.New("invalid Unit")
 	}
 
 	return nil
