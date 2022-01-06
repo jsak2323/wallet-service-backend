@@ -66,7 +66,6 @@ type AddressTypeRes struct {
 
 type FireblocksSignReq struct {
 	Asset       string `json:"asset"`
-	Type        string `json:"type"`
 	DestId      string `json:"destId"`
 	DestAddress string `json:"destAddress"`
 }
@@ -74,6 +73,7 @@ type FireblocksSignReq struct {
 type FireblocksSignRes struct {
 	Action          string `json:"action"`
 	RejectionReason string `json:"rejectionReason"`
+	Error           *errs.Error
 }
 
 type StandardRes struct {

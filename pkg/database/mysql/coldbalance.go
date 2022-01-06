@@ -85,6 +85,26 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 	return balance, nil
 }
 
+func (r *coldBalanceRepository) GetByFireblocksName(name string) (balance domain.ColdBalance, err error) {
+	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where fireblocks_name = ?"
+
+	if err = r.db.QueryRow(query, name).Scan(
+		&balance.Id,
+		&balance.CurrencyId,
+		&balance.Name,
+		&balance.Type,
+		&balance.FireblocksName,
+		&balance.Balance,
+		&balance.Address,
+		&balance.Active,
+		&balance.LastUpdated,
+	); err != nil {
+		return domain.ColdBalance{}, errs.AddTrace(err)
+	}
+
+	return balance, nil
+}
+
 func (r *coldBalanceRepository) GetByCurrencyId(currencyId int) (balances []domain.ColdBalance, err error) {
 	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
 
