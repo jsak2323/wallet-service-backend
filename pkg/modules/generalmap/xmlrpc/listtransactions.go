@@ -1,7 +1,6 @@
 package xmlrpc
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 
@@ -14,35 +13,39 @@ import (
 )
 
 func (gms *GeneralMapService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (res *model.ListTransactionsRpcRes, err error) {
+	res = &model.ListTransactionsRpcRes{}
+
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeListTransactions)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}
 
-	token := strings.ToLower(gms.Symbol)
-
-	args, err := gms.listTransactionsArgs(rpcConfig, rpcMethod, strconv.Itoa(limit), token)
+	rpcRequests, err := config.GetRpcRequestMap(gms.rpcRequestRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}
 
-	rpcReq := util.GenerateRpcMapRequest(args)
+	runtimeParams := map[string]string{
+		"token": strings.ToLower(gms.Symbol),
+		"limit": strconv.Itoa(limit),
+	}
+
+	args, err := util.GetRpcRequestArgs(rpcConfig, rpcMethod, rpcRequests, runtimeParams)
+	if err != nil {
+		return &model.ListTransactionsRpcRes{}, err
+	}
+
+	req := util.GenerateRpcMapRequest(args)
 
 	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}
 
-	if err = client.XmlRpcMapCall(rpcMethod.Name, &rpcReq, resFieldMap, res); err != nil {
+	if err = client.XmlRpcMapCall(rpcMethod.Name, &req, resFieldMap, res); err != nil {
 		return &model.ListTransactionsRpcRes{}, err
-	}
-
-	if res.Error != "" {
-		return &model.ListTransactionsRpcRes{}, errors.New(res.Error)
-	} else if res.Transactions == "" {
-		return &model.ListTransactionsRpcRes{}, errors.New("Unexpected error occured in Node.")
 	}
 
 	return res, nil

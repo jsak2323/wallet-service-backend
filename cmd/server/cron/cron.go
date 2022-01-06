@@ -14,6 +14,8 @@ func Run(function string, sleep time.Duration, mysqlRepos mysql.MysqlRepositorie
 		runCheckBalance(sleep, mysqlRepos, exchangeApiRepos)
 	case "healthcheck":
 		runHealthCheck(sleep, mysqlRepos)
+	case "updatedeposit":
+		runUpdateDeposit(sleep, mysqlRepos)
 	case "default":
 		fmt.Println("function not specified")
 	}

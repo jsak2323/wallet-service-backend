@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	rr "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
+	rrs "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
 )
 
 type GetBlockCountRpcRes struct {
@@ -11,7 +12,7 @@ type GetBlockCountRpcRes struct {
     Error   string
 }
 
-func (r *GetBlockCountRpcRes) SetFromMapValues(mapValues map[string]interface{}) (err error) {
+func (r *GetBlockCountRpcRes) SetFromMapValues(mapValues map[string]interface{}, resFieldMap map[string]rrs.RpcResponse) (err error) {
 	var ok bool
 
 	if r.Blocks, ok = mapValues[rr.FieldNameBlockCount].(string); ok {

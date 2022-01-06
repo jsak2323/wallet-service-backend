@@ -57,7 +57,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
 
     for _, curr := range config.CURRRPC {
         SYMBOL := strings.ToUpper(curr.Config.Symbol)
-        TOKENTYPE := strings.ToUpper(curr.Config.Symbol)
+        TOKENTYPE := strings.ToUpper(curr.Config.TokenType)
 
         // if symbol is defined, only get for that symbol
         if symbol != "" && strings.ToUpper(symbol) != SYMBOL {continue}
@@ -69,8 +69,8 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
             _RES := ListTransactionsRes{
                 RpcConfig: RpcConfigResDetail{
                     RpcConfigId             : rpcConfig.Id,
-                    Symbol                  : SYMBOL,
-                    TokenType               : TOKENTYPE,
+                    Symbol                  : curr.Config.Symbol,
+                    TokenType               : curr.Config.TokenType,
                     Name                    : rpcConfig.Name,
                     Host                    : rpcConfig.Host,
                     Type                    : rpcConfig.Type,
@@ -92,7 +92,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
                 rpcRes, err := module.ListTransactions(rpcConfig, limit)
                 if err != nil { 
                     logger.ErrorLog(" - ListTransactionsHandler (*lts.moduleServices)[SYMBOL].ListTransactions(rpcConfig, limit) Error: "+err.Error())
-                    _RES.Error = rpcRes.Error
+                    _RES.Error = err.Error()
 
                 } else {
                     logger.Log(" - InvokeListTransactions Symbol: "+currencyConfig.Symbol+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host) 

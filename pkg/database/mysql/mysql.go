@@ -6,6 +6,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/currencyrpc"
+	"github.com/btcid/wallet-services-backend-go/pkg/domain/deposit"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/healthcheck"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/permission"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/role"
@@ -26,6 +27,7 @@ type MysqlRepositories struct {
 	ColdBalance        coldbalance.Repository
 	CurrencyConfig     currencyconfig.Repository
 	CurrencyRpc        currencyrpc.Repository
+	Deposit            deposit.Repository
 	HealthCheck        healthcheck.Repository
 	Permission         permission.Repository
 	Role               role.Repository
@@ -47,6 +49,7 @@ func NewMysqlRepositories(localDB *sql.DB, exchangeSlaveDB *sql.DB) MysqlReposit
 		ColdBalance:        NewMysqlColdBalanceRepository(localDB),
 		CurrencyConfig:     NewMysqlCurrencyConfigRepository(localDB),
 		CurrencyRpc:        NewMysqlCurrencyRpcRepository(localDB),
+		Deposit:            NewMysqlDepositRepository(localDB),
 		HealthCheck:        NewMysqlHealthCheckRepository(localDB),
 		Permission:         NewMysqlPermissionRepository(localDB),
 		Role:               NewMysqlRoleRepository(localDB),

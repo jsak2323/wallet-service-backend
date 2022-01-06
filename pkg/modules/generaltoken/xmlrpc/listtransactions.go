@@ -2,6 +2,7 @@ package xmlrpc
 
 import (
     "errors"
+    "encoding/json"
     "strings"
     "strconv"
 
@@ -40,7 +41,10 @@ func (gts *GeneralTokenService) ListTransactions(rpcConfig rc.RpcConfig, limit i
         return &res, errors.New("Unexpected error occured in Node.")
     }
 
-    res.Transactions = rpcRes.Content.Transactions
+    if err = json.Unmarshal([]byte(rpcRes.Content.Transactions), &res.Transactions); err != nil {
+        return nil, err
+    }
+
     return &res, nil
 }
 

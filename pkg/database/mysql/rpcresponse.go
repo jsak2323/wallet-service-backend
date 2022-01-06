@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -26,19 +27,23 @@ func (r *rpcResponseRepository) Create(rpcResponse rr.RpcResponse) error {
             xml_path,
             field_name,
             data_type_tag,
+            parse_type,
+            json_fields,
             rpc_method_id
 		)
-        VALUES (?,?,?,?);
+        VALUES (?,?,?,?,?,?);
         `,
 		rpcResponse.XMLPath,
-		rpcResponse.FieldName,
-		rpcResponse.DataTypeTag,
+		rpcResponse.TargetFieldName,
+		rpcResponse.DataTypeXMLTag,
+		rpcResponse.ParseType,
+		rpcResponse.JsonFieldsStr,
 		rpcResponse.RpcMethodId,
 	).Err()
 }
 
 func (r *rpcResponseRepository) GetByRpcMethodId(rpcMethodId int) (rpcResponses []rr.RpcResponse, err error) {
-	query := `SELECT id, xml_path, field_name, data_type_tag, rpc_method_id FROM ` + rpcResponseTable + ` WHERE rpc_method_id = ?`
+	query := `SELECT id, xml_path, field_name, data_type_tag, parse_type, json_fields, rpc_method_id FROM ` + rpcResponseTable + ` WHERE rpc_method_id = ?`
 
 	rows, err := r.db.Query(query, rpcMethodId)
 	if err != nil {
@@ -48,8 +53,12 @@ func (r *rpcResponseRepository) GetByRpcMethodId(rpcMethodId int) (rpcResponses 
 
 	for rows.Next() {
 		var rpcResponse rr.RpcResponse
-		err = mapRpcResponse(rows, &rpcResponse)
-		if err != nil {
+
+		if err = mapRpcResponse(rows, &rpcResponse); err != nil {
+			return []rr.RpcResponse{}, err
+		}
+
+		if err = json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), &rpcResponse.JsonFields); err != nil && rpcResponse.JsonFieldsStr != "" {
 			return []rr.RpcResponse{}, err
 		}
 
@@ -66,11 +75,15 @@ func (r *rpcResponseRepository) Update(rpcResponse rr.RpcResponse) error {
 			xml_path = ?,
             field_name = ?,
 			data_type_tag = ?,
+			parse_type = ?,
+			json_fields = ?,
 			rpc_method_id = ?
         WHERE id = ?`,
 		rpcResponse.XMLPath,
-		rpcResponse.FieldName,
-		rpcResponse.DataTypeTag,
+		rpcResponse.TargetFieldName,
+		rpcResponse.DataTypeXMLTag,
+		rpcResponse.ParseType,
+		rpcResponse.JsonFieldsStr,
 		rpcResponse.RpcMethodId,
 		rpcResponse.Id,
 	).Err()
@@ -80,8 +93,10 @@ func mapRpcResponse(rows *sql.Rows, rpcResponse *rr.RpcResponse) error {
 	err := rows.Scan(
 		&rpcResponse.Id,
 		&rpcResponse.XMLPath,
-		&rpcResponse.FieldName,
-		&rpcResponse.DataTypeTag,
+		&rpcResponse.TargetFieldName,
+		&rpcResponse.DataTypeXMLTag,
+		&rpcResponse.ParseType,
+		&rpcResponse.JsonFieldsStr,
 		&rpcResponse.RpcMethodId,
 	)
 

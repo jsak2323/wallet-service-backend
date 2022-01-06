@@ -58,9 +58,4 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRPCConfigRPCMethodByRPCMethodID.Title})
 		return
 	}
-
-	if err = s.rmRepo.Delete(id); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRPCMethodByID.Title})
-		return
-	}
 }

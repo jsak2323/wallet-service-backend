@@ -15,7 +15,7 @@ func LoadRpcResponseByRpcMethodId(rpcResponseRepo rr.Repository, rpcMethodId int
 	}
 
 	for _, rpcResponse := range rpcResponses {
-		RPCRRESPONSE[rpcMethodId][rpcResponse.FieldName] = rpcResponse
+		RPCRRESPONSE[rpcMethodId][rpcResponse.TargetFieldName] = rpcResponse
 	}
 
 	return nil
