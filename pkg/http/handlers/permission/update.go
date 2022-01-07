@@ -13,6 +13,8 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 		updateReq UpdateReq
 		RES       StandardRes
 		err       error
+		// ctx       = context.Background()
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -20,7 +22,7 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "Permission successfully updated"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
@@ -34,18 +36,17 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !updateReq.valid() {
-		err = errs.InvalidRequest
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
-	if err = svc.permissionRepo.Update(updateReq.Permission); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdatePermission.Title})
+	if err = svc.permissionRepo.Update(ctx, updateReq.Permission); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdatePermission)
 		return
 	}
 }

@@ -19,7 +19,7 @@ func (svc *RpcConfigService) CreateRpcMethodHandler(w http.ResponseWriter, req *
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -34,18 +34,18 @@ func (svc *RpcConfigService) CreateRpcMethodHandler(w http.ResponseWriter, req *
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&rpReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !rpReq.valid() {
 		err = errors.New("Invalid request")
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.rcrmRepo.Create(rpReq.RpcConfigId, rpReq.RpcMethodId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCConfigRPCMethod.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCConfigRPCMethod)
 		return
 	}
 }

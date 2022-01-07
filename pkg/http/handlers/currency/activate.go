@@ -21,7 +21,7 @@ func (svc *CurrencyConfigService) ActivateHandler(w http.ResponseWriter, req *ht
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -39,12 +39,13 @@ func (svc *CurrencyConfigService) ActivateHandler(w http.ResponseWriter, req *ht
 
 	vars := mux.Vars(req)
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 
 	}
 
 	if err = svc.ccRepo.ToggleActive(id, true); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedActivateCurrencyConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivateCurrencyConfig)
 		return
 	}
 }

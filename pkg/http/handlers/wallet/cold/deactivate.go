@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/gorilla/mux"
 )
@@ -18,7 +19,7 @@ func (svc *ColdWalletService) DeactivateHandler(w http.ResponseWriter, req *http
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 		} else {
 			logger.InfoLog(" -- cold.DeactivateHandler Success!", req)
@@ -26,6 +27,8 @@ func (svc *ColdWalletService) DeactivateHandler(w http.ResponseWriter, req *http
 			RES.Success = true
 			RES.Message = "Cold Wallet successfully deactivated"
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -33,13 +36,11 @@ func (svc *ColdWalletService) DeactivateHandler(w http.ResponseWriter, req *http
 
 	vars := mux.Vars(req)
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" -- cold.DeactivateHandler invalid request")
-		RES.Error = "Invalid request"
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 	}
 
 	if err = svc.cbRepo.ToggleActive(id, false); err != nil {
-		logger.ErrorLog(" -- cold.DeactivateHandler svc.cbRepo.ToggleActive err: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivatedColdBalance)
 		return
 	}
 }

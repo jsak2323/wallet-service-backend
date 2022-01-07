@@ -20,7 +20,7 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -41,30 +41,30 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcconfig.CreateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateCreateReq(rpcConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rcRepo.Create(rpcConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCConfig)
 		return
 	}
 }
 
 func validateCreateReq(rpcConfig domain.RpcConfig) error {
 	if rpcConfig.Name == "" {
-		return errors.New("invalid Name")
+		return errs.AddTrace(errors.New("invalid Name"))
 	}
 	if rpcConfig.Host == "" {
-		return errors.New("invalid Host")
+		return errs.AddTrace(errors.New("invalid Host"))
 	}
 	if rpcConfig.Path == "" {
-		return errors.New("invalid Path")
+		return errs.AddTrace(errors.New("invalid Path"))
 	}
 
 	return nil

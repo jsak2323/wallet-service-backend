@@ -21,7 +21,7 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "Role successfully updated"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
@@ -35,18 +35,17 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !updateReq.valid() {
-		err = errs.InvalidRequest
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.roleRepo.Update(updateReq.Role); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRole.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRole)
 		return
 	}
 }

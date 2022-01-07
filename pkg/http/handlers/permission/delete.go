@@ -22,7 +22,7 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "Permission successfully deleted"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
@@ -37,17 +37,17 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 
 	vars := mux.Vars(req)
 	if permissionId, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = svc.rpRepo.DeleteByPermissionId(permissionId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRolePermissionByPermissionID.Title})
-
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRolePermissionByPermissionID)
 		return
 	}
 
 	if err = svc.permissionRepo.Delete(permissionId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeletePermissionByID.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeletePermissionByID)
 		return
 	}
 }

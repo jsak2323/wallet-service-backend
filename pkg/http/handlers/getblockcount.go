@@ -1,134 +1,156 @@
 package handlers
 
 import (
-    "strconv"
-    "strings"
-    "net/http"
-    "encoding/json"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"strconv"
+	"strings"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
-    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-    sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
-    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules"
-    "github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	sc "github.com/btcid/wallet-services-backend-go/pkg/domain/systemconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type GetBlockCountHandlerResponseMap map[string]map[string][]GetBlockCountRes
 
 type GetBlockCountService struct {
-    moduleServices   *modules.ModuleServiceMap
-    systemConfigRepo sc.Repository
+	moduleServices   *modules.ModuleServiceMap
+	systemConfigRepo sc.Repository
 }
 
 func NewGetBlockCountService(
-    moduleServices *modules.ModuleServiceMap, 
-    systemConfigRepo sc.Repository,
+	moduleServices *modules.ModuleServiceMap,
+	systemConfigRepo sc.Repository,
 ) *GetBlockCountService {
-    return &GetBlockCountService{
-        moduleServices,
-        systemConfigRepo,
-    }
+	return &GetBlockCountService{
+		moduleServices,
+		systemConfigRepo,
+	}
 }
 
-func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, req *http.Request) { 
-    vars := mux.Vars(req)
-    symbol := vars["symbol"]
-    tokenType := vars["token_type"]
-    isGetAll := symbol == ""
+func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	symbol := vars["symbol"]
+	tokenType := vars["token_type"]
+	isGetAll := symbol == ""
 
-    RES := make(GetBlockCountHandlerResponseMap)
+	RES := make(GetBlockCountHandlerResponseMap)
 
-    if isGetAll {
-        logger.InfoLog(" - GetBlockCountHandler For all symbols, Requesting ...", req) 
-    } else {
-        logger.InfoLog(" - GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
-    }
+	if isGetAll {
+		logger.InfoLog(" - GetBlockCountHandler For all symbols, Requesting ...", req)
+	} else {
+		logger.InfoLog(" - GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req)
+	}
 
-    gbcs.InvokeGetBlockCount(&RES, symbol, tokenType)
-    
-    // handle success response
-    resJson, _ := json.Marshal(RES)
-    logger.InfoLog(" - GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(RES)
+	gbcs.InvokeGetBlockCount(&RES, symbol, tokenType)
+
+	// handle success response
+	resJson, _ := json.Marshal(RES)
+	logger.InfoLog(" - GetBlockCountHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(RES)
 }
 
 func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol, tokenType string) {
-    rpcConfigCount := 0
-    resChannel := make(chan GetBlockCountRes)
+	var (
+		rpcConfigCount             = 0
+		resChannel                 = make(chan GetBlockCountRes)
+		errField       *errs.Error = nil
+		err            error
+	)
 
-    maintenanceList, err := GetMaintenanceList(gbcs.systemConfigRepo)
-    if err != nil { logger.ErrorLog(" - InvokeGetBlockCount h.GetMaintenanceList err: "+err.Error()) }
+	defer func() {
+		if err != nil {
+			logger.ErrorLog(errs.Logged(errField))
+		}
+	}()
 
-    for _, currRpc := range config.CURRRPC {
-        SYMBOL := strings.ToUpper(currRpc.Config.Symbol)
-        TOKENTYPE := strings.ToUpper(currRpc.Config.TokenType)
+	maintenanceList, err := GetMaintenanceList(gbcs.systemConfigRepo)
+	if err != nil {
+		logger.ErrorLog(errs.Logged(errs.FailedGetMaintenanceList))
+	}
 
-        // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != SYMBOL {continue}
-        if tokenType != "" && strings.ToUpper(tokenType) != TOKENTYPE { continue }
+	for _, currRpc := range config.CURRRPC {
+		SYMBOL := strings.ToUpper(currRpc.Config.Symbol)
+		TOKENTYPE := strings.ToUpper(currRpc.Config.TokenType)
 
-        // if not parent coin, skip
-        if currRpc.Config.TokenType != cc.MainTokenType { continue }
+		// if symbol is defined, only get for that symbol
+		if symbol != "" && strings.ToUpper(symbol) != SYMBOL {
+			continue
+		}
+		if tokenType != "" && strings.ToUpper(tokenType) != TOKENTYPE {
+			continue
+		}
 
-        // if maintenance, skip
-        if maintenanceList[SYMBOL] { continue }
+		// if not parent coin, skip
+		if currRpc.Config.TokenType != cc.MainTokenType {
+			continue
+		}
 
-        for _, rpcConfig := range currRpc.RpcConfigs {
-            rpcConfigCount++
+		// if maintenance, skip
+		if maintenanceList[SYMBOL] {
+			continue
+		}
 
-            _RES := GetBlockCountRes{
-                RpcConfig: RpcConfigResDetail{
-                    RpcConfigId             : rpcConfig.Id,
-                    Symbol                  : currRpc.Config.Symbol,
-                    TokenType               : currRpc.Config.TokenType,
-                    Name                    : rpcConfig.Name,
-                    Host                    : rpcConfig.Host,
-                    Type                    : rpcConfig.Type,
-                    NodeVersion             : rpcConfig.NodeVersion,
-                    NodeLastUpdated         : rpcConfig.NodeLastUpdated,
-                    IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
-                },
-            }
+		for _, rpcConfig := range currRpc.RpcConfigs {
+			rpcConfigCount++
 
-            // execute concurrent rpc calls
-            go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
-                module, err := gbcs.moduleServices.GetModule(currencyConfig.Id)
-                if err != nil {
-                    logger.ErrorLog(" - InvokeGetBlockCount stas.moduleServices.GetModule err: "+err.Error())
-                    _RES.Error = err.Error()
-                    return
-                }
-                
-                rpcRes, err := module.GetBlockCount(rpcConfig)
-                if err != nil { 
-                    logger.Log(" - InvokeGetBlockCount (*gbcs.moduleServices)["+SYMBOL+"].GetBlockCount(rpcConfig) Error: "+err.Error())
-                    _RES.Error = rpcRes.Error
+			_RES := GetBlockCountRes{
+				RpcConfig: RpcConfigResDetail{
+					RpcConfigId:          rpcConfig.Id,
+					Symbol:               currRpc.Config.Symbol,
+					TokenType:            currRpc.Config.TokenType,
+					Name:                 rpcConfig.Name,
+					Host:                 rpcConfig.Host,
+					Type:                 rpcConfig.Type,
+					NodeVersion:          rpcConfig.NodeVersion,
+					NodeLastUpdated:      rpcConfig.NodeLastUpdated,
+					IsHealthCheckEnabled: rpcConfig.IsHealthCheckEnabled,
+				},
+			}
 
-                } else {
-                    logger.Log(" - InvokeGetBlockCount Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks) 
-                    _RES.Blocks = rpcRes.Blocks
-                    _RES.Error  = rpcRes.Error
-                }
+			// execute concurrent rpc calls
+			go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
+				module, err := gbcs.moduleServices.GetModule(currencyConfig.Id)
+				if err != nil {
+					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetModule)
+					return
+				}
 
-                resChannel <- _RES
-                
-            }(currRpc.Config, rpcConfig)
-        }
-    }
+				rpcRes, err := module.GetBlockCount(rpcConfig)
+				if err != nil {
+					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetBlockCount)
+				} else {
+					logger.Log(" - InvokeGetBlockCount Symbol: " + SYMBOL + ", RpcConfigId: " + strconv.Itoa(rpcConfig.Id) + ", Host: " + rpcConfig.Host + ". Blocks: " + rpcRes.Blocks)
+					_RES.Blocks = rpcRes.Blocks
+					_RES.Error = errs.AssignErr(errs.AddTrace(errors.New(rpcRes.Error)), errs.FailedGetBlockCount)
+				}
 
-    i := 0
-    for res := range resChannel {
-        i++
-        _, ok := (*RES)[res.RpcConfig.Symbol]
-        if !ok { (*RES)[res.RpcConfig.Symbol] = make(map[string][]GetBlockCountRes) }
+				resChannel <- _RES
 
-        (*RES)[res.RpcConfig.Symbol][res.RpcConfig.TokenType] = append((*RES)[res.RpcConfig.Symbol][res.RpcConfig.TokenType], res)
-        if i >= rpcConfigCount { close(resChannel) }
-    }
+			}(currRpc.Config, rpcConfig)
+		}
+	}
+
+	i := 0
+	for res := range resChannel {
+		i++
+		_, ok := (*RES)[res.RpcConfig.Symbol]
+		if !ok {
+			(*RES)[res.RpcConfig.Symbol] = make(map[string][]GetBlockCountRes)
+		}
+
+		(*RES)[res.RpcConfig.Symbol][res.RpcConfig.TokenType] = append((*RES)[res.RpcConfig.Symbol][res.RpcConfig.TokenType], res)
+		if i >= rpcConfigCount {
+			close(resChannel)
+		}
+	}
 }
-
-

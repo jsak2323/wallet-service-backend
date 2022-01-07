@@ -21,7 +21,7 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -40,30 +40,30 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 	logger.InfoLog(" -- currency.CreateHandler For all symbols, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateCreateReq(currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.ccRepo.Create(currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateCurrencyConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateCurrencyConfig)
 		return
 	}
 }
 
 func validateCreateReq(currencyConfig domain.CurrencyConfig) error {
 	if currencyConfig.Symbol == "" {
-		return errors.New("invalid symbol")
+		return errs.AddTrace(errors.New("invalid symbol"))
 	}
 	if currencyConfig.Name == "" {
-		return errors.New("invalid name")
+		return errs.AddTrace(errors.New("invalid name"))
 	}
 	if currencyConfig.Unit == "" {
-		return errors.New("invalid unit")
+		return errs.AddTrace(errors.New("invalid unit"))
 	}
 
 	return nil

@@ -18,7 +18,7 @@ func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Reque
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Message = ""
 			logger.ErrorLog(errs.Logged(RES.Error))
@@ -31,18 +31,17 @@ func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Reque
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !createReq.valid() {
-		err = errs.InvalidRequest
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if RES.Id, err = svc.roleRepo.Create(createReq.Name); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRole.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRole)
 		return
 	}
 }

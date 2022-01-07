@@ -18,7 +18,7 @@ func (s *RpcMethodService) ListHandler(w http.ResponseWriter, req *http.Request)
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -38,7 +38,7 @@ func (s *RpcMethodService) ListHandler(w http.ResponseWriter, req *http.Request)
 	logger.InfoLog(" - rpcmethod.ListHandler, Requesting ...", req)
 
 	if RES.RpcMethods, err = s.rmRepo.GetAll(page, limit); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetAllRPCMethod.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllRPCMethod)
 		return
 	}
 }

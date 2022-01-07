@@ -40,6 +40,7 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 			logger.InfoLog(" -- fireblocks.CallbackHandler Success!", req)
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -69,19 +70,19 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 
 func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 	var currencyConfig cc.CurrencyConfig
-	
+
 	if signReq.Type == TypeBaseAsset {
 		signReq.Type = cc.MainTokenType
 	}
 
 	currencyConfig, err := config.GetCurrencyBySymbolTokenType(signReq.Asset, signReq.Type)
-    if err != nil {
-        logger.ErrorLog(" -- fireblocks.CallbackHandler config.GetCurrencyBySymbol("+signReq.Asset+","+signReq.Type+")+err: "+err.Error())
-        res.Action = RejectTransaction
+	if err != nil {
+		logger.ErrorLog(" -- fireblocks.CallbackHandler config.GetCurrencyBySymbol(" + signReq.Asset + "," + signReq.Type + ")+err: " + err.Error())
+		res.Action = RejectTransaction
 		res.RejectionReason = errAssetNotFound
-        return
-    }
-	
+		return
+	}
+
 	receiverWallet, err := util.GetRpcConfigByType(currencyConfig.Id, rc.SenderRpcType)
 	if err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: " + err.Error())
@@ -89,7 +90,7 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 		res.RejectionReason = errInternalServer
 		return
 	}
-	
+
 	if receiverWallet.Address != signReq.DestAddress {
 		res.Action = RejectTransaction
 		res.RejectionReason = InvalidDestAddressReason
@@ -112,6 +113,6 @@ func (r *FireblocksSignReq) Validate() (err error) {
 	if r.DestAddress == "" {
 		return errors.New("destAddress is required")
 	}
-	
+
 	return nil
 }

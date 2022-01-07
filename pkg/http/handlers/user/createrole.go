@@ -19,7 +19,7 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 		resStatus := http.StatusOK
 		RES.Message = "Role successfully added to User"
 		RES.Success = true
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 			RES.Success = false
@@ -34,17 +34,17 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 
 	if err = json.NewDecoder(req.Body).Decode(&urReq); err != nil {
 
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !urReq.valid() {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.urRepo.Create(urReq.UserId, urReq.RoleId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRoleUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRoleUser)
 		return
 	}
 }

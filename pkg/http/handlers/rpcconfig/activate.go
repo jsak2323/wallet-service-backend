@@ -21,7 +21,7 @@ func (svc *RpcConfigService) ActivateHandler(w http.ResponseWriter, req *http.Re
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -41,11 +41,12 @@ func (svc *RpcConfigService) ActivateHandler(w http.ResponseWriter, req *http.Re
 
 	vars := mux.Vars(req)
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = svc.rcRepo.ToggleActive(id, true); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedActivateRPCConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivateRPCConfig)
 		return
 	}
 }

@@ -21,7 +21,7 @@ func (s *RpcRequestService) CreateHandler(w http.ResponseWriter, req *http.Reque
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -43,33 +43,33 @@ func (s *RpcRequestService) CreateHandler(w http.ResponseWriter, req *http.Reque
 	logger.InfoLog(" -- rpcrequest.CreateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcRequest); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateCreateReq(rpcRequest); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrqRepo.Create(rpcRequest); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCRequest)
 		return
 	}
 }
 
 func validateCreateReq(rpcRequest domain.RpcRequest) error {
 	if rpcRequest.ArgName == "" {
-		return errors.New("Arg Name")
+		return errs.AddTrace(errors.New("Arg Name"))
 	}
 	if rpcRequest.Type == "" {
-		return errors.New("Type")
+		return errs.AddTrace(errors.New("Type"))
 	}
 	if rpcRequest.Source == "" {
-		return errors.New("Source")
+		return errs.AddTrace(errors.New("Source"))
 	}
 	if rpcRequest.RpcMethodId == 0 {
-		return errors.New("RPC Method Id")
+		return errs.AddTrace(errors.New("RPC Method Id"))
 	}
 
 	return nil

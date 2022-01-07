@@ -8,23 +8,26 @@ import (
 	"github.com/gorilla/mux"
 
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
-	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 type ListRes struct {
 	ColdWallets []cb.ColdBalance `json:"cold_wallets"`
-	Error       string           `json:"error"`
+	Error       *errs.Error      `json:"error"`
 }
 
 func (s *ColdWalletService) ListHandler(w http.ResponseWriter, req *http.Request) {
-	var RES ListRes
-	var err error
+	var (
+		RES ListRes
+		err error
+	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -35,8 +38,7 @@ func (s *ColdWalletService) ListHandler(w http.ResponseWriter, req *http.Request
 	limit, _ := strconv.Atoi(vars["limit"])
 
 	if RES.ColdWallets, err = s.cbRepo.GetAll(page, limit); err != nil {
-		logger.ErrorLog(" - ListHandler s.roleRepo.GetAll err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllColdBalance)
 		return
 	}
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const errInternalServer = "Internal server error"
@@ -25,7 +26,7 @@ func FireblocksVaultAccountId(cbType string) (string, error) {
 		return config.CONF.FireblocksWarmVaultId, nil
 	}
 
-	return "", errors.New("invalid fireblocks type: " + cbType)
+	return "", errs.AddTrace(errors.New("invalid fireblocks type: " + cbType))
 }
 
 func isFireblocksCold(cbType string) bool {

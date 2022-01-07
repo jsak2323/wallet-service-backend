@@ -21,7 +21,7 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -43,44 +43,44 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 	logger.InfoLog(" -- rpcresponse.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcResponse); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(rpcResponse); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrsRepo.Update(rpcResponse); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRPCResponse.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCResponse)
 		return
 	}
 }
 
 func validateUpdateReq(rpcResponse domain.RpcResponse) error {
 	if rpcResponse.Id == 0 {
-		return errors.New("ID")
+		return errs.AddTrace(errors.New("ID"))
 	}
 	if rpcResponse.TargetFieldName == "" {
-		return errors.New("Target Field Name")
+		return errs.AddTrace(errors.New("Target Field Name"))
 	}
 	if rpcResponse.XMLPath == "" {
-		return errors.New("XML Path")
+		return errs.AddTrace(errors.New("XML Path"))
 	}
 	if rpcResponse.DataTypeXMLTag == "" {
-		return errors.New("Data Type XML Tag")
+		return errs.AddTrace(errors.New("Data Type XML Tag"))
 	}
 	if rpcResponse.ParseType == "" {
-		return errors.New("Parse Type")
+		return errs.AddTrace(errors.New("Parse Type"))
 	}
 	if rpcResponse.RpcMethodId == 0 {
-		return errors.New("RPC Method Id")
+		return errs.AddTrace(errors.New("RPC Method Id"))
 	}
 
 	err := json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), rpcResponse.JsonFields)
 	if err != nil && rpcResponse.JsonFieldsStr != "" {
-		return errors.New("JSON data at JSON Field")
+		return errs.AddTrace(errors.New("JSON data at JSON Field"))
 	}
 
 	return nil

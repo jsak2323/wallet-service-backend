@@ -20,7 +20,7 @@ func (svc *RpcConfigService) DeleteRpcMethodHandler(w http.ResponseWriter, req *
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 		} else {
 			RES.Success = true
@@ -35,17 +35,17 @@ func (svc *RpcConfigService) DeleteRpcMethodHandler(w http.ResponseWriter, req *
 
 	vars := mux.Vars(req)
 	if roleId, err = strconv.Atoi(vars["role_id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if permissionId, err = strconv.Atoi(vars["permission_id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.rcrmRepo.Delete(roleId, permissionId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRPCConfigRPCMethod.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRPCConfigRPCMethod)
 		return
 	}
 }

@@ -21,7 +21,7 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -42,33 +42,33 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 	logger.InfoLog(" -- currency.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.ccRepo.Update(currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateCurrencyConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateCurrencyConfig)
 		return
 	}
 }
 
 func validateUpdateReq(currencyConfig domain.CurrencyConfig) error {
 	if currencyConfig.Id == 0 {
-		return errors.New("invalid ID")
+		return errs.AddTrace(errors.New("invalid ID"))
 	}
 	if currencyConfig.Symbol == "" {
-		return errors.New("invalid Symbol")
+		return errs.AddTrace(errors.New("invalid Symbol"))
 	}
 	if currencyConfig.Name == "" {
-		return errors.New("invalid Name")
+		return errs.AddTrace(errors.New("invalid Name"))
 	}
 	if currencyConfig.Unit == "" {
-		return errors.New("invalid Unit")
+		return errs.AddTrace(errors.New("invalid Unit"))
 	}
 
 	return nil

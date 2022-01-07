@@ -24,7 +24,7 @@ func (s *RpcResponseService) DeleteHandler(w http.ResponseWriter, req *http.Requ
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -45,17 +45,17 @@ func (s *RpcResponseService) DeleteHandler(w http.ResponseWriter, req *http.Requ
 	logger.InfoLog(" -- rpcresponse.DeleteHandler, Responseing ...", req)
 
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if RpcMethodId, err = strconv.Atoi(vars["rpc_method_id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrsRepo.Delete(id); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRPCResponseByID.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRPCResponseByID)
 		return
 	}
 }

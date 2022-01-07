@@ -20,7 +20,7 @@ func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		}
@@ -37,14 +37,14 @@ func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request
 
 	roles, err := svc.roleRepo.GetAll(page, limit)
 	if err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetAllRole.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllRole)
 		return
 	}
 
 	for i, role := range roles {
 		roles[i].Permissions, err = svc.permissionRepo.GetByRoleId(role.Id)
 		if err != nil {
-			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetPermissionByRole.Title})
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetPermissionByRole)
 			return
 		}
 	}

@@ -20,7 +20,7 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -41,33 +41,33 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcconfig.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(rpcConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rcRepo.Update(rpcConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRPCConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCConfig)
 		return
 	}
 }
 
 func validateUpdateReq(rpcConfig domain.RpcConfig) error {
 	if rpcConfig.Id == 0 {
-		return errors.New("ID")
+		return errs.AddTrace(errors.New("ID"))
 	}
 	if rpcConfig.Name == "" {
-		return errors.New("Name")
+		return errs.AddTrace(errors.New("Name"))
 	}
 	if rpcConfig.Host == "" {
-		return errors.New("Host")
+		return errs.AddTrace(errors.New("Host"))
 	}
 	if rpcConfig.Path == "" {
-		return errors.New("Path")
+		return errs.AddTrace(errors.New("Path"))
 	}
 
 	return nil

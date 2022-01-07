@@ -25,7 +25,7 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		}
@@ -38,32 +38,32 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&loginReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if user, err = svc.userRepo.GetByUsername(loginReq.Username); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.UsernameNotFound.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.UsernameNotFound)
 		return
 	}
 
 	if user.RoleNames, err = svc.roleRepo.GetNamesByUserId(user.Id); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetRolesByUserID.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRolesByUserID)
 		return
 	}
 
 	if user.PermissionNames, err = svc.permissionRepo.GetNamesByUserId(user.Id); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.Permissions.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.Permissions)
 		return
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password)); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.IncorrectPassword.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.IncorrectPassword)
 		return
 	}
 
 	if td, err = jwt.CreateToken(user); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateToken.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateToken)
 		return
 	}
 

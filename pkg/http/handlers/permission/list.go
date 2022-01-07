@@ -20,7 +20,7 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		}
@@ -37,7 +37,7 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 
 	RES.Permissions, err = svc.permissionRepo.GetAll(page, limit)
 	if err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetAllPermission.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllPermission)
 		return
 	}
 }

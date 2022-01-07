@@ -22,7 +22,7 @@ func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Reque
 		RES.Success = true
 		RES.Message = "User successfully updated"
 
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 			RES.Success = false
@@ -37,19 +37,19 @@ func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Reque
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !updateReq.valid() {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if updateReq.Password != "" {
 		hashPasswordByte, err := bcrypt.GenerateFromPassword([]byte(updateReq.Password), bcrypt.DefaultCost)
 		if err != nil {
-			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGeneratePassword.Title})
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGeneratePassword)
 			return
 		}
 
@@ -57,7 +57,7 @@ func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Reque
 	}
 
 	if err = svc.userRepo.Update(updateReq.User); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateUser)
 		return
 	}
 }

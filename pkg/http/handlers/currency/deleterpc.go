@@ -22,7 +22,7 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -44,16 +44,18 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 
 	vars := mux.Vars(req)
 	if currencyId, err = strconv.Atoi(vars["currency_id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 
 	}
 
 	if rpcId, err = strconv.Atoi(vars["rpc_id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = s.crRepo.Delete(currencyId, rpcId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteCurrencyRPC.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteCurrencyRPC)
 		return
 	}
 }

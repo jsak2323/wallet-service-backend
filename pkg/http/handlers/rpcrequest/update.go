@@ -21,7 +21,7 @@ func (s *RpcRequestService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -42,36 +42,36 @@ func (s *RpcRequestService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 	logger.InfoLog(" -- rpcrequest.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcRequest); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(rpcRequest); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrqRepo.Update(rpcRequest); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRPCRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCRequest)
 		return
 	}
 }
 
 func validateUpdateReq(rpcRequest domain.RpcRequest) error {
 	if rpcRequest.Id == 0 {
-		return errors.New("ID")
+		return errs.AddTrace(errors.New("ID"))
 	}
 	if rpcRequest.Type != domain.TypeJsonRoot && rpcRequest.ArgName == "" {
-		return errors.New("Arg Name")
+		return errs.AddTrace(errors.New("Arg Name"))
 	}
 	if rpcRequest.Type == "" {
-		return errors.New("Type")
+		return errs.AddTrace(errors.New("Type"))
 	}
 	if rpcRequest.Type != domain.TypeJsonRoot && rpcRequest.Source == "" {
-		return errors.New("Source")
+		return errs.AddTrace(errors.New("Source"))
 	}
 	if rpcRequest.RpcMethodId == 0 {
-		return errors.New("RPC Method Id")
+		return errs.AddTrace(errors.New("RPC Method Id"))
 	}
 
 	return nil

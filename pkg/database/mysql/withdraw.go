@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/withdraw"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 type withdrawMysqlRepository struct {
@@ -20,15 +21,17 @@ func NewMysqlWithdrawRepository(db *sql.DB) domain.Repository {
 func (r *withdrawMysqlRepository) GetPendingWithdraw(symbol string) (result string, err error) {
 	symbol = strings.ToLower(symbol)
 
-	query := "SELECT SUM(amount) as sum_amount FROM withdraw_"+symbol +" WHERE status in ('pending', 'approved')"
+	query := "SELECT SUM(amount) as sum_amount FROM withdraw_" + symbol + " WHERE status in ('pending', 'approved')"
 
 	sumAmount := sql.NullString{}
 
 	if err = r.db.QueryRow(query).Scan(&sumAmount); err != nil {
-		return "0", err
+		return "0", errs.AddTrace(err)
 	}
 
-	if sumAmount.Valid { result = sumAmount.String }
-	
+	if sumAmount.Valid {
+		result = sumAmount.String
+	}
+
 	return result, nil
 }

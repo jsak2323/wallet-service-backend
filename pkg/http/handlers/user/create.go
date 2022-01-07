@@ -20,7 +20,7 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		RES.Message = "User successfully created"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Message = ""
 			logger.ErrorLog(errs.Logged(RES.Error))
@@ -33,26 +33,25 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !createReq.valid() {
-		err = errs.InvalidRequest
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	hashPasswordByte, err := bcrypt.GenerateFromPassword([]byte(createReq.Password), bcrypt.DefaultCost)
 	if err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGeneratePassword.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGeneratePassword)
 		return
 	}
 
 	createReq.Password = string(hashPasswordByte)
 
 	if RES.Id, err = svc.userRepo.Create(createReq.User); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateUser)
 		return
 	}
 }

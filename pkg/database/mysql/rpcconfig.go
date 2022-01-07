@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const rpcConfigTable = "rpc_config"
@@ -22,24 +23,24 @@ func NewMysqlRpcConfigRepository(db *sql.DB) rc.Repository {
 }
 
 func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
-	return r.db.QueryRow(`
-        INSERT INTO `+rpcConfigTable+`(
-            type,
-            name,
-            platform,
-            host,
-            port,
-            path,
-            user,
-            password,
-            hashkey,
-            node_version,
-            node_last_updated,
-            is_health_check_enabled,
-            atom_feed,
-			address)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);
-        `,
+	err := r.db.QueryRow(`
+	INSERT INTO `+rpcConfigTable+`(
+		type,
+		name,
+		platform,
+		host,
+		port,
+		path,
+		user,
+		password,
+		hashkey,
+		node_version,
+		node_last_updated,
+		is_health_check_enabled,
+		atom_feed,
+		address)
+	VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);
+	`,
 		rpcConfig.Type,
 		rpcConfig.Name,
 		rpcConfig.Platform,
@@ -55,6 +56,10 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
 		rpcConfig.AtomFeed,
 		rpcConfig.Address,
 	).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig, err error) {
@@ -80,7 +85,7 @@ func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return []rc.RpcConfig{}, err
+		return []rc.RpcConfig{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -88,7 +93,7 @@ func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig
 		rpcConfig := rc.RpcConfig{}
 
 		if err = mapRpcConfig(rows, &rpcConfig); err != nil {
-			return []rc.RpcConfig{}, err
+			return []rc.RpcConfig{}, errs.AddTrace(err)
 		}
 
 		rpcConfigs = append(rpcConfigs, rpcConfig)
@@ -122,14 +127,14 @@ func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
 
 	rows, err := r.db.Query(query, id)
 	if err != nil {
-		return rc.RpcConfig{}, err
+		return rc.RpcConfig{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err = mapRpcConfig(rows, &rpcConfig)
 		if err != nil {
-			return rc.RpcConfig{}, err
+			return rc.RpcConfig{}, errs.AddTrace(err)
 		}
 	}
 
@@ -158,12 +163,12 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
         FROM ` + rpcConfigTable + `
 		JOIN ` + currencyRpcTable + ` on ` + currencyRpcTable + `.rpc_config_id = ` + rpcConfigTable + `.id
 		`
-	query += " WHERE "+ currencyRpcTable +".currency_config_id = " + strconv.Itoa(currency_id)
+	query += " WHERE " + currencyRpcTable + ".currency_config_id = " + strconv.Itoa(currency_id)
 	rpcConfigs := []rc.RpcConfig{}
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return rpcConfigs, err
+		return rpcConfigs, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -171,7 +176,7 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
 		var rpcConf rc.RpcConfig
 		err = mapRpcConfig(rows, &rpcConf)
 		if err != nil {
-			return rpcConfigs, err
+			return rpcConfigs, errs.AddTrace(err)
 		}
 
 		rpcConfigs = append(rpcConfigs, rpcConf)
@@ -206,7 +211,7 @@ func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return rpcConfigs, err
+		return rpcConfigs, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -214,7 +219,7 @@ func (r *rpcConfigRepository) GetByCurrencySymbol(symbol string) ([]rc.RpcConfig
 		var rpcConf rc.RpcConfig
 		err = mapRpcConfig(rows, &rpcConf)
 		if err != nil {
-			return rpcConfigs, err
+			return rpcConfigs, errs.AddTrace(err)
 		}
 
 		rpcConfigs = append(rpcConfigs, rpcConf)
@@ -244,30 +249,30 @@ func mapRpcConfig(rows *sql.Rows, rpcConf *rc.RpcConfig) error {
 	)
 
 	if err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 	return nil
 }
 
 func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
-	return r.db.QueryRow(`
-        UPDATE `+rpcConfigTable+`
-        SET 
-            type = ?,
-            name = ?,
-            platform = ?,
-            host = ?,
-            port = ?,
-            path = ?,
-            user = ?,
-            password = ?,
-            hashkey = ?,
-            node_version = ?,
-            node_last_updated = ?,
-            is_health_check_enabled = ?,
-            atom_feed = ?,
-            address = ?
-        WHERE id = ?`,
+	err = r.db.QueryRow(`
+	UPDATE `+rpcConfigTable+`
+	SET 
+		type = ?,
+		name = ?,
+		platform = ?,
+		host = ?,
+		port = ?,
+		path = ?,
+		user = ?,
+		password = ?,
+		hashkey = ?,
+		node_version = ?,
+		node_last_updated = ?,
+		is_health_check_enabled = ?,
+		atom_feed = ?,
+		address = ?
+	WHERE id = ?`,
 		rpcConfig.Type,
 		rpcConfig.Name,
 		rpcConfig.Platform,
@@ -284,10 +289,17 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
 		rpcConfig.Address,
 		rpcConfig.Id,
 	).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func (r *rpcConfigRepository) ToggleActive(userId int, active bool) error {
 	query := "UPDATE " + rpcConfigTable + " SET active = ? WHERE id = ?"
-
-	return r.db.QueryRow(query, active, userId).Err()
+	err := r.db.QueryRow(query, active, userId).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }

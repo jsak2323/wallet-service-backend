@@ -23,7 +23,7 @@ func (svc *RoleService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "Role successfully deleted"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
@@ -38,21 +38,22 @@ func (svc *RoleService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 
 	vars := mux.Vars(req)
 	if roleId, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = svc.urRepo.DeleteByRoleId(roleId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRoleUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRoleUser)
 		return
 	}
 
 	if err = svc.rpRepo.DeleteByRoleId(roleId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRolePermission.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRolePermission)
 		return
 	}
 
 	if err = svc.roleRepo.Delete(roleId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeleteRole.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRole)
 		return
 	}
 }

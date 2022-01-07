@@ -22,7 +22,7 @@ func (svc *UserService) DeactivateUserHandler(w http.ResponseWriter, req *http.R
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "User successfully deactivated"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 			RES.Success = false
@@ -36,12 +36,12 @@ func (svc *UserService) DeactivateUserHandler(w http.ResponseWriter, req *http.R
 
 	vars := mux.Vars(req)
 	if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
-
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = svc.userRepo.ToggleActive(userId, false); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeactivateUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivateUser)
 		return
 	}
 }

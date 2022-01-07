@@ -21,7 +21,7 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -41,12 +41,12 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 
 	vars := mux.Vars(req)
 	if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.ccRepo.ToggleActive(userId, false); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeactivateCurrencyConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivateCurrencyConfig)
 		return
 	}
 }

@@ -20,7 +20,7 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "Permission successfully added to Role"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
@@ -34,19 +34,18 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&rpReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !rpReq.valid() {
 		err = errs.InvalidRequest
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
-
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.rpRepo.Create(rpReq.RoleId, rpReq.PermissionId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRolePermission.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRolePermission)
 		return
 	}
 }

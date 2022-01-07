@@ -20,7 +20,7 @@ func (svc *UserService) ListUserHandler(w http.ResponseWriter, req *http.Request
 	handleResponse := func() {
 		resStatus := http.StatusOK
 
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		}
@@ -37,14 +37,14 @@ func (svc *UserService) ListUserHandler(w http.ResponseWriter, req *http.Request
 
 	users, err := svc.userRepo.GetAll(page, limit)
 	if err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetAllUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllUser)
 		return
 	}
 
 	for i, user := range users {
 		users[i].Roles, err = svc.roleRepo.GetByUserId(user.Id)
 		if err != nil {
-			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetRoleByUserID.Title})
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRoleByUserID)
 			return
 		}
 	}

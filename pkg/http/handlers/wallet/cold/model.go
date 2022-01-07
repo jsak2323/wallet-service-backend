@@ -1,5 +1,7 @@
 package cold
 
+import errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
+
 type SendToHotReq struct {
 	FireblocksName string `json:"fireblocks_name"`
 	FireblocksType string `json:"fireblocks_type"`
@@ -14,7 +16,7 @@ type UpdateBalanceReq struct {
 }
 
 type StandardRes struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Error   *errs.Error `json:"error"`
 }

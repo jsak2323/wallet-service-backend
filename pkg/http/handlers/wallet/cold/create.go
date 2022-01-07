@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
-	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Request) {
@@ -17,58 +17,56 @@ func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Reque
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 		} else {
 			RES.Success = true
 			RES.Message = "Cold wallet successfully created"
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		logger.ErrorLog(" - CreateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateCreateReq(createReq); err != nil {
-		logger.ErrorLog(" - CreateHandler validateCreateReq err: " + err.Error())
-		RES.Error = "Invalid param: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if createReq.Balance, err = util.CoinToRaw(createReq.Balance, 8); err != nil {
-		logger.ErrorLog(" - CreateHandler util.CoinToRaw err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCoinToRaw)
 		return
 	}
 
 	if _, err = s.cbRepo.Create(createReq); err != nil {
-		logger.ErrorLog(" - CreateHandler s.cbRepo.Update err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateColdBalance)
 		return
 	}
 }
 
 func validateCreateReq(createReq domain.ColdBalance) error {
 	if createReq.CurrencyId == 0 {
-		return errors.New("Currency Id")
+		return errs.AddTrace(errors.New("Currency Id"))
 	}
 	if createReq.Name == "" {
-		return errors.New("Name")
+		return errs.AddTrace(errors.New("Name"))
 	}
 	if createReq.Type == "" {
-		return errors.New("Type")
+		return errs.AddTrace(errors.New("Type"))
 	}
 	if createReq.Address == "" {
-		return errors.New("Address")
+		return errs.AddTrace(errors.New("Address"))
 	}
 
 	if isFireblocksCold(createReq.Type) && createReq.FireblocksName == "" {
-		return errors.New("Fireblocks Name")
+		return errs.AddTrace(errors.New("Fireblocks Name"))
 	}
 
 	return nil

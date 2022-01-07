@@ -20,7 +20,7 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -40,12 +40,12 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 
 	vars := mux.Vars(req)
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = svc.rcRepo.ToggleActive(id, false); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedDeactivateRPCConfig.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivateRPCConfig)
 		return
 	}
 }

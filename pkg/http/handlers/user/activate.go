@@ -21,7 +21,7 @@ func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Req
 		resStatus := http.StatusOK
 		RES.Success = true
 		RES.Message = "User successfully activated"
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 			RES.Success = false
@@ -36,11 +36,12 @@ func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Req
 
 	vars := mux.Vars(req)
 	if userId, err = strconv.Atoi(vars["id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = svc.userRepo.ToggleActive(userId, true); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedActivateUser.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivateUser)
 		return
 	}
 }

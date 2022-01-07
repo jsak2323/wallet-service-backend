@@ -18,7 +18,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		}
@@ -37,7 +37,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 		}
 	} else {
 		if RES.CurrencyConfigs, err = s.ccRepo.GetAll(); err != nil {
-			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetAllCurrencyConfig.Title})
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllCurrencyConfig)
 			return
 		}
 	}
@@ -45,7 +45,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 	for i, currency := range RES.CurrencyConfigs {
 		RES.CurrencyConfigs[i].RpcConfigs, err = s.rcRepo.GetByCurrencyId(currency.Id)
 		if err != nil {
-			RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetRPCConfigByCurrencyID.Title})
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCConfigByCurrencyID)
 			return
 		}
 	}

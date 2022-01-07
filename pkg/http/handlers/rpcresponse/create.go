@@ -21,7 +21,7 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -42,41 +42,41 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 	logger.InfoLog(" -- rpcresponse.CreateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcResponse); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateCreateReq(rpcResponse); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrsRepo.Create(rpcResponse); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateRPCResponse.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCResponse)
 		return
 	}
 }
 
 func validateCreateReq(rpcResponse domain.RpcResponse) error {
 	if rpcResponse.TargetFieldName == "" {
-		return errors.New("Target Field Name")
+		return errs.AddTrace(errors.New("Target Field Name"))
 	}
 	if rpcResponse.XMLPath == "" {
-		return errors.New("XML Path")
+		return errs.AddTrace(errors.New("XML Path"))
 	}
 	if rpcResponse.DataTypeXMLTag == "" {
-		return errors.New("Data Type XML Tag")
+		return errs.AddTrace(errors.New("Data Type XML Tag"))
 	}
 	if rpcResponse.ParseType == "" {
-		return errors.New("Parse Type")
+		return errs.AddTrace(errors.New("Parse Type"))
 	}
 	if rpcResponse.RpcMethodId == 0 {
-		return errors.New("Rpc Method Id")
+		return errs.AddTrace(errors.New("Rpc Method Id"))
 	}
 
 	err := json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), rpcResponse.JsonFields)
 	if err != nil && rpcResponse.JsonFieldsStr != "" {
-		return errors.New("JSON data at JSON Field")
+		return errs.AddTrace(errors.New("JSON data at JSON Field"))
 	}
 
 	return nil

@@ -20,7 +20,7 @@ func (s *RpcResponseService) GetByRpcMethodIdHandler(w http.ResponseWriter, req 
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -36,12 +36,12 @@ func (s *RpcResponseService) GetByRpcMethodIdHandler(w http.ResponseWriter, req 
 	logger.InfoLog(" - rpcresponse.GetByRpcMethodIdHandler, Requesting ...", req)
 
 	if reqRpcMethodId, err = strconv.Atoi(vars["rpc_method_id"]); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if RES.RpcResponses, err = s.rrsRepo.GetByRpcMethodId(reqRpcMethodId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedGetRPCResponseByRPCMethodID.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCResponseByRPCMethodID)
 		return
 	}
 }

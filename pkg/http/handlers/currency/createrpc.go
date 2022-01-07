@@ -19,7 +19,7 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -38,17 +38,17 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 	logger.InfoLog(" -- currency.CreateRpcHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&cRreq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = cRreq.validate(); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.crRepo.Create(cRreq.CurrencyId, cRreq.RpcId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateCurrencyRPC.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateCurrencyRPC)
 		return
 	}
 }

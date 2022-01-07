@@ -21,7 +21,7 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 	handleResponse := func() {
 
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
@@ -42,30 +42,30 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcmethod.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcMethod); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.ErrorUnmarshalBodyRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(rpcMethod); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidRequest.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rmRepo.Update(rpcMethod); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedUpdateRPCMethod.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCMethod)
 		return
 	}
 }
 
 func validateUpdateReq(rpcMethod domain.RpcMethod) error {
 	if rpcMethod.Id == 0 {
-		return errors.New("ID")
+		return errs.AddTrace(errors.New("ID"))
 	}
 	if rpcMethod.Name == "" {
-		return errors.New("Name")
+		return errs.AddTrace(errors.New("Name"))
 	}
 	if rpcMethod.Type == "" {
-		return errors.New("Type")
+		return errs.AddTrace(errors.New("Type"))
 	}
 
 	return nil

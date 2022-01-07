@@ -22,7 +22,7 @@ func (svc *UserService) LogoutHandler(w http.ResponseWriter, req *http.Request) 
 
 		resStatus := http.StatusOK
 		RES.Success = true
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			logger.ErrorLog(errs.Logged(RES.Error))
 			RES.Success = false
@@ -35,12 +35,12 @@ func (svc *UserService) LogoutHandler(w http.ResponseWriter, req *http.Request) 
 	defer handleResponse()
 
 	if _, valid, err = jwt.ParseFromRequest(req); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.FailedCreateToken.Title})
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateToken)
 		return
 	}
 
 	if !valid {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), &errs.Error{Title: errs.InvalidToken.Title})
+		RES.Error = errs.AddTrace(errs.InvalidToken)
 		return
 	}
 }

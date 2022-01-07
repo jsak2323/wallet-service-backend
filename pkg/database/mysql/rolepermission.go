@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rolepermission"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const rolePermissionTable = "role_permission"
@@ -20,22 +21,33 @@ func NewMysqlRolePermissionRepository(db *sql.DB) domain.Repository {
 
 func (r *rolePermissionRepository) Create(roleId, permissionId int) (err error) {
 	query := "INSERT INTO " + rolePermissionTable + " (role_id, permission_id) VALUES(?, ?)"
-
-	return r.db.QueryRow(query, roleId, permissionId).Err()
+	err = r.db.QueryRow(query, roleId, permissionId).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func (r *rolePermissionRepository) GetByRole(roleId int) (rps []domain.RolePermission, err error) {
-	return r.queryRows("SELECT role_id, permission_id FROM "+rolePermissionTable+" WHERE role_id = ?", roleId)
+	rps, err = r.queryRows("SELECT role_id, permission_id FROM "+rolePermissionTable+" WHERE role_id = ?", roleId)
+	if err != nil {
+		return rps, errs.AddTrace(err)
+	}
+	return rps, nil
 }
 
 func (r *rolePermissionRepository) GetByPermission(permissionId int) (rps []domain.RolePermission, err error) {
-	return r.queryRows("SELECT role_id, permission_id FROM "+rolePermissionTable+" WHERE permission_id = ?", permissionId)
+	rps, err = r.queryRows("SELECT role_id, permission_id FROM "+rolePermissionTable+" WHERE permission_id = ?", permissionId)
+	if err != nil {
+		return rps, errs.AddTrace(err)
+	}
+	return rps, nil
 }
 
 func (r *rolePermissionRepository) queryRows(query string, param int) (rps []domain.RolePermission, err error) {
 	rows, err := r.db.Query(query, param)
 	if err != nil {
-		return []domain.RolePermission{}, err
+		return []domain.RolePermission{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -46,7 +58,7 @@ func (r *rolePermissionRepository) queryRows(query string, param int) (rps []dom
 			&rp.RoleId,
 			&rp.PermissionId,
 		); err != nil {
-			return []domain.RolePermission{}, err
+			return []domain.RolePermission{}, errs.AddTrace(err)
 		}
 
 		rps = append(rps, rp)
@@ -57,18 +69,27 @@ func (r *rolePermissionRepository) queryRows(query string, param int) (rps []dom
 
 func (r *rolePermissionRepository) DeleteByRoleId(roleId int) (err error) {
 	query := "DELETE FROM " + rolePermissionTable + " WHERE role_id = ?"
-
-	return r.db.QueryRow(query, roleId).Err()
+	err = r.db.QueryRow(query, roleId).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func (r *rolePermissionRepository) DeleteByPermissionId(permissionId int) (err error) {
 	query := "DELETE FROM " + rolePermissionTable + " WHERE permission_id = ?"
-
-	return r.db.QueryRow(query, permissionId).Err()
+	err = r.db.QueryRow(query, permissionId).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func (r *rolePermissionRepository) Delete(roleId, permissionId int) (err error) {
 	query := "DELETE FROM " + rolePermissionTable + " WHERE role_id = ? and permission_id = ?"
-
-	return r.db.QueryRow(query, roleId, permissionId).Err()
+	err = r.db.QueryRow(query, roleId, permissionId).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }

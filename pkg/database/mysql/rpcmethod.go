@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	rm "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcmethod"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const rpcMethodTable = "rpc_method"
@@ -22,7 +23,7 @@ func NewMysqlRpcMethodRepository(db *sql.DB) rm.Repository {
 
 func (r *rpcMethodRepository) Create(rpcMethod rm.RpcMethod) (int, error) {
 	stmt, err := r.db.Prepare(`
-        INSERT INTO `+rpcMethodTable+`(
+        INSERT INTO ` + rpcMethodTable + `(
             name,
             type,
             num_of_args,
@@ -32,7 +33,7 @@ func (r *rpcMethodRepository) Create(rpcMethod rm.RpcMethod) (int, error) {
         `,
 	)
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	res, err := stmt.Exec(
@@ -42,12 +43,12 @@ func (r *rpcMethodRepository) Create(rpcMethod rm.RpcMethod) (int, error) {
 		rpcMethod.Network,
 	)
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	lastId, err := res.LastInsertId()
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	return int(lastId), nil
@@ -65,7 +66,7 @@ func (r *rpcMethodRepository) GetAll(page, limit int) (rpcMethods []rm.RpcMethod
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return []rm.RpcMethod{}, err
+		return []rm.RpcMethod{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -73,7 +74,7 @@ func (r *rpcMethodRepository) GetAll(page, limit int) (rpcMethods []rm.RpcMethod
 		rpcMethod := rm.RpcMethod{}
 
 		if err = mapRpcMethod(rows, &rpcMethod); err != nil {
-			return []rm.RpcMethod{}, err
+			return []rm.RpcMethod{}, errs.AddTrace(err)
 		}
 
 		rpcMethods = append(rpcMethods, rpcMethod)
@@ -98,7 +99,7 @@ func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm
 
 	rows, err := r.db.Query(query, rpcConfigId)
 	if err != nil {
-		return []rm.RpcMethod{}, err
+		return []rm.RpcMethod{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -106,7 +107,7 @@ func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm
 		var rpcMethod = rm.RpcMethod{RpcConfigId: rpcConfigId}
 		err = mapRpcMethod(rows, &rpcMethod)
 		if err != nil {
-			return []rm.RpcMethod{}, err
+			return []rm.RpcMethod{}, errs.AddTrace(err)
 		}
 
 		rpcMethods = append(rpcMethods, rpcMethod)
@@ -116,20 +117,24 @@ func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm
 }
 
 func (r *rpcMethodRepository) Update(rpcMethod rm.RpcMethod) error {
-	return r.db.QueryRow(`
-        UPDATE `+rpcMethodTable+`
-        SET 
-			name = ?,
-            type = ?,
-			num_of_args = ?,
-			network = ?
-        WHERE id = ?`,
+	err := r.db.QueryRow(`
+	UPDATE `+rpcMethodTable+`
+	SET 
+		name = ?,
+		type = ?,
+		num_of_args = ?,
+		network = ?
+	WHERE id = ?`,
 		rpcMethod.Name,
 		rpcMethod.Type,
 		rpcMethod.NumOfArgs,
 		rpcMethod.Network,
 		rpcMethod.Id,
 	).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func mapRpcMethod(rows *sql.Rows, rpcMethod *rm.RpcMethod) error {
@@ -142,13 +147,16 @@ func mapRpcMethod(rows *sql.Rows, rpcMethod *rm.RpcMethod) error {
 	)
 
 	if err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 	return nil
 }
 
 func (r *rpcMethodRepository) Delete(Id int) (err error) {
 	query := "DELETE FROM " + rpcMethodTable + " WHERE id = ?"
-
-	return r.db.QueryRow(query, Id).Err()
+	err = r.db.QueryRow(query, Id).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
