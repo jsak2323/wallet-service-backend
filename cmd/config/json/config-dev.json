@@ -3,7 +3,6 @@
 
     "mysql_db_user"     : "root",
     "mysql_db_pass"     : "Pass123@",
-    "mysql_db_pass"     : "root",
     "mysql_db_name"     : "wallet_service",
 
     "exchange_slave_mysql_db_host" : "localhost:3306",
