@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -12,6 +13,7 @@ import (
 	mysqldb "github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
 	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 var (
@@ -21,7 +23,7 @@ var (
 	FirstHealthCheck bool
 
 	CURRRPC = make(map[int]CurrencyRpcConfig)
-	CURRID  = make(map[string]map[string]int) // currency_id by symbol and token_typen 
+	CURRID  = make(map[string]map[string]int) // currency_id by symbol and token_typen
 	SYMBOLS = make(map[int]string)
 )
 
@@ -115,6 +117,16 @@ func MysqlDbConn() (db *sql.DB) {
 	dbPass := CONF.MysqlDbPass
 	dbName := CONF.MysqlDbName
 
+	log.Println("ENV DEV :", IS_DEV)
+	if IS_DEV {
+		db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp(localhost:3307)/"+dbName)
+		if err != nil {
+			log.Println("error1", err)
+			panic(err.Error())
+		}
+		return db
+	}
+
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())
@@ -167,7 +179,9 @@ func LoadCurrencyConfigs() {
 		}
 
 		_, ok := CURRID[currencyConfig.Symbol]
-		if !ok { CURRID[currencyConfig.Symbol] = make(map[string]int) }
+		if !ok {
+			CURRID[currencyConfig.Symbol] = make(map[string]int)
+		}
 		CURRID[currencyConfig.Symbol][currencyConfig.TokenType] = currencyConfig.Id
 
 		SYMBOLS[currencyConfig.Id] = currencyConfig.Symbol
@@ -177,9 +191,9 @@ func LoadCurrencyConfigs() {
 }
 
 func GetCurrencyBySymbol(symbol string) (result []cc.CurrencyConfig, err error) {
-	tokenTypes, ok  := CURRID[symbol]
+	tokenTypes, ok := CURRID[symbol]
 	if !ok {
-		return []cc.CurrencyConfig{}, errors.New("symbol not found "+ symbol)
+		return []cc.CurrencyConfig{}, errs.AddTrace(errors.New("symbol not found " + symbol))
 	}
 
 	for _, currencyConfigId := range tokenTypes {
@@ -190,14 +204,14 @@ func GetCurrencyBySymbol(symbol string) (result []cc.CurrencyConfig, err error) 
 }
 
 func GetCurrencyBySymbolTokenType(symbol, tokenType string) (cc.CurrencyConfig, error) {
-	tokenTypes, ok  := CURRID[symbol]
+	tokenTypes, ok := CURRID[symbol]
 	if !ok {
-		return cc.CurrencyConfig{}, errors.New("symbol not found  "+symbol)
+		return cc.CurrencyConfig{}, errs.AddTrace(errors.New("symbol not found  " + symbol))
 	}
 
 	currencyId, ok := tokenTypes[tokenType]
 	if !ok {
-		return cc.CurrencyConfig{}, errors.New("token_type not found "+tokenType)
+		return cc.CurrencyConfig{}, errs.AddTrace(errors.New("token_type not found " + tokenType))
 	}
 
 	return CURRRPC[currencyId].Config, nil
