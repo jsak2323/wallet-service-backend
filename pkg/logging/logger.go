@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	ctxLib "github.com/btcid/wallet-services-backend-go/pkg/lib/context"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
@@ -55,10 +56,22 @@ func InfoLog(msg string, req *http.Request) {
 	// responsebody
 	// userid
 
-	log.WithFields(logrus.Fields{
+	logField := logrus.Fields{
 		"Method":     req.Method,
 		"RemoteAddr": req.RemoteAddr,
-	}).Info(msg)
+		// "Header":       req.Header,
+		// "proto":        req.Proto,
+		// "body":         string(reqBody),
+	}
+
+	// log.Println(req.RemoteAddr)
+	// log.Println(req.Host)
+
+	if ad, valid := ctxLib.ValidateAccessDetailsContext(req.Context()); valid {
+		logField["UserId"] = ad.GetUserId()
+	}
+
+	log.WithFields(logField).Info(msg)
 }
 
 func ErrorLog(msg string) {

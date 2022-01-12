@@ -279,7 +279,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		return
 	}
 
-	senderRpc, err := util.GetRpcConfigByType(currency.Id, rc.SenderRpcType)
+	senderRpc, err := config.GetRpcConfigByType(currency.Id, rc.SenderRpcType)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 		return

@@ -9,7 +9,6 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
-	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
@@ -52,7 +51,7 @@ func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request
 	}
 
 	// define rpc config
-	rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, rpcConfigType)
+	rpcConfig, err := config.GetRpcConfigByType(currencyConfig.Id, rpcConfigType)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRpcConfigByType)
 		return

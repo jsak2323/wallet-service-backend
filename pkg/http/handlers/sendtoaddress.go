@@ -8,7 +8,6 @@ import (
 
 	config "github.com/btcid/wallet-services-backend-go/cmd/config"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
-	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
@@ -73,7 +72,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
 	}
 
 	// define rpc config
-	rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, "sender")
+	rpcConfig, err := config.GetRpcConfigByType(currencyConfig.Id, "sender")
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRpcConfigByType)
 		return

@@ -30,8 +30,8 @@ func NewAuthMiddleware(
 }
 
 var skippedRouteNames = map[string]bool{
-	"login": true,
-	"cronhealthcheck": true,
+	"login":              true,
+	"cronhealthcheck":    true,
 	"fireblockscallback": true,
 }
 
@@ -95,11 +95,11 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 			routeRoles []string
 			err        error
 
-			routeName    = mux.CurrentRoute(req).GetName()
-			ad, _ = req.Context().Value("access_details").(jwt.AccessDetails)
+			routeName = mux.CurrentRoute(req).GetName()
+			ad, _     = req.Context().Value("access_details").(jwt.AccessDetails)
 		)
 
-		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host){
+		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host) {
 			hf.ServeHTTP(w, req)
 			return
 		}

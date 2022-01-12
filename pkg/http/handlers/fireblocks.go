@@ -8,7 +8,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -83,7 +83,7 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 		return
 	}
 
-	receiverWallet, err := util.GetRpcConfigByType(currencyConfig.Id, rc.SenderRpcType)
+	receiverWallet, err := config.GetRpcConfigByType(currencyConfig.Id, rc.SenderRpcType)
 	if err != nil {
 		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: " + err.Error())
 		res.Action = RejectTransaction
@@ -99,19 +99,19 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 
 func (r *FireblocksSignReq) Validate() (err error) {
 	if r.Asset == "" {
-		return errors.New("asset is required")
+		return errs.AddTrace(errors.New("asset is required"))
 	}
 
 	if r.Type == "" {
-		return errors.New("type is required")
+		return errs.AddTrace(errors.New("type is required"))
 	}
 
 	if r.DestId == "" {
-		return errors.New("destId is required")
+		return errs.AddTrace(errors.New("destId is required"))
 	}
 
 	if r.DestAddress == "" {
-		return errors.New("destAddress is required")
+		return errs.AddTrace(errors.New("destAddress is required"))
 	}
 
 	return nil

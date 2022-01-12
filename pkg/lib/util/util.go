@@ -11,8 +11,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/btcid/wallet-services-backend-go/cmd/config"
-	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
@@ -108,15 +106,6 @@ func Microtime() float64 {
 	now := time.Now().In(loc)
 	micSeconds := float64(now.Nanosecond()) / 1000000000
 	return float64(now.Unix()) + micSeconds
-}
-
-func GetRpcConfigByType(currencyConfigId int, rpcConfigType string) (rc.RpcConfig, error) {
-	for _, rpcConfig := range config.CURRRPC[currencyConfigId].RpcConfigs {
-		if rpcConfig.Type == rpcConfigType || rpcConfig.Type == "master" {
-			return rpcConfig, nil
-		}
-	}
-	return rc.RpcConfig{}, errs.AddTrace(errors.New("RpcConfig not found."))
 }
 
 func GetMinuteDiffFromNow(datetime string) (float64, error) {

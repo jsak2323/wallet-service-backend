@@ -139,7 +139,7 @@ func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRep
 
 	depositService := hd.NewDepositService(mysqlRepos.Deposit)
 	r.HandleFunc("/deposit", depositService.ListHandler).Methods(http.MethodGet).Name("listdeposits")
-	
+
 	// -- GET listtransactions (disabled)
 	/*
 		listTransactionsService := h.NewListTransactionsService(ModuleServices)

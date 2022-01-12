@@ -10,7 +10,6 @@ import (
 
 	config "github.com/btcid/wallet-services-backend-go/cmd/config"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
-	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
@@ -58,7 +57,7 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
 	}
 
 	// define rpc config
-	rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, "receiver")
+	rpcConfig, err := config.GetRpcConfigByType(currencyConfig.Id, "receiver")
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRpcConfigByType)
 		return

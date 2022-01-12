@@ -205,3 +205,12 @@ func GetCurrencyBySymbolTokenType(symbol, tokenType string) (cc.CurrencyConfig, 
 
 	return CURRRPC[currencyId].Config, nil
 }
+
+func GetRpcConfigByType(currencyConfigId int, rpcConfigType string) (rc.RpcConfig, error) {
+	for _, rpcConfig := range CURRRPC[currencyConfigId].RpcConfigs {
+		if rpcConfig.Type == rpcConfigType || rpcConfig.Type == "master" {
+			return rpcConfig, nil
+		}
+	}
+	return rc.RpcConfig{}, errs.AddTrace(errors.New("RpcConfig not found."))
+}
