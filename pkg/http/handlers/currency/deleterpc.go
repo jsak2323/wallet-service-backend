@@ -6,8 +6,9 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	
+
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -19,9 +20,11 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- currency.DeleteRpcHandler Success!", req)
 
@@ -30,6 +33,8 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -38,19 +43,19 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 	logger.InfoLog(" -- currency.DeleteRpcHandler, Requesting ...", req)
 
 	vars := mux.Vars(req)
-    if currencyId, err = strconv.Atoi(vars["currency_id"]); err != nil {
-		logger.ErrorLog(" - DeleteRpcHandler invalid request")
-		RES.Error = "Invalid request currency_id"
+	if currencyId, err = strconv.Atoi(vars["currency_id"]); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
+
 	}
 
-    if rpcId, err = strconv.Atoi(vars["rpc_id"]); err != nil {
-		logger.ErrorLog(" - DeleteRpcHandler invalid request")
-		RES.Error = "Invalid request rpc_id"
+	if rpcId, err = strconv.Atoi(vars["rpc_id"]); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
 	}
 
 	if err = s.crRepo.Delete(currencyId, rpcId); err != nil {
-		logger.ErrorLog(" - DeleteRpcHandler svc.rpRepo.Delete err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteCurrencyRPC)
 		return
 	}
 }

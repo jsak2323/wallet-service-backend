@@ -5,28 +5,31 @@ import (
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *http.Request) {
 	var (
 		cRreq CurrencyRpcReq
-		RES StandardRes
-		err error
+		RES   StandardRes
+		err   error
 	)
 
 	handleResponse := func() {
-		resStatus := http.StatusOK
-		if RES.Error != "" {
-			resStatus = http.StatusInternalServerError
-		} else {
-			logger.InfoLog(" -- currency.CreateRpcHandler Success!", req)
 
+		resStatus := http.StatusOK
+		if RES.Error != nil {
+			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
+		} else {
 			RES.Success = true
 			RES.Message = "Currency successfully updated"
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -35,20 +38,17 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 	logger.InfoLog(" -- currency.CreateRpcHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&cRreq); err != nil {
-		logger.ErrorLog(" -- currency.CreateRpcHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = cRreq.validate(); err != nil {
-		logger.ErrorLog(" -- currency.CreateRpcHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.crRepo.Create(cRreq.CurrencyId, cRreq.RpcId); err != nil {
-		logger.ErrorLog(" - currency.CreateRpcHandler s.crRepo.Create err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateCurrencyRPC)
 		return
 	}
 }

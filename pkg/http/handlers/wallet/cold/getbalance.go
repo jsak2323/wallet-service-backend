@@ -1,40 +1,49 @@
 package cold
 
 import (
-	"strconv"
-
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/fireblocks"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (s *ColdWalletService) GetBalance(currencyConfigId int) (coldBalances []cb.ColdBalance) {
-	currency := config.CURRRPC[currencyConfigId].Config
+
+	var (
+		currency             = config.CURRRPC[currencyConfigId].Config
+		errField *errs.Error = nil
+	)
+
+	defer func() {
+		if errField != nil {
+			logger.ErrorLog(errs.Logged(errField))
+		}
+	}()
 
 	if cbs, err := s.cbRepo.GetByCurrencyId(currency.Id); err != nil {
-		logger.ErrorLog("- cold.getBalance s.cbRepo.GetByCurrencyId(" + strconv.Itoa(currency.Id) + ") error: " + err.Error())
+		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetCurrencyByID)
 	} else if len(cbs) > 0 {
 		for i := range cbs {
 			if cbs[i].Type == cb.FbWarmType || cbs[i].Type == cb.FbColdType {
 				vaultAccountId, err := FireblocksVaultAccountId(cbs[i].Type)
 				if err != nil {
-					logger.ErrorLog(" - cold.getBalance FireblocksVaultAccountId err: " + err.Error())
+					errField = errs.AssignErr(errs.AddTrace(err), errs.FailedFireblocksVaultAccountId)
 				}
 
 				if res, err := fireblocks.GetVaultAccountAsset(fireblocks.GetVaultAccountAssetReq{
 					VaultAccountId: vaultAccountId,
 					AssetId:        cbs[i].FireblocksName,
 				}); err != nil {
-					logger.ErrorLog("- cold.getBalance fireblocks.GetVaultAccountAsset(" + cbs[i].FireblocksName + ") error: " + err.Error())
+					errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetVaultAccountAsset)
 				} else {
 					cbs[i].Balance = res.Total
 				}
 			} else {
 				// non fireblocks balance are stored in raw in db
 				if cbs[i].Balance, err = util.RawToCoin(cbs[i].Balance, 8); err != nil {
-					logger.ErrorLog("- cold.getBalance RawToCoin(" + strconv.Itoa(currency.Id) + "," + cbs[i].Balance + ") error: " + err.Error())
+					errField = errs.AssignErr(errs.AddTrace(err), errs.FailedRawToCoin)
 				}
 			}
 		}

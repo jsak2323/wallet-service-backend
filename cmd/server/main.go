@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -22,6 +23,7 @@ func main() {
 			fmt.Println(" - panic: ", err)
 		}
 	}()
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.Parse()
 

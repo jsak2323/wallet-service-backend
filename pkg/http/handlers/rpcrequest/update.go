@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcrequest"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,9 +19,11 @@ func (s *RpcRequestService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcrequest.UpdateHandler Success!", req)
 
@@ -29,6 +32,8 @@ func (s *RpcRequestService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 
 			config.LoadRpcRequestByRpcMethodId(s.rrqRepo, rpcRequest.RpcMethodId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,39 +42,36 @@ func (s *RpcRequestService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 	logger.InfoLog(" -- rpcrequest.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcRequest); err != nil {
-		logger.ErrorLog(" -- rpcrequest.UpdateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(rpcRequest); err != nil {
-		logger.ErrorLog(" -- rpcrequest.UpdateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrqRepo.Update(rpcRequest); err != nil {
-		logger.ErrorLog(" -- rpcrequest.UpdateHandler rrqRepo.Update Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCRequest)
 		return
 	}
 }
 
 func validateUpdateReq(rpcRequest domain.RpcRequest) error {
 	if rpcRequest.Id == 0 {
-		return errors.New("ID")
+		return errs.AddTrace(errors.New("ID"))
 	}
 	if rpcRequest.Type != domain.TypeJsonRoot && rpcRequest.ArgName == "" {
-		return errors.New("Arg Name")
+		return errs.AddTrace(errors.New("Arg Name"))
 	}
 	if rpcRequest.Type == "" {
-		return errors.New("Type")
+		return errs.AddTrace(errors.New("Type"))
 	}
 	if rpcRequest.Type != domain.TypeJsonRoot && rpcRequest.Source == "" {
-		return errors.New("Source")
+		return errs.AddTrace(errors.New("Source"))
 	}
 	if rpcRequest.RpcMethodId == 0 {
-		return errors.New("RPC Method Id")
+		return errs.AddTrace(errors.New("RPC Method Id"))
 	}
 
 	return nil

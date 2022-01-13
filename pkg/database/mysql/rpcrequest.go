@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	rr "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcrequest"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const rpcRequestTable = "rpc_request"
@@ -21,18 +22,18 @@ func NewMysqlRpcRequestRepository(db *sql.DB) rr.Repository {
 }
 
 func (r *rpcRequestRepository) Create(rpcRequest rr.RpcRequest) error {
-	return r.db.QueryRow(`
-        INSERT INTO `+rpcRequestTable+`(
-            arg_name,
-            type,
-            arg_order,
-            source,
-			runtime_var_name,
-			value,
-			rpc_method_id
-		)
-        VALUES (?,?,?,?,?,?,?);
-        `,
+	err := r.db.QueryRow(`
+	INSERT INTO `+rpcRequestTable+`(
+		arg_name,
+		type,
+		arg_order,
+		source,
+		runtime_var_name,
+		value,
+		rpc_method_id
+	)
+	VALUES (?,?,?,?,?,?,?);
+	`,
 		rpcRequest.ArgName,
 		rpcRequest.Type,
 		rpcRequest.ArgOrder,
@@ -41,6 +42,10 @@ func (r *rpcRequestRepository) Create(rpcRequest rr.RpcRequest) error {
 		rpcRequest.Value,
 		rpcRequest.RpcMethodId,
 	).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func (r *rpcRequestRepository) GetByRpcMethodId(rpcMethodId int) (rpcRequests []rr.RpcRequest, err error) {
@@ -48,7 +53,7 @@ func (r *rpcRequestRepository) GetByRpcMethodId(rpcMethodId int) (rpcRequests []
 
 	rows, err := r.db.Query(query, rpcMethodId)
 	if err != nil {
-		return []rr.RpcRequest{}, err
+		return []rr.RpcRequest{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -56,7 +61,7 @@ func (r *rpcRequestRepository) GetByRpcMethodId(rpcMethodId int) (rpcRequests []
 		var rpcRequest rr.RpcRequest
 		err = mapRpcRequest(rows, &rpcRequest)
 		if err != nil {
-			return []rr.RpcRequest{}, err
+			return []rr.RpcRequest{}, errs.AddTrace(err)
 		}
 
 		rpcRequests = append(rpcRequests, rpcRequest)
@@ -66,17 +71,17 @@ func (r *rpcRequestRepository) GetByRpcMethodId(rpcMethodId int) (rpcRequests []
 }
 
 func (r *rpcRequestRepository) Update(rpcRequest rr.RpcRequest) error {
-	return r.db.QueryRow(`
-        UPDATE `+rpcRequestTable+`
-        SET 
-			arg_name = ?,
-            type = ?,
-			arg_order = ?,
-			source = ?,
-			runtime_var_name = ?,
-			value = ?,
-			rpc_method_id = ?
-        WHERE id = ?`,
+	err := r.db.QueryRow(`
+	UPDATE `+rpcRequestTable+`
+	SET 
+		arg_name = ?,
+		type = ?,
+		arg_order = ?,
+		source = ?,
+		runtime_var_name = ?,
+		value = ?,
+		rpc_method_id = ?
+	WHERE id = ?`,
 		rpcRequest.ArgName,
 		rpcRequest.Type,
 		rpcRequest.ArgOrder,
@@ -86,6 +91,10 @@ func (r *rpcRequestRepository) Update(rpcRequest rr.RpcRequest) error {
 		rpcRequest.RpcMethodId,
 		rpcRequest.Id,
 	).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }
 
 func mapRpcRequest(rows *sql.Rows, rpcRequest *rr.RpcRequest) error {
@@ -101,13 +110,17 @@ func mapRpcRequest(rows *sql.Rows, rpcRequest *rr.RpcRequest) error {
 	)
 
 	if err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 	return nil
 }
 
 func (r *rpcRequestRepository) Delete(Id int) (err error) {
-	query := "DELETE FROM " + rpcRequestTable + " WHERE id = ?"
 
-	return r.db.QueryRow(query, Id).Err()
+	query := "DELETE FROM " + rpcRequestTable + " WHERE id = ?"
+	err = r.db.QueryRow(query, Id).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }

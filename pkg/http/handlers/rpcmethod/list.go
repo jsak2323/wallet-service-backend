@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -15,12 +16,16 @@ func (s *RpcMethodService) ListHandler(w http.ResponseWriter, req *http.Request)
 	var err error
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" - rpcmethod.ListHandler, success!", req)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -33,8 +38,7 @@ func (s *RpcMethodService) ListHandler(w http.ResponseWriter, req *http.Request)
 	logger.InfoLog(" - rpcmethod.ListHandler, Requesting ...", req)
 
 	if RES.RpcMethods, err = s.rmRepo.GetAll(page, limit); err != nil {
-		logger.ErrorLog(" -- rpcmethod.ListHandler rmRepo.GetAll Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllRPCMethod)
 		return
 	}
 }

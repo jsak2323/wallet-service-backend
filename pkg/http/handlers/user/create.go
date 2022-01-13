@@ -6,9 +6,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
-
 
 func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Request) {
 	var (
@@ -19,40 +19,39 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		RES.Message = "User successfully created"
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Message = "User successfully created"
+			RES.Message = ""
+			logger.ErrorLog(errs.Logged(RES.Error))
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		logger.ErrorLog(" - CreateUserHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !createReq.valid() {
-		logger.ErrorLog(" - CreateUserHandler invalid request")
-		RES.Error = "Invalid request"
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	hashPasswordByte, err := bcrypt.GenerateFromPassword([]byte(createReq.Password), bcrypt.DefaultCost)
 	if err != nil {
-		logger.ErrorLog(" - CreateUserHandler bcrypt.GenerateFromPassword err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGeneratePassword)
 		return
 	}
 
 	createReq.Password = string(hashPasswordByte)
 
 	if RES.Id, err = svc.userRepo.Create(createReq.User); err != nil {
-		logger.ErrorLog(" - CreateUserHandler svc.userRepo.Create err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateUser)
 		return
 	}
 }

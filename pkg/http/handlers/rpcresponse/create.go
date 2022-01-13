@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcresponse"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -18,9 +19,11 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcresponse.CreateHandler Success!", req)
 
@@ -29,6 +32,8 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 
 			config.LoadRpcResponseByRpcMethodId(s.rrsRepo, rpcResponse.RpcMethodId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,44 +42,41 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 	logger.InfoLog(" -- rpcresponse.CreateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcResponse); err != nil {
-		logger.ErrorLog(" -- rpcresponse.CreateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateCreateReq(rpcResponse); err != nil {
-		logger.ErrorLog(" -- rpcresponse.CreateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rrsRepo.Create(rpcResponse); err != nil {
-		logger.ErrorLog(" -- rpcresponse.CreateHandler rrsRepo.Create Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCResponse)
 		return
 	}
 }
 
 func validateCreateReq(rpcResponse domain.RpcResponse) error {
 	if rpcResponse.TargetFieldName == "" {
-		return errors.New("Target Field Name")
+		return errs.AddTrace(errors.New("Target Field Name"))
 	}
 	if rpcResponse.XMLPath == "" {
-		return errors.New("XML Path")
+		return errs.AddTrace(errors.New("XML Path"))
 	}
 	if rpcResponse.DataTypeXMLTag == "" {
-		return errors.New("Data Type XML Tag")
+		return errs.AddTrace(errors.New("Data Type XML Tag"))
 	}
 	if rpcResponse.ParseType == "" {
-		return errors.New("Parse Type")
+		return errs.AddTrace(errors.New("Parse Type"))
 	}
 	if rpcResponse.RpcMethodId == 0 {
-		return errors.New("Rpc Method Id")
+		return errs.AddTrace(errors.New("Rpc Method Id"))
 	}
 
 	err := json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), rpcResponse.JsonFields)
 	if err != nil && rpcResponse.JsonFieldsStr != "" {
-		return errors.New("JSON data at JSON Field")
+		return errs.AddTrace(errors.New("JSON data at JSON Field"))
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package permission
 
 import (
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/permission"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 type CreateReq struct {
@@ -9,9 +10,9 @@ type CreateReq struct {
 }
 
 type CreateRes struct {
-	Id 		int 	`json:"id"`
-	Message string  `json:"message"`
-	Error 	string  `json:"error"`
+	Id      int         `json:"id"`
+	Message string      `json:"message"`
+	Error   *errs.Error `json:"error"`
 }
 
 type UpdateReq struct {
@@ -24,11 +25,11 @@ type DeleteReq struct {
 
 type ListRes struct {
 	Permissions []domain.Permission `json:"permissions"`
-	Error 		string 		 		`json:"error"`
+	Error       *errs.Error         `json:"error"`
 }
 
 type StandardRes struct {
-    Success bool	`json:"success"`
-	Message string  `json:"message"`
-    Error   string 	`json:"error"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Error   *errs.Error `json:"error"`
 }

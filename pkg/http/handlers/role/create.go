@@ -4,43 +4,44 @@ import (
 	"encoding/json"
 	"net/http"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		createReq   CreateReq
-		RES         CreateRes
-		err         error
+		createReq CreateReq
+		RES       CreateRes
+		err       error
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-		} else {
-			RES.Message = "Role successfully created"
+			RES.Message = ""
+			logger.ErrorLog(errs.Logged(RES.Error))
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&createReq); err != nil {
-		logger.ErrorLog(" - CreateRoleHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if !createReq.valid() {
-		logger.ErrorLog(" - CreateRoleHandler invalid request")
-		RES.Error = "Invalid request"
+		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
 
 	if RES.Id, err = svc.roleRepo.Create(createReq.Name); err != nil {
-		logger.ErrorLog(" - CreateRoleHandler svc.roleRepo.Create err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRole)
 		return
 	}
 }

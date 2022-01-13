@@ -1,2 +1,4 @@
 logs/
 cmd/config/json/config.json
+go.mod
+go.sum

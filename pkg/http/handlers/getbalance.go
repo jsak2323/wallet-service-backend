@@ -1,112 +1,124 @@
 package handlers
 
 import (
-    "strconv"
-    "strings"
-    "net/http"
-    "encoding/json"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"strconv"
+	"strings"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
-    cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-    logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules"
-    "github.com/btcid/wallet-services-backend-go/cmd/config"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
+	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type GetBalanceHandlerResponseMap map[string][]GetBalanceRes
 
 type GetBalanceService struct {
-    moduleServices *modules.ModuleServiceMap
+	moduleServices *modules.ModuleServiceMap
 }
 
 func NewGetBalanceService(moduleServices *modules.ModuleServiceMap) *GetBalanceService {
-    return &GetBalanceService{
-        moduleServices,
-    }
+	return &GetBalanceService{
+		moduleServices,
+	}
 }
 
-func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) { 
-    vars := mux.Vars(req)
-    symbol := vars["symbol"]
-    tokenType := vars["token_type"]
-    isGetAll := symbol == ""
+func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	symbol := vars["symbol"]
+	tokenType := vars["token_type"]
+	isGetAll := symbol == ""
 
-    RES := make(GetBalanceHandlerResponseMap)
+	RES := make(GetBalanceHandlerResponseMap)
 
-    if isGetAll {
-        logger.InfoLog(" - GetBalanceHandler For all symbols, Requesting ...", req) 
-    } else {
-        logger.InfoLog(" - GetBalanceHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req) 
-    }
+	if isGetAll {
+		logger.InfoLog(" - GetBalanceHandler For all symbols, Requesting ...", req)
+	} else {
+		logger.InfoLog(" - GetBalanceHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req)
+	}
 
-    gbcs.InvokeGetBalance(&RES, symbol, tokenType)
+	gbcs.InvokeGetBalance(&RES, symbol, tokenType)
 
-    // handle success response
-    resJson, _ := json.Marshal(RES)
-    logger.InfoLog(" - GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(RES)
+	// handle success response
+	resJson, _ := json.Marshal(RES)
+	logger.InfoLog(" - GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(RES)
 }
 
 func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol, tokenType string) {
-    rpcConfigCount := 0
-    resChannel := make(chan GetBalanceRes)
+	var (
+		errField       *errs.Error = nil
+		rpcConfigCount             = 0
+		resChannel                 = make(chan GetBalanceRes)
+	)
 
-    for _, curr := range config.CURRRPC {
-        SYMBOL := strings.ToUpper(curr.Config.Symbol)
-        TOKENTYPE := strings.ToUpper(curr.Config.Symbol)
+	defer func() {
+		if errField != nil {
+			logger.ErrorLog(errs.Logged(errField))
+		}
+	}()
 
-        // if symbol is defined, only get for that symbol
-        if symbol != "" && strings.ToUpper(symbol) != SYMBOL && strings.ToUpper(tokenType) != TOKENTYPE { continue }
+	for _, curr := range config.CURRRPC {
+		SYMBOL := strings.ToUpper(curr.Config.Symbol)
+		TOKENTYPE := strings.ToUpper(curr.Config.Symbol)
 
-        for _, rpcConfig := range curr.RpcConfigs {
-            rpcConfigCount++
-            _RES := GetBalanceRes{
-                RpcConfig: RpcConfigResDetail{ 
-                    RpcConfigId             : rpcConfig.Id,
-                    Name                    : rpcConfig.Name,
-                    Host                    : rpcConfig.Host,
-                    Type                    : rpcConfig.Type,
-                    NodeVersion             : rpcConfig.NodeVersion,
-                    NodeLastUpdated         : rpcConfig.NodeLastUpdated,
-                    IsHealthCheckEnabled    : rpcConfig.IsHealthCheckEnabled,
-                },
-            }
+		// if symbol is defined, only get for that symbol
+		if symbol != "" && strings.ToUpper(symbol) != SYMBOL && strings.ToUpper(tokenType) != TOKENTYPE {
+			continue
+		}
 
-            // execute concurrent rpc calls
-            go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
-                module, err := gbcs.moduleServices.GetModule(currencyConfig.Id)
-                if err != nil {
-                    logger.ErrorLog(" - InvokeGetBalance stas.moduleServices.GetModule err: "+err.Error())
-                    _RES.Error = err.Error()
-                    return
-                }
+		for _, rpcConfig := range curr.RpcConfigs {
+			rpcConfigCount++
+			_RES := GetBalanceRes{
+				RpcConfig: RpcConfigResDetail{
+					RpcConfigId:          rpcConfig.Id,
+					Name:                 rpcConfig.Name,
+					Host:                 rpcConfig.Host,
+					Type:                 rpcConfig.Type,
+					NodeVersion:          rpcConfig.NodeVersion,
+					NodeLastUpdated:      rpcConfig.NodeLastUpdated,
+					IsHealthCheckEnabled: rpcConfig.IsHealthCheckEnabled,
+				},
+			}
 
-                rpcRes, err := module.GetBalance(rpcConfig)
-                if err != nil { 
-                    logger.ErrorLog(" -- InvokeGetBalance (*gbcs.moduleServices)[SYMBOL].GetBalance(rpcConfig) Error: "+err.Error())
-                    _RES.Error = rpcRes.Error
+			// execute concurrent rpc calls
+			go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
+				module, err := gbcs.moduleServices.GetModule(currencyConfig.Id)
+				if err != nil {
+					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetModule)
+					return
+				}
 
-                } else {
-                    logger.Log(" -- InvokeGetBalance Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance) 
-                    _RES.Balance = rpcRes.Balance
-                    _RES.Error   = rpcRes.Error
-                }
+				rpcRes, err := module.GetBalance(rpcConfig)
+				if err != nil {
+					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetBalance)
 
-                resChannel <- _RES
+				} else {
+					logger.Log(" -- InvokeGetBalance Symbol: " + SYMBOL + ", RpcConfigId: " + strconv.Itoa(rpcConfig.Id) + ", Host: " + rpcConfig.Host + ". Balance: " + rpcRes.Balance)
+					_RES.Balance = rpcRes.Balance
+					_RES.Error = errs.AddTrace(errors.New(rpcRes.Error))
+				}
 
-            }(curr.Config, rpcConfig)
-        }
-    }
+				resChannel <- _RES
 
-    i := 0
-    for res := range resChannel {
-        i++
-        (*RES)[res.RpcConfig.Symbol] = append((*RES)[res.RpcConfig.Symbol], res)
-        if i >= rpcConfigCount { close(resChannel) }
-    }
+			}(curr.Config, rpcConfig)
+		}
+	}
+
+	i := 0
+	for res := range resChannel {
+		i++
+		(*RES)[res.RpcConfig.Symbol] = append((*RES)[res.RpcConfig.Symbol], res)
+		if i >= rpcConfigCount {
+			close(resChannel)
+		}
+	}
 }
-
-

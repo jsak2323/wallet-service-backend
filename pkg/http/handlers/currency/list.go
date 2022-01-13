@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -15,10 +16,14 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 	)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -32,8 +37,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 		}
 	} else {
 		if RES.CurrencyConfigs, err = s.ccRepo.GetAll(); err != nil {
-			logger.ErrorLog(" -- currency.ListHandler ccRepo.GetAll Error: " + err.Error())
-			RES.Error = err.Error()
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllCurrencyConfig)
 			return
 		}
 	}
@@ -41,8 +45,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 	for i, currency := range RES.CurrencyConfigs {
 		RES.CurrencyConfigs[i].RpcConfigs, err = s.rcRepo.GetByCurrencyId(currency.Id)
 		if err != nil {
-			logger.ErrorLog(" - currency.ListHandler s.rcRepo.GetByCurrencyId err: " + err.Error())
-			RES.Error = errInternalServer
+			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCConfigByCurrencyID)
 			return
 		}
 	}

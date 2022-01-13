@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
-	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *http.Request) {
@@ -15,26 +15,26 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 		} else {
 			RES.Success = true
 			RES.Message = "Cold balance successfully updated"
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&updateReq); err != nil {
-		logger.ErrorLog(" - UpdateBalance json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = s.UpdateBalance(updateReq.Id, updateReq.Balance); err != nil {
-		logger.ErrorLog(" - UpdateBalanceHandler s.UpdateBalance err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateColdBalance)
 		return
 	}
 }
@@ -42,11 +42,11 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 func (s *ColdWalletService) UpdateBalance(id int, balance string) error {
 	balanceRaw, err := util.CoinToRaw(balance, 8)
 	if err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 
 	if err = s.cbRepo.UpdateBalance(id, balanceRaw); err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 
 	return nil

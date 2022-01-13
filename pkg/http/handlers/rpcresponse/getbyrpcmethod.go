@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -17,12 +18,16 @@ func (s *RpcResponseService) GetByRpcMethodIdHandler(w http.ResponseWriter, req 
 
 	vars := mux.Vars(req)
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if err != nil {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" - rpcresponse.GetByRpcMethodIdHandler, success!", req)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -31,14 +36,12 @@ func (s *RpcResponseService) GetByRpcMethodIdHandler(w http.ResponseWriter, req 
 	logger.InfoLog(" - rpcresponse.GetByRpcMethodIdHandler, Requesting ...", req)
 
 	if reqRpcMethodId, err = strconv.Atoi(vars["rpc_method_id"]); err != nil {
-		logger.ErrorLog(" -- rpcconfig.GetByRpcMethodIdHandler strconv.Atoi(" + vars["id"] + ") Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if RES.RpcResponses, err = s.rrsRepo.GetByRpcMethodId(reqRpcMethodId); err != nil {
-		logger.ErrorLog(" -- rpcresponse.GetByRpcMethodIdHandler rrsRepo.GetByRpcMethodId Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCResponseByRPCMethodID)
 		return
 	}
 }

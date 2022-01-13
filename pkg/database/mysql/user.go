@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/user"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const userTable = "users"
@@ -25,7 +26,7 @@ func (r *userRepository) Create(u domain.User) (id int, err error) {
 
 	err = r.db.QueryRow(query, u.Username, u.Name, u.Email, u.Password, u.IPAddress).Err()
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	return id, nil
@@ -33,7 +34,7 @@ func (r *userRepository) Create(u domain.User) (id int, err error) {
 
 func (r *userRepository) Update(u domain.User) (err error) {
 	var params []interface{}
-	var query  string
+	var query string
 
 	query = "UPDATE " + userTable + " SET name = ?, username = ?, email = ?, ip_address = ?"
 	params = append(params, u.Name, u.Username, u.Email, u.IPAddress)
@@ -47,7 +48,7 @@ func (r *userRepository) Update(u domain.User) (err error) {
 	params = append(params, u.Id)
 
 	if err = r.db.QueryRow(query, params...).Err(); err != nil {
-		return err
+		return errs.AddTrace(err)
 	}
 
 	return nil
@@ -66,7 +67,7 @@ func (r *userRepository) GetByUsername(username string) (user domain.User, err e
 		&user.Active,
 	)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, errs.AddTrace(err)
 	}
 
 	return user, nil
@@ -74,13 +75,13 @@ func (r *userRepository) GetByUsername(username string) (user domain.User, err e
 
 func (r userRepository) GetEmailsByRole(role string) (emails []string, err error) {
 	query := "SELECT email FROM " + userTable
-	query += " JOIN "+userRoleTable+" on "+userRoleTable+".user_id = "+userTable+".id"
-	query += " JOIN "+roleTable+" on "+roleTable+".id = "+userRoleTable+".role_id"
-	query += " WHERE "+roleTable+".name = ?"
+	query += " JOIN " + userRoleTable + " on " + userRoleTable + ".user_id = " + userTable + ".id"
+	query += " JOIN " + roleTable + " on " + roleTable + ".id = " + userRoleTable + ".role_id"
+	query += " WHERE " + roleTable + ".name = ?"
 
 	rows, err := r.db.Query(query, role)
 	if err != nil {
-		return []string{}, err
+		return []string{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -90,7 +91,7 @@ func (r userRepository) GetEmailsByRole(role string) (emails []string, err error
 		if err = rows.Scan(
 			&email,
 		); err != nil {
-			return []string{}, err
+			return []string{}, errs.AddTrace(err)
 		}
 
 		emails = append(emails, email)
@@ -101,18 +102,18 @@ func (r userRepository) GetEmailsByRole(role string) (emails []string, err error
 
 func (r userRepository) GetAll(page, limit int) (users []domain.User, err error) {
 	query := "SELECT id, username, name, email, password, ip_address, active FROM " + userTable
-	
+
 	if limit <= 0 {
 		limit = defaultLimit
 	}
-	
+
 	if page > 0 {
 		query = query + " offset " + strconv.Itoa(page) + " limit " + strconv.Itoa(limit)
 	}
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return []domain.User{}, err
+		return []domain.User{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -128,7 +129,7 @@ func (r userRepository) GetAll(page, limit int) (users []domain.User, err error)
 			&user.IPAddress,
 			&user.Active,
 		); err != nil {
-			return []domain.User{}, err
+			return []domain.User{}, errs.AddTrace(err)
 		}
 
 		users = append(users, user)
@@ -137,8 +138,12 @@ func (r userRepository) GetAll(page, limit int) (users []domain.User, err error)
 	return users, nil
 }
 
-func(r *userRepository) ToggleActive(userId int, active bool) error {
+func (r *userRepository) ToggleActive(userId int, active bool) error {
 	query := "UPDATE " + userTable + " SET active = ? WHERE id = ?"
 
-	return r.db.QueryRow(query, active, userId).Err()
+	if err := r.db.QueryRow(query, active, userId).Err(); err != nil {
+		return errs.AddTrace(err)
+	}
+
+	return nil
 }

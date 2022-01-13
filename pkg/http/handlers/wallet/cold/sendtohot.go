@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/fireblocks"
-	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 func (s *ColdWalletService) SendToHotHandler(w http.ResponseWriter, req *http.Request) {
@@ -16,27 +16,27 @@ func (s *ColdWalletService) SendToHotHandler(w http.ResponseWriter, req *http.Re
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 		} else {
 			RES.Success = true
 			RES.Message = "Cold balance successfully sent"
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
 	defer handleResponse()
 
 	if err = json.NewDecoder(req.Body).Decode(&sendToHotReq); err != nil {
-		logger.ErrorLog(" - SendToHotHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	vaultAccountId, err := FireblocksVaultAccountId(sendToHotReq.FireblocksType)
 	if err != nil {
-		logger.ErrorLog(" - SendToHotHandler FireblocksVaultAccountId err: " + err.Error())
-		RES.Error = "Invalid Param: Cold Wallet Type"
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedFireblocksVaultAccountId)
 		return
 	}
 
@@ -53,14 +53,12 @@ func (s *ColdWalletService) SendToHotHandler(w http.ResponseWriter, req *http.Re
 		},
 	})
 	if err != nil {
-		logger.ErrorLog(" - SendToHotHandler fireblocks.CreateTransaction err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateTransaction)
 		return
 	}
 
 	if res.Error != "" {
-		logger.ErrorLog(" - SendToHotHandler fireblocks.CreateTransaction err: " + res.Error)
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateTransaction)
 		return
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -21,9 +22,11 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 	vars := mux.Vars(req)
 
 	handleResponse := func() {
+
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcmethod.DeleteHandler Success!", req)
 
@@ -32,6 +35,8 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 
 			config.LoadRpcMethodByRpcConfigId(s.rmRepo, RpcConfigId)
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -40,20 +45,17 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcmethod.DeleteHandler, Requesting ...", req)
 
 	if id, err = strconv.Atoi(vars["id"]); err != nil {
-		logger.ErrorLog(" -- rpcconfig.GetByRpcConfigIdHandler strconv.Atoi(" + vars["id"] + ") Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if RpcConfigId, err = strconv.Atoi(vars["rpc_config_id"]); err != nil {
-		logger.ErrorLog(" -- rpcconfig.GetByRpcConfigIdHandler strconv.Atoi(" + vars["rpc_config_id"] + ") Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rcrmRepo.DeleteByRpcMethod(id); err != nil {
-		logger.ErrorLog(" -- rpcmethod.DeleteHandler rcrmRepo.DeleteByRpcMethod Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRPCConfigRPCMethodByRPCMethodID)
 		return
 	}
 }

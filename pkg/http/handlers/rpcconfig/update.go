@@ -7,6 +7,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -19,8 +20,9 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.Error != "" {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error))
 		} else {
 			logger.InfoLog(" -- rpcconfig.UpdateHandler Success!", req)
 
@@ -29,6 +31,8 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 
 			config.LoadCurrencyConfigs()
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -37,36 +41,33 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 	logger.InfoLog(" -- rpcconfig.UpdateHandler, Requesting ...", req)
 
 	if err = json.NewDecoder(req.Body).Decode(&rpcConfig); err != nil {
-		logger.ErrorLog(" -- rpcconfig.UpdateHandler json.NewDecoder err: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
 	if err = validateUpdateReq(rpcConfig); err != nil {
-		logger.ErrorLog(" -- rpcconfig.UpdateHandler invalid request: " + err.Error())
-		RES.Error = "Invalid request: " + err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 
 	if err = s.rcRepo.Update(rpcConfig); err != nil {
-		logger.ErrorLog(" -- rpcconfig.UpdateHandler rcRepo.Update Error: " + err.Error())
-		RES.Error = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCConfig)
 		return
 	}
 }
 
 func validateUpdateReq(rpcConfig domain.RpcConfig) error {
 	if rpcConfig.Id == 0 {
-		return errors.New("ID")
+		return errs.AddTrace(errors.New("ID"))
 	}
 	if rpcConfig.Name == "" {
-		return errors.New("Name")
+		return errs.AddTrace(errors.New("Name"))
 	}
 	if rpcConfig.Host == "" {
-		return errors.New("Host")
+		return errs.AddTrace(errors.New("Host"))
 	}
 	if rpcConfig.Path == "" {
-		return errors.New("Path")
+		return errs.AddTrace(errors.New("Path"))
 	}
 
 	return nil

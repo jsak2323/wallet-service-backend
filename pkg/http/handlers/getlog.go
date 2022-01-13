@@ -8,60 +8,68 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
 
 type GetLogService struct {
-    moduleServices *modules.ModuleServiceMap
+	moduleServices *modules.ModuleServiceMap
 }
 
 func NewGetLogService(moduleServices *modules.ModuleServiceMap) *GetLogService {
-    return &GetLogService{
-        moduleServices,
-    }
+	return &GetLogService{
+		moduleServices,
+	}
 }
 
-func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request) { 
-    // define request params
-    vars := mux.Vars(req)
-    symbol          := vars["symbol"]
-    tokenType       := vars["token_type"]
-    date            := vars["date"]
-    rpcConfigType   := vars["rpcconfigtype"]
+func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request) {
+	// define request params
+	var (
+		vars          = mux.Vars(req)
+		symbol        = vars["symbol"]
+		tokenType     = vars["token_type"]
+		date          = vars["date"]
+		rpcConfigType = vars["rpcconfigtype"]
 
-    SYMBOL := strings.ToUpper(symbol)
-    TOKENTYPE := strings.ToUpper(tokenType)
-    logger.InfoLog(" - GetLogHandler For symbol: "+SYMBOL+", date: "+date+", type: "+rpcConfigType+", Requesting ...", req) 
+		SYMBOL                = strings.ToUpper(symbol)
+		TOKENTYPE             = strings.ToUpper(tokenType)
+		errField  *errs.Error = nil
+	)
+	logger.InfoLog(" - GetLogHandler For symbol: "+SYMBOL+", date: "+date+", type: "+rpcConfigType+", Requesting ...", req)
 
-    currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, TOKENTYPE)
-    if err != nil {
-        logger.ErrorLog(" - GetLogHandler config.GetCurrencyBySymbol err: "+err.Error())
-        return
-    }
+	defer func() {
+		if errField != nil {
+			logger.ErrorLog(errs.Logged(errField))
+		}
+	}()
 
-    // define rpc config
-    rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, rpcConfigType)
-    if err != nil {
-        logger.ErrorLog(" - GetLogHandler util.GetRpcConfigByType err: "+err.Error())
-        return
-    }
+	currencyConfig, err := config.GetCurrencyBySymbolTokenType(SYMBOL, TOKENTYPE)
+	if err != nil {
+		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetCurrencyBySymbolTokenType)
+		return
+	}
 
-    // get log file
-    res, err := http.Get("http://"+rpcConfig.Host+":"+rpcConfig.Port+"/log/"+date)
-    if err != nil { 
-        logger.ErrorLog(" - GetLogHandler http.get err: "+err.Error())
-        return
-    }
-    defer res.Body.Close()
+	// define rpc config
+	rpcConfig, err := util.GetRpcConfigByType(currencyConfig.Id, rpcConfigType)
+	if err != nil {
+		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRpcConfigByType)
+		return
+	}
 
-    // serve log file
-    w.Header().Set("Content-Disposition", "attachment; filename=app.log")
-    w.Header().Set("Content-Type", "application/octet-stream")
-    w.Header().Set("Content-Length", res.Header.Get("Content-Length"))
+	// get log file
+	res, err := http.Get("http://" + rpcConfig.Host + ":" + rpcConfig.Port + "/log/" + date)
+	if err != nil {
+		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetLogFile)
+		return
+	}
+	defer res.Body.Close()
 
-    io.Copy(w, res.Body)
+	// serve log file
+	w.Header().Set("Content-Disposition", "attachment; filename=app.log")
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Length", res.Header.Get("Content-Length"))
+
+	io.Copy(w, res.Body)
 }
-
-

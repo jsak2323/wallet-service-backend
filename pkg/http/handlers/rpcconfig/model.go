@@ -2,16 +2,17 @@ package rpcconfig
 
 import (
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 type GetRes struct {
 	RpcConfig domain.RpcConfig `json:"rpc_config"`
-	Error     string           `json:"error"`
+	Error     *errs.Error      `json:"error"`
 }
 
 type ListRes struct {
 	RpcConfigs []domain.RpcConfig `json:"rpc_configs"`
-	Error      string             `json:"error"`
+	Error      *errs.Error        `json:"error"`
 }
 
 type RpcConfigRpcMethodReq struct {
@@ -20,7 +21,7 @@ type RpcConfigRpcMethodReq struct {
 }
 
 type StandardRes struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
+	Success bool        `json:"success"`
+	Message string      `json:"message"`
+	Error   *errs.Error `json:"error"`
 }
