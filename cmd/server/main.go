@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -28,10 +30,24 @@ func main() {
 	flag.Parse()
 
 	localMysqlDbConn := config.MysqlDbConn()
-	defer localMysqlDbConn.Close()
 
 	exchangeSlaveMysqlDbConn := config.ExchangeSlaveMysqlDbConn()
-	defer exchangeSlaveMysqlDbConn.Close()
+
+	go func() {
+		sigchan := make(chan os.Signal)
+
+		signal.Notify(sigchan, os.Interrupt)
+
+		<-sigchan
+
+		exchangeSlaveMysqlDbConn.Close()
+		fmt.Println("database exchange has been closed")
+
+		localMysqlDbConn.Close()
+		fmt.Println("local database has been closed")
+
+		os.Exit(0)
+	}()
 
 	mysqlRepos := mysql.NewMysqlRepositories(localMysqlDbConn, exchangeSlaveMysqlDbConn)
 	exchangeApiRepos := exchange.NewAPIRepositories()

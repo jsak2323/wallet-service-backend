@@ -120,6 +120,9 @@ func MysqlDbConn() (db *sql.DB) {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	// preventive idle connection error
+	db.SetMaxIdleConns(0)
 	return db
 }
 
