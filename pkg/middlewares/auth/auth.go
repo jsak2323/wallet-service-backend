@@ -9,6 +9,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/permission"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/role"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/rolepermission"
+	ctxLib "github.com/btcid/wallet-services-backend-go/pkg/lib/context"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/jwt"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
@@ -56,6 +57,7 @@ func (am *authMiddleware) Authenticate(hf http.Handler) http.Handler {
 		// to allow access from localhost
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		req = req.WithContext(ctxLib.SetRqId(req.Context()))
 		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host) {
 			hf.ServeHTTP(w, req)
 			return
@@ -84,7 +86,8 @@ func (am *authMiddleware) Authenticate(hf http.Handler) http.Handler {
 			return
 		}
 
-		hf.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), "access_details", accessDetails)))
+		req = req.WithContext(context.WithValue(req.Context(), "access_details", accessDetails))
+		hf.ServeHTTP(w, req)
 	})
 }
 

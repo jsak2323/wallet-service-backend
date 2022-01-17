@@ -1,6 +1,7 @@
 package error
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 )
@@ -56,6 +57,14 @@ func AssignErr(from error, to *Error) *Error {
 }
 
 func Logged(err error) string {
+	if newErr, ok := err.(*Error); ok {
+		return fmt.Sprintf("Title: %s\nMessage: %s\nTrace: \n%s\n", newErr.Error(), newErr.GetMessage(), newErr.GetTrace())
+	}
+
+	return fmt.Sprintf("Title: %s\nMessage: %s\nTrace: \n%s\n", InternalServerErr.Error(), InternalServerErr.GetMessage(), InternalServerErr.GetTrace())
+}
+
+func LoggedCtx(ctx context.Context, err error) string {
 	if newErr, ok := err.(*Error); ok {
 		return fmt.Sprintf("Title: %s\nMessage: %s\nTrace: \n%s\n", newErr.Error(), newErr.GetMessage(), newErr.GetTrace())
 	}

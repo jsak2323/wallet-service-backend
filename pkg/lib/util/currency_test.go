@@ -20,6 +20,11 @@ func TestRawToCoin(t *testing.T) {
 			args: args{value: "2000", decimal: 8},
 			want: "0.00002000",
 		},
+		{
+			name: "ok",
+			args: args{value: "2000", decimal: 8},
+			want: "0.00002000",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -63,6 +68,10 @@ func TestFormatCurrency(t *testing.T) {
 		{
 			args:       args{value: "1234.222"},
 			wantResult: "1,234.222",
+		},
+		{
+			args:       args{value: "96092252354.64214000"},
+			wantResult: "96,092,252,354.64214000",
 		},
 	}
 	for _, tt := range tests {

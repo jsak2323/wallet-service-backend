@@ -1,7 +1,12 @@
 package logging
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -10,6 +15,7 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	ctxLib "github.com/btcid/wallet-services-backend-go/pkg/lib/context"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
@@ -49,29 +55,60 @@ func InfoLog(msg string, req *http.Request) {
 	updateTime()
 	setupLogger()
 
-	// context
-	// requesttime
-	// responsetime
-	// requestbody (preprocessing )
-	// responsebody
-	// userid
+	body, err := preprocessingGetRequestBody(req)
+	if err != nil {
+		log.Println("error getRequestBody:", err)
+		return
+	}
 
 	logField := logrus.Fields{
 		"Method":     req.Method,
 		"RemoteAddr": req.RemoteAddr,
-		// "Header":       req.Header,
-		// "proto":        req.Proto,
-		// "body":         string(reqBody),
+		"body":       body,
 	}
-
-	// log.Println(req.RemoteAddr)
-	// log.Println(req.Host)
 
 	if ad, valid := ctxLib.ValidateAccessDetailsContext(req.Context()); valid {
 		logField["UserId"] = ad.GetUserId()
 	}
 
+	if reqId, ok := req.Context().Value(ctxLib.RequestIdKey).(string); ok {
+		logField["RequestId"] = reqId
+	}
+
 	log.WithFields(logField).Info(msg)
+}
+
+func preprocessingGetRequestBody(req *http.Request) (resp io.ReadCloser, err error) {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return resp, errs.AddTrace(errors.New("failed read all body"))
+	}
+
+	// make real copy
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	// make copy response for log
+	respPreprocess := make(map[string]interface{})
+	respLog := make(map[string]interface{})
+
+	err = json.NewDecoder(bytes.NewBuffer(body)).Decode(&respPreprocess)
+	if err != nil && err.Error() != "EOF" {
+		return resp, errs.AddTrace(err)
+	}
+
+	// censored key "password" for log
+	for key, value := range respPreprocess {
+		if key == "password" {
+			value = "-"
+		}
+		respLog[key] = value
+	}
+
+	// reconstruction request body for log
+	jsonString, err := json.Marshal(respLog)
+	resp = ioutil.NopCloser(bytes.NewBuffer(jsonString))
+
+	return resp, nil
 }
 
 func ErrorLog(msg string) {
