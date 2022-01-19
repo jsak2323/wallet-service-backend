@@ -2,109 +2,97 @@ package util
 
 import (
 	"errors"
-	"math"
 	"math/big"
 	"strings"
 
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
-func CoinToRaw(value string, decimal int) (string, error) {
-	if value == "" {
-		value = "0"
+func RawToCoin(raw string, maxDecimal int) string {
+	if raw == "0" {
+		return "0"
 	}
 
-	valueFloat, ok := big.NewFloat(0).SetString(value)
+	raw = strings.TrimLeft(raw, "0")
+
+	decimalString := ""
+	if len(raw) <= maxDecimal { // number is less than one
+		decimalString = "0."
+		for i := 0; i < (maxDecimal - len(raw)); i++ {
+			decimalString = decimalString + "0"
+		}
+		decimalString = decimalString + raw
+		decimalString = strings.TrimRight(decimalString, "0")
+
+	} else { // number is greater than one
+		numberPart := raw[0:(len(raw) - maxDecimal)]
+
+		decimalPart := raw[(len(raw) - maxDecimal):]
+		decimalPart = strings.TrimRight(decimalPart, "0")
+
+		decimalString = numberPart
+		if decimalPart != "" {
+			decimalString = decimalString + "." + decimalPart
+		}
+	}
+
+	_, ok := new(big.Float).SetString(decimalString) // check if number is valid
 	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + value + ")"))
+		return "0"
 	}
 
-	decimalFloat := big.NewFloat(math.Pow(10, float64(decimal)))
-	valueFloat.Mul(valueFloat, decimalFloat)
-
-	return valueFloat.Text('f', 0), nil
+	return decimalString
 }
 
-func RawToCoin(value string, decimal int) (string, error) {
-	if value == "" {
-		value = "0"
+func CoinToRaw(decimal string, maxDecimal int) string {
+	split := strings.Split(decimal, ".")
+	decimal = strings.TrimLeft(decimal, "0")
+
+	if len(split) > 1 {
+		decimal = strings.TrimRight(decimal, "0")
+		if len(split[1]) > maxDecimal { // reduce decimal count when it is greater than max decimal
+			trimmedDecimalPart := split[1][:len(split[1])-(len(split[1])-maxDecimal)]
+			decimal = split[0] + "." + trimmedDecimalPart
+
+			return CoinToRaw(decimal, maxDecimal)
+		}
 	}
 
-	valueFloat, ok := big.NewFloat(0).SetString(value)
+	rawString := ""
+	if string(decimal[0]) == "." { // number is less than one
+		rawString = decimal[1:]
+		for i := 0; i < ((maxDecimal + 1) - len(decimal)); i++ {
+			rawString = rawString + "0"
+		}
+	} else { // number is greater than one
+		decimalPart := ""
+		if len(split) > 1 {
+			decimalPart = strings.TrimRight(split[1], "0")
+		}
+		rawString = strings.ReplaceAll(decimal, ".", "")
+		for i := 0; i < (maxDecimal - len(decimalPart)); i++ {
+			rawString = rawString + "0"
+		}
+	}
+
+	rawString = strings.TrimLeft(rawString, "0")
+	_, ok := new(big.Float).SetString(rawString) // check if number is valid
 	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + value + ")"))
+		return "0"
 	}
 
-	decimalFloat := big.NewFloat(math.Pow(10, float64(decimal)))
-	valueFloat.Quo(valueFloat, decimalFloat)
-
-	return valueFloat.Text('f', 8), nil
+	return rawString
 }
 
-func AddCoin(a, b string) (string, error) {
-	if a == "" {
-		a = "0"
-	}
-	if b == "" {
-		b = "0"
-	}
-
-	aBig, ok := big.NewFloat(0).SetString(a)
-	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + a + ")"))
-	}
-
-	bBig, ok := big.NewFloat(0).SetString(b)
-	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + b + ")"))
-	}
-
-	return bBig.Add(aBig, bBig).Text('f', 8), nil
+func AddCurrency(a, b string) (res string, err error) {
+	return calculateCurrency("add", a, b)
 }
 
-func AddIdr(a, b string) (string, error) {
-	if a == "" {
-		a = "0"
-	}
-	if b == "" {
-		b = "0"
-	}
-
-	aBig, ok := big.NewFloat(0).SetString(a)
-	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + a + ")"))
-	}
-
-	bBig, ok := big.NewFloat(0).SetString(b)
-	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + b + ")"))
-	}
-
-	return bBig.Add(aBig, bBig).Text('f', 0), nil
+func SubCurrency(a, b string) (res string, err error) {
+	return calculateCurrency("sub", a, b)
 }
 
-func SubIdr(a, b string) (string, error) {
-	if a == "" {
-		a = "0"
-	}
-	if b == "" {
-		b = "0"
-	}
-
-	aBig, ok := big.NewFloat(0).SetString(a)
-	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + a + ")"))
-	}
-
-	bBig, ok := big.NewFloat(0).SetString(b)
-	if !ok {
-		return "0", errs.AddTrace(errors.New("fail big.SetString(" + b + ")"))
-	}
-
-	return aBig.Sub(aBig, bBig).Text('f', 0), nil
-}
-
-func CmpBig(a, b string) (int, error) {
+func CmpCurrency(a, b string) (int, error) {
 	if a == "" {
 		a = "0"
 	}
@@ -125,7 +113,7 @@ func CmpBig(a, b string) (int, error) {
 	return aBig.Cmp(bBig), nil
 }
 
-func PercentBig(a, b string) (string, error) {
+func PercentCurrency(a, b string) (string, error) {
 	if a == "" {
 		a = "0"
 	}
@@ -147,7 +135,7 @@ func PercentBig(a, b string) (string, error) {
 		return "0", errs.AddTrace(errors.New("division by zero"))
 	}
 
-	aBig.Mul(aBig.Quo(aBig, bBig), big.NewFloat(100))
+	aBig.Quo(aBig, bBig)
 
 	return aBig.Text('f', 2), nil
 }
@@ -171,4 +159,87 @@ func FormatCurrency(value string) (result string) {
 	}
 
 	return result + decPart
+}
+
+func calculateCurrency(method, a, b string) (res string, err error) {
+	if a == "" {
+		a = "0"
+	}
+	if b == "" {
+		b = "0"
+	}
+
+	valueA := CoinToRaw(a, lenDec(a))
+	valueB := CoinToRaw(b, lenDec(b))
+
+	if lenDec(a) > lenDec(b) || lenDec(a) < lenDec(b) {
+		valueA, valueB = balancingDecimal(valueA, valueB, lenDec(a), lenDec(b))
+	}
+
+	aBig, ok := big.NewInt(int64(0)).SetString(valueA, 10)
+	if !ok {
+		return "0", errs.AddTrace(errors.New("fail big.SetString(" + a + ")"))
+	}
+
+	bBig, ok := big.NewInt(int64(0)).SetString(valueB, 10)
+	if !ok {
+		return "0", errs.AddTrace(errors.New("fail big.SetString(" + b + ")"))
+	}
+
+	calculate := ""
+	switch types := method; types {
+	case "sub":
+		calculate = aBig.Sub(aBig, bBig).Text(10)
+	case "add":
+		calculate = aBig.Add(aBig, bBig).Text(10)
+	default:
+		return "0", errs.AddTrace(errors.New("wrong method of calculate currency"))
+	}
+
+	if lenDec(a) > lenDec(b) {
+		res = RawToCoin(calculate, lenDec(a))
+	} else {
+		res = RawToCoin(calculate, lenDec(b))
+	}
+
+	if lenDec(a) > 8 || lenDec(b) > 8 {
+		split := strings.Split(res, ".")
+		afTrunc := truncateText(split[1], 8)
+		res = split[0] + "." + afTrunc
+	}
+
+	return res, nil
+}
+
+func lenDec(req string) int {
+	var lenDec = int(0)
+
+	parts := strings.Split(req, ".")
+	if len(parts) > 1 {
+		resA := strings.TrimRight(parts[1], "0")
+		lenDec = len(resA)
+	}
+	return lenDec
+}
+
+func truncateText(s string, max int) string {
+	return s[:max]
+}
+
+func balancingDecimal(a, b string, lenDescA, lenDescB int) (string, string) {
+
+	if lenDescA > lenDescB {
+		for i := int(0); i < (lenDescA - lenDescB); i++ {
+			b = b + "0"
+		}
+	}
+
+	if lenDescA < lenDescB {
+		for i := int(0); i < (lenDescB - lenDescA); i++ {
+			a = a + "0"
+		}
+	}
+
+	return a, b
+
 }

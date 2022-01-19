@@ -92,17 +92,17 @@ func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
 		}
 	}()
 
-	totalCoin, err = util.AddCoin(totalCoin, walletBalance.TotalColdCoin)
+	totalCoin, err = util.AddCurrency(totalCoin, walletBalance.TotalColdCoin)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckUserBalance)
 	}
 
-	totalCoin, err = util.AddCoin(totalCoin, walletBalance.TotalHotCoin)
+	totalCoin, err = util.AddCurrency(totalCoin, walletBalance.TotalHotCoin)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckUserBalance)
 	}
 
-	if cmpResult, err = util.CmpBig(totalCoin, walletBalance.TotalUserCoin); err != nil {
+	if cmpResult, err = util.CmpCurrency(totalCoin, walletBalance.TotalUserCoin); err != nil {
 		if err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckUserBalance)
 		}
@@ -292,13 +292,13 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 	}
 
 	// check if hot storage is greater than top soft limit
-	if compare, err := util.CmpBig(walletBalance.TotalHotIdr, limits[hl.TopSoftType]); err != nil {
+	if compare, err := util.CmpCurrency(walletBalance.TotalHotIdr, limits[hl.TopSoftType]); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 		return
 	} else if compare == 1 {
 		logger.Log(" - CheckBalanceService -- Hot balance " + currency.Symbol + " is greater than top soft limit")
 
-		amount, err := util.SubIdr(walletBalance.TotalHotIdr, limits[hl.TargetType])
+		amount, err := util.SubCurrency(walletBalance.TotalHotIdr, limits[hl.TargetType])
 		if err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			return
@@ -325,7 +325,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 			return
 		} else {
 			logger.Log(" - CheckBalanceService -- checkHotLimit(" + currency.Symbol + ") SendToAddress sent with tx: " + res.TxHash)
-			balanceToUpdate, err := util.AddCoin(coldWallet.Balance, amount)
+			balanceToUpdate, err := util.AddCurrency(coldWallet.Balance, amount)
 			if err != nil {
 				errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			}
@@ -340,13 +340,13 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 	}
 
 	// check if hot storage is less than bottom soft limit
-	if compare, err := util.CmpBig(walletBalance.TotalHotIdr, limits[hl.BottomSoftType]); err != nil {
+	if compare, err := util.CmpCurrency(walletBalance.TotalHotIdr, limits[hl.BottomSoftType]); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 		return
 	} else if compare == -1 {
 		logger.InfoLog("Hot balance "+currency.Symbol+" is less than bottom soft limit", &http.Request{})
 
-		amount, err := util.SubIdr(limits[hl.TargetType], walletBalance.TotalHotIdr)
+		amount, err := util.SubCurrency(limits[hl.TargetType], walletBalance.TotalHotIdr)
 		if err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			return

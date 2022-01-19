@@ -106,11 +106,11 @@ func (s *WalletService) SetColdBalanceDetails(res *GetBalanceRes) {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetColdBalanceDetails)
 		}
 
-		if res.TotalColdCoin, err = util.AddCoin(res.TotalColdCoin, coldBalanceDetail.Coin); err != nil {
+		if res.TotalColdCoin, err = util.AddCurrency(res.TotalColdCoin, coldBalanceDetail.Coin); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetColdBalanceDetails)
 		}
 
-		if res.TotalColdIdr, err = util.AddIdr(res.TotalColdIdr, coldBalanceDetail.Idr); err != nil {
+		if res.TotalColdIdr, err = util.AddCurrency(res.TotalColdIdr, coldBalanceDetail.Idr); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetColdBalanceDetails)
 		}
 
@@ -151,11 +151,11 @@ func (s *WalletService) SetHotBalanceDetails(rpcConfigs []rc.RpcConfig, res *Get
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetHotBalanceDetails)
 		}
 
-		if res.TotalHotCoin, err = util.AddCoin(res.TotalHotCoin, hotBalanceDetail.Coin); err != nil {
+		if res.TotalHotCoin, err = util.AddCurrency(res.TotalHotCoin, hotBalanceDetail.Coin); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetHotBalanceDetails)
 		}
 
-		if res.TotalHotIdr, err = util.AddIdr(res.TotalHotIdr, hotBalanceDetail.Idr); err != nil {
+		if res.TotalHotIdr, err = util.AddCurrency(res.TotalHotIdr, hotBalanceDetail.Idr); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetHotBalanceDetails)
 		}
 
@@ -183,7 +183,7 @@ func (s *WalletService) SetUserBalanceDetails(res *GetBalanceRes) {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
 	}
 
-	if liquidBalanceDetail.Coin, err = util.RawToCoin(tcb.Total, 8); err != nil {
+	if liquidBalanceDetail.Coin = util.RawToCoin(tcb.Total, 8); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
 	} else if liquidBalanceDetail.Idr, err = s.marketService.ConvertCoinToIdr(liquidBalanceDetail.Coin, symbol); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
@@ -191,19 +191,18 @@ func (s *WalletService) SetUserBalanceDetails(res *GetBalanceRes) {
 
 	res.UserBalances = append(res.UserBalances, liquidBalanceDetail)
 
-	if frozenBalanceDetail.Coin, err = util.RawToCoin(tcb.TotalFrozen, 8); err != nil {
-		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
-	} else if frozenBalanceDetail.Idr, err = s.marketService.ConvertCoinToIdr(frozenBalanceDetail.Coin, symbol); err != nil {
+	frozenBalanceDetail.Coin = util.RawToCoin(tcb.TotalFrozen, 8)
+	if frozenBalanceDetail.Idr, err = s.marketService.ConvertCoinToIdr(frozenBalanceDetail.Coin, symbol); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
 	}
 
 	res.UserBalances = append(res.UserBalances, frozenBalanceDetail)
 
-	if res.TotalUserCoin, err = util.AddCoin(liquidBalanceDetail.Coin, frozenBalanceDetail.Coin); err != nil {
+	if res.TotalUserCoin, err = util.AddCurrency(liquidBalanceDetail.Coin, frozenBalanceDetail.Coin); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
 	}
 
-	if res.TotalUserIdr, err = util.AddIdr(liquidBalanceDetail.Idr, frozenBalanceDetail.Idr); err != nil {
+	if res.TotalUserIdr, err = util.AddCurrency(liquidBalanceDetail.Idr, frozenBalanceDetail.Idr); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetUserBalanceDetails)
 	}
 }
@@ -227,9 +226,8 @@ func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
 		return
 	}
 
-	if res.PendingWDCoin, err = util.RawToCoin(pendingWDRaw, 8); err != nil {
-		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetPendingWithdraw)
-	} else if res.PendingWDIdr, err = s.marketService.ConvertCoinToIdr(res.PendingWDCoin, symbol); err != nil {
+	res.PendingWDCoin = util.RawToCoin(pendingWDRaw, 8)
+	if res.PendingWDIdr, err = s.marketService.ConvertCoinToIdr(res.PendingWDCoin, symbol); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetPendingWithdraw)
 	}
 }
@@ -247,15 +245,15 @@ func (s *WalletService) SetPercent(res *GetBalanceRes) {
 		}
 	}()
 
-	if res.HotPercent, err = util.PercentBig(res.TotalHotCoin, res.TotalUserCoin); err != nil {
+	if res.HotPercent, err = util.PercentCurrency(res.TotalHotCoin, res.TotalUserCoin); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetPercent)
 	}
 
-	if hotCold, err = util.AddCoin(res.TotalColdCoin, res.TotalHotCoin); err != nil {
+	if hotCold, err = util.AddCurrency(res.TotalColdCoin, res.TotalHotCoin); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetPercent)
 	}
 
-	if res.HotColdPercent, err = util.PercentBig(hotCold, res.TotalUserCoin); err != nil {
+	if res.HotColdPercent, err = util.PercentCurrency(hotCold, res.TotalUserCoin); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetPercent)
 	}
 }

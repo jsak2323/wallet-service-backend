@@ -42,10 +42,7 @@ func (s *ColdWalletService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if updateReq.Balance, err = util.CoinToRaw(updateReq.Balance, 8); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCoinToRaw)
-		return
-	}
+	updateReq.Balance = util.CoinToRaw(updateReq.Balance, 8)
 
 	if err = s.cbRepo.Update(updateReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateColdBalance)

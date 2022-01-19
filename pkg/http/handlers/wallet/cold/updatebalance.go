@@ -39,11 +39,8 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 	}
 }
 
-func (s *ColdWalletService) UpdateBalance(id int, balance string) error {
-	balanceRaw, err := util.CoinToRaw(balance, 8)
-	if err != nil {
-		return errs.AddTrace(err)
-	}
+func (s *ColdWalletService) UpdateBalance(id int, balance string) (err error) {
+	balanceRaw := util.CoinToRaw(balance, 8)
 
 	if err = s.cbRepo.UpdateBalance(id, balanceRaw); err != nil {
 		return errs.AddTrace(err)

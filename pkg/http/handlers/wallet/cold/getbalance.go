@@ -42,9 +42,7 @@ func (s *ColdWalletService) GetBalance(currencyConfigId int) (coldBalances []cb.
 				}
 			} else {
 				// non fireblocks balance are stored in raw in db
-				if cbs[i].Balance, err = util.RawToCoin(cbs[i].Balance, 8); err != nil {
-					errField = errs.AssignErr(errs.AddTrace(err), errs.FailedRawToCoin)
-				}
+				cbs[i].Balance = util.RawToCoin(cbs[i].Balance, 8)
 			}
 		}
 		coldBalances = append(coldBalances, cbs...)

@@ -4,6 +4,38 @@ import (
 	"testing"
 )
 
+func TestCoinToRaw(t *testing.T) {
+	type args struct {
+		value   string
+		decimal int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{value: "0.00002000", decimal: 8},
+			want: "2000",
+		},
+		{
+			name: "ok",
+			args: args{value: "96092252354.64214000", decimal: 8},
+			want: "9609225235464214000",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CoinToRaw(tt.args.value, tt.args.decimal)
+			if got != tt.want {
+				t.Errorf("RawToCoin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRawToCoin(t *testing.T) {
 	type args struct {
 		value   string
@@ -18,21 +50,17 @@ func TestRawToCoin(t *testing.T) {
 		{
 			name: "ok",
 			args: args{value: "2000", decimal: 8},
-			want: "0.00002000",
+			want: "0.00002",
 		},
 		{
 			name: "ok",
-			args: args{value: "2000", decimal: 8},
-			want: "0.00002000",
+			args: args{value: "9609225235464214001", decimal: 8},
+			want: "96092252354.64214001",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := RawToCoin(tt.args.value, tt.args.decimal)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RawToCoin() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := RawToCoin(tt.args.value, tt.args.decimal)
 			if got != tt.want {
 				t.Errorf("RawToCoin() = %v, want %v", got, tt.want)
 			}
@@ -83,10 +111,10 @@ func TestFormatCurrency(t *testing.T) {
 	}
 }
 
-func TestPercentBig(t *testing.T) {
+func TestAddCurency(t *testing.T) {
 	type args struct {
-		a string
-		b string
+		value1 string
+		value2 string
 	}
 	tests := []struct {
 		name    string
@@ -95,29 +123,164 @@ func TestPercentBig(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			args: args{
-				a: "1",
-				b: "2",
-			},
-			want: "50.00",
+			name: "ok",
+			args: args{value1: "100000000000", value2: "0.0001"},
+			want: "100000000000.0001",
 		},
 		{
-			args: args{
-				a: "2",
-				b: "3",
-			},
-			want: "66.67",
+			name: "ok",
+			args: args{value1: "0.00002000", value2: "0.00002000"},
+			want: "0.00004",
+		},
+		{
+			name: "ok",
+			args: args{value1: "21", value2: "2"},
+			want: "23",
+		},
+		{
+			name: "ok",
+			args: args{value1: "0.00002001", value2: "0.00002"},
+			want: "0.00004001",
+		},
+		{
+			name: "ok",
+			args: args{value1: "0.10002001", value2: "0.00002"},
+			want: "0.10004001",
+		},
+		{
+			name: "ok",
+			args: args{value1: "96092252354.642140011", value2: "96092252354.64214000"},
+			want: "192184504709.28428001",
+		},
+		{
+			name: "ok",
+			args: args{value1: "96092252354.64214000", value2: "96092252354.64214000"},
+			want: "192184504709.28428",
+		},
+		{
+			name: "ok",
+			args: args{value1: "1111111111111111111111111111111111111111111111", value2: "1111111111111111111111111111111111111111111111"},
+			want: "2222222222222222222222222222222222222222222222",
+		},
+		{
+			name: "ok",
+			args: args{value1: "1111111111111111111111111111111111111111111111.1", value2: "1111111111111111111111111111111111111111111111"},
+			want: "2222222222222222222222222222222222222222222222.1",
+		},
+		{
+			name: "ok",
+			args: args{value1: "1111111111111111111111111111111111111111111111", value2: "1111111111111111111111111111111111111111111111.1"},
+			want: "2222222222222222222222222222222222222222222222.1",
+		},
+		{
+			name: "ok",
+			args: args{value1: "1111111111111111111111111111111111111111111111.11111111111", value2: "1111111111111111111111111111111111111111111111.11111111111"},
+			want: "2222222222222222222222222222222222222222222222.22222222",
+		},
+		{
+			name: "ok",
+			args: args{value1: "09609225235464214000000", value2: "9609225235464214000000"},
+			want: "19218450470928428000000",
+		},
+		{
+			name: "ok",
+			args: args{value1: "9609225235464214000", value2: "9609225235464214000"},
+			want: "19218450470928428000",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := PercentBig(tt.args.a, tt.args.b)
+			got, err := AddCurrency(tt.args.value1, tt.args.value2)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("PercentBig() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Errorf("AddCoin() Error = %v", err)
 			}
 			if got != tt.want {
-				t.Errorf("PercentBig() = %v, want %v", got, tt.want)
+				t.Errorf("AddCoin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSubCurrency(t *testing.T) {
+	type args struct {
+		value1 string
+		value2 string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{value1: "200000001", value2: "200000000"},
+			want: "1",
+		},
+		{
+			name: "ok",
+			args: args{value1: "09609225235464214000001", value2: "9609225235464214000000"},
+			want: "1",
+		},
+		{
+			name: "ok",
+			args: args{value1: "9609225235464214001", value2: "9609225235464214000"},
+			want: "1",
+		},
+		{
+			name: "ok",
+			args: args{value1: "100000000000", value2: "0.0001"},
+			want: "99999999999.9999",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SubCurrency(tt.args.value1, tt.args.value2)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddCoin() Error = %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("AddCoin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPercentCurrency(t *testing.T) {
+	type args struct {
+		value1 string
+		value2 string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "ok",
+			args: args{value1: "100", value2: "3"},
+			want: "33.33",
+		},
+		{
+			name: "ok",
+			args: args{value1: "100", value2: "33"},
+			want: "3.03",
+		},
+		{
+			name: "ok",
+			args: args{value1: "100", value2: "6"},
+			want: "16.67",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := PercentCurrency(tt.args.value1, tt.args.value2)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddCoin() Error = %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("AddCoin() = %v, want %v", got, tt.want)
 			}
 		})
 	}

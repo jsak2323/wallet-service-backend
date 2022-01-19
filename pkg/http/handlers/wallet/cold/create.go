@@ -40,10 +40,7 @@ func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if createReq.Balance, err = util.CoinToRaw(createReq.Balance, 8); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCoinToRaw)
-		return
-	}
+	createReq.Balance = util.CoinToRaw(createReq.Balance, 8)
 
 	if _, err = s.cbRepo.Create(createReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateColdBalance)
