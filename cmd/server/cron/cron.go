@@ -16,7 +16,9 @@ func Run(function string, sleep time.Duration, mysqlRepos mysql.MysqlRepositorie
 		runHealthCheck(sleep, mysqlRepos)
 	case "updatedeposit":
 		runUpdateDeposit(sleep, mysqlRepos)
-	case "default":
+	case "updatewithdraw":
+		runUpdateWithdraw(sleep, mysqlRepos, exchangeApiRepos)
+	default:
 		fmt.Println("function not specified")
 	}
 }

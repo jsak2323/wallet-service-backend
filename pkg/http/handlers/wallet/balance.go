@@ -222,7 +222,7 @@ func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
 		}
 	}()
 
-	if pendingWDRaw, err = s.withdrawRepo.GetPendingWithdraw(symbol); err != nil {
+	if pendingWDRaw, err = s.withdrawExchangeRepo.GetPendingWithdraw(symbol); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetPendingWithdraw)
 		return
 	}

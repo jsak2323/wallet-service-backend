@@ -19,7 +19,7 @@ func runCheckBalance(sleep time.Duration, mysqlRepos mysql.MysqlRepositories, ex
 	ModuleServices := modules.NewModuleServices(mysqlRepos.HealthCheck, mysqlRepos.SystemConfig, mysqlRepos.RpcMethod, mysqlRepos.RpcRequest, mysqlRepos.RpcResponse)
 	MarketService := h.NewMarketService(exchangeApiRepos.Market)
 	coldWalletService := hcw.NewColdWalletService(mysqlRepos.ColdBalance)
-	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, mysqlRepos.Withdraw, exchangeApiRepos.HotLimit, mysqlRepos.UserBalance)
+	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, mysqlRepos.WithdrawExchange, exchangeApiRepos.HotLimit, mysqlRepos.UserBalance)
 	checkBalanceService := hc.NewCheckBalanceService(walletService, coldWalletService, MarketService, ModuleServices, exchangeApiRepos.HotLimit, mysqlRepos.User)
 
 	func() {

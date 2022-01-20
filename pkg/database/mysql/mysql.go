@@ -21,6 +21,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/userbalance"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/userrole"
 	"github.com/btcid/wallet-services-backend-go/pkg/domain/withdraw"
+	"github.com/btcid/wallet-services-backend-go/pkg/domain/withdrawexchange"
 )
 
 type MysqlRepositories struct {
@@ -42,6 +43,7 @@ type MysqlRepositories struct {
 	UserBalance        userbalance.Repository
 	UserRole           userrole.Repository
 	Withdraw           withdraw.Repository
+	WithdrawExchange   withdrawexchange.Repository
 }
 
 func NewMysqlRepositories(localDB *sql.DB, exchangeSlaveDB *sql.DB) MysqlRepositories {
@@ -63,6 +65,7 @@ func NewMysqlRepositories(localDB *sql.DB, exchangeSlaveDB *sql.DB) MysqlReposit
 		User:               NewMysqlUserRepository(localDB),
 		UserBalance:        NewMysqlUserBalanceRepository(exchangeSlaveDB),
 		UserRole:           NewMysqlUserRoleRepository(localDB),
-		Withdraw:           NewMysqlWithdrawRepository(exchangeSlaveDB),
+		Withdraw:           NewMysqlWithdrawtRepository(localDB),
+		WithdrawExchange:   NewMysqlWithdrawRepository(exchangeSlaveDB),
 	}
 }

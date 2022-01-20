@@ -46,6 +46,12 @@ type ListTransactionsRes struct {
 	Error        *errs.Error
 }
 
+type ListWithdrawsRes struct {
+    RpcConfig       RpcConfigResDetail
+    Withdraws       []model.Withdraw
+    Error           string
+}
+
 type SendToAddressRes struct {
 	RpcConfig RpcConfigResDetail
 	TxHash    string
