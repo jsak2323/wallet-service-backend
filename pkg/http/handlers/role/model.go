@@ -25,8 +25,8 @@ type ListRes struct {
 }
 
 type RolePermissionReq struct {
-	RoleId       int `json:"role_id"`
-	PermissionId int `json:"permission_id"`
+	RoleId       int `json:"role_id" validate:"required"`
+	PermissionId int `json:"permission_id" validate:"required"`
 }
 
 type StandardRes struct {

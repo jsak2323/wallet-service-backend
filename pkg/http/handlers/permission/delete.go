@@ -15,6 +15,7 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 		permissionId int
 		RES          StandardRes
 		err          error
+		ctx          = req.Context()
 	)
 
 	handleResponse := func() {
@@ -26,7 +27,7 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

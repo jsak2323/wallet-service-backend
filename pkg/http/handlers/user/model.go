@@ -14,13 +14,13 @@ type UpdateReq struct {
 }
 
 type UserRoleReq struct {
-	UserId int `json:"user_id"`
-	RoleId int `json:"role_id"`
+	UserId int `json:"user_id" validate:"required"`
+	RoleId int `json:"role_id" validate:"required"`
 }
 
 type LoginReq struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type CreateRes struct {

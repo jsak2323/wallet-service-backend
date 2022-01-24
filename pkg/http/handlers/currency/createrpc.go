@@ -14,6 +14,7 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 		cRreq CurrencyRpcReq
 		RES   StandardRes
 		err   error
+		ctx   = req.Context()
 	)
 
 	handleResponse := func() {
@@ -21,7 +22,7 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			RES.Success = true
 			RES.Message = "Currency successfully updated"
@@ -42,7 +43,7 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 		return
 	}
 
-	if err = cRreq.validate(); err != nil {
+	if err = s.validator.Validate(cRreq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}

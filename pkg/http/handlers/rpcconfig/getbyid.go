@@ -15,13 +15,14 @@ func (s *RpcConfigService) GetByIdHandler(w http.ResponseWriter, req *http.Reque
 	var RES GetRes
 	var err error
 	var reqId int
+	var ctx = req.Context()
 
 	vars := mux.Vars(req)
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" - rpcconfig.GetByIdHandler, success!", req)
 		}

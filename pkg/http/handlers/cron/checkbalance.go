@@ -2,6 +2,7 @@ package cron
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -59,25 +60,28 @@ const defaultMemo = "0000"
 
 func (s *CheckBalanceService) CheckBalanceHandler() {
 	startTime := time.Now()
-	var walletBalances []hw.GetBalanceRes
+	var (
+		walletBalances []hw.GetBalanceRes
+		ctx            = context.Background()
+	)
 
 	for _, curr := range config.CURRRPC {
-		walletBalance := s.walletService.GetBalance(curr)
+		walletBalance := s.walletService.GetBalance(ctx, curr)
 
-		s.checkUserBalance(walletBalance)
-		s.checkHotLimit(curr.Config, walletBalance)
+		s.checkUserBalance(ctx, walletBalance)
+		s.checkHotLimit(ctx, curr.Config, walletBalance)
 
 		walletBalances = append(walletBalances, walletBalance)
 	}
 
-	s.sendReportEmail(walletBalances)
+	s.sendReportEmail(ctx, walletBalances)
 
 	elapsedTime := time.Since(startTime)
 	fmt.Println(" - CheckBalanceHandler Time elapsed: " + fmt.Sprintf("%f", elapsedTime.Minutes()) + " minutes.")
 }
 
-func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
-	logger.Log(" - CheckBalanceService -- Checking " + walletBalance.CurrencyConfig.Symbol + " " + walletBalance.CurrencyConfig.TokenType + " user balance...")
+func (s *CheckBalanceService) checkUserBalance(ctx context.Context, walletBalance hw.GetBalanceRes) {
+	logger.Log(" - CheckBalanceService -- Checking "+walletBalance.CurrencyConfig.Symbol+" "+walletBalance.CurrencyConfig.TokenType+" user balance...", ctx)
 
 	var (
 		err       error
@@ -88,7 +92,7 @@ func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -108,15 +112,15 @@ func (s *CheckBalanceService) checkUserBalance(walletBalance hw.GetBalanceRes) {
 		}
 	} else if cmpResult == -1 {
 		walletBalanceFormatted := s.walletService.FormatWalletBalanceCurrency(walletBalance)
-		s.sendUserBalanceAlertTelegram(walletBalanceFormatted, totalCoin)
-		s.sendUserBalanceAlertEmail(walletBalanceFormatted, totalCoin)
+		s.sendUserBalanceAlertTelegram(ctx, walletBalanceFormatted, totalCoin)
+		s.sendUserBalanceAlertEmail(ctx, walletBalanceFormatted, totalCoin)
 	} else {
-		logger.Log(" - CheckBalanceService -- Finished checking " + walletBalance.CurrencyConfig.Symbol + " " + walletBalance.CurrencyConfig.TokenType + " user balance")
+		logger.Log(" - CheckBalanceService -- Finished checking "+walletBalance.CurrencyConfig.Symbol+" "+walletBalance.CurrencyConfig.TokenType+" user balance", ctx)
 	}
 }
 
-func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetBalanceRes, totalCoin string) {
-	logger.Log(" - CheckBalanceService -- Sending user balance alert telegram ...")
+func (s *CheckBalanceService) sendUserBalanceAlertTelegram(ctx context.Context, walletBalance hw.GetBalanceRes, totalCoin string) {
+	logger.Log(" - CheckBalanceService -- Sending user balance alert telegram ...", ctx)
 
 	var symbol string = walletBalance.CurrencyConfig.Symbol
 	var unit string = walletBalance.CurrencyConfig.Unit
@@ -131,13 +135,13 @@ func (s *CheckBalanceService) sendUserBalanceAlertTelegram(walletBalance hw.GetB
 	telegram.SendMessage(sb.String())
 }
 
-func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBalanceRes, totalCoin string) {
-	logger.Log(" - CheckBalanceService -- Sending user balance alert email ...")
+func (s *CheckBalanceService) sendUserBalanceAlertEmail(ctx context.Context, walletBalance hw.GetBalanceRes, totalCoin string) {
+	logger.Log(" - CheckBalanceService -- Sending user balance alert email ...", ctx)
 
 	var errField *errs.Error = nil
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -170,16 +174,16 @@ func (s *CheckBalanceService) sendUserBalanceAlertEmail(walletBalance hw.GetBala
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSendUserBalanceAlertEmail)
 	}
-	logger.Log(" - CheckBalanceService -- Is balance report email sent: " + strconv.FormatBool(isEmailSent))
+	logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent), ctx)
 }
 
-func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.GetBalanceRes) {
-	logger.Log(" - CheckBalanceService -- Sending balance report email ...")
+func (s *CheckBalanceService) sendReportEmail(ctx context.Context, walletBalances []hw.GetBalanceRes) {
+	logger.Log(" - CheckBalanceService -- Sending balance report email ...", ctx)
 
 	var errField *errs.Error = nil
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -212,15 +216,15 @@ func (s *CheckBalanceService) sendReportEmail(walletBalances []hw.GetBalanceRes)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSendReportEmail)
 	}
-	logger.Log(" - CheckBalanceService -- Is balance report email sent: " + strconv.FormatBool(isEmailSent))
+	logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent), ctx)
 }
 
-func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalance hw.GetBalanceRes, limits hl.HotLimit) {
-	logger.Log(" - CheckBalanceService -- Sending " + symbol + " hot limit alert for non fireblocks...")
+func (s *CheckBalanceService) sendHotLimitAlertEmail(ctx context.Context, symbol string, walletBalance hw.GetBalanceRes, limits hl.HotLimit) {
+	logger.Log(" - CheckBalanceService -- Sending "+symbol+" hot limit alert for non fireblocks...", ctx)
 	var errField *errs.Error = nil
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -260,16 +264,16 @@ func (s *CheckBalanceService) sendHotLimitAlertEmail(symbol string, walletBalanc
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSendHotLimitAlertEmail)
 	}
-	logger.Log(" - CheckBalanceService -- Is balance report email sent: " + strconv.FormatBool(isEmailSent))
+	logger.Log(" - CheckBalanceService -- Is balance report email sent: "+strconv.FormatBool(isEmailSent), ctx)
 }
 
 // TODO check per network
-func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBalance hw.GetBalanceRes) {
-	logger.Log(" - CheckBalanceService -- Checking " + currency.Symbol + " " + currency.TokenType + " hot limit...")
+func (s *CheckBalanceService) checkHotLimit(ctx context.Context, currency cc.CurrencyConfig, walletBalance hw.GetBalanceRes) {
+	logger.Log(" - CheckBalanceService -- Checking "+currency.Symbol+" "+currency.TokenType+" hot limit...", ctx)
 	var errField *errs.Error = nil
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -296,7 +300,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 		return
 	} else if compare == 1 {
-		logger.Log(" - CheckBalanceService -- Hot balance " + currency.Symbol + " is greater than top soft limit")
+		logger.Log(" - CheckBalanceService -- Hot balance "+currency.Symbol+" is greater than top soft limit", ctx)
 
 		amount, err := util.SubCurrency(walletBalance.TotalHotIdr, limits[hl.TargetType])
 		if err != nil {
@@ -319,12 +323,12 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 			return
 		}
 
-		logger.Log(" - CheckBalanceService -- Sending " + currency.Symbol + " from hot to cold...")
+		logger.Log(" - CheckBalanceService -- Sending "+currency.Symbol+" from hot to cold...", ctx)
 		if res, err := module.SendToAddress(senderRpc, amount, address, memo); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			return
 		} else {
-			logger.Log(" - CheckBalanceService -- checkHotLimit(" + currency.Symbol + ") SendToAddress sent with tx: " + res.TxHash)
+			logger.Log(" - CheckBalanceService -- checkHotLimit("+currency.Symbol+") SendToAddress sent with tx: "+res.TxHash, ctx)
 			balanceToUpdate, err := util.AddCurrency(coldWallet.Balance, amount)
 			if err != nil {
 				errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
@@ -334,7 +338,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 				errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			}
 
-			logger.Log(" - CheckBalanceService -- checkHotLimit(" + currency.Symbol + ") UpdateBalance updated with amount: " + balanceToUpdate)
+			logger.Log(" - CheckBalanceService -- checkHotLimit("+currency.Symbol+") UpdateBalance updated with amount: "+balanceToUpdate, ctx)
 			return
 		}
 	}
@@ -364,7 +368,7 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		}
 
 		if coldWallet.Type == cb.ColdType {
-			s.sendHotLimitAlertEmail(currency.Symbol, walletBalance, limits)
+			s.sendHotLimitAlertEmail(ctx, currency.Symbol, walletBalance, limits)
 		} else if coldWallet.Type == cb.FbWarmType || coldWallet.Type == cb.FbColdType {
 			logger.InfoLog("Sending "+currency.Symbol+" from fireblocks cold to hot...", &http.Request{})
 
@@ -397,5 +401,5 @@ func (s *CheckBalanceService) checkHotLimit(currency cc.CurrencyConfig, walletBa
 		}
 	}
 
-	logger.Log(" - CheckBalanceService -- Finished checking " + walletBalance.CurrencyConfig.Symbol + " " + walletBalance.CurrencyConfig.TokenType + " hot limit")
+	logger.Log(" - CheckBalanceService -- Finished checking "+walletBalance.CurrencyConfig.Symbol+" "+walletBalance.CurrencyConfig.TokenType+" hot limit", ctx)
 }

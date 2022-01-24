@@ -118,7 +118,7 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 		defer handleResponse()
 
 		if routeRoles, err = am.getRouteRoles(routeName); err != nil {
-			logger.ErrorLog("- AUTH -- User -- am.getRouteRoles err: " + err.Error())
+			logger.ErrorLog("- AUTH -- User -- am.getRouteRoles err: "+err.Error(), req.Context())
 			return
 		}
 

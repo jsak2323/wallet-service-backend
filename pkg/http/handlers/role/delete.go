@@ -16,6 +16,7 @@ func (svc *RoleService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		roleId int
 		RES    StandardRes
 		err    error
+		ctx    = req.Context()
 	)
 
 	handleResponse := func() {
@@ -27,7 +28,7 @@ func (svc *RoleService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

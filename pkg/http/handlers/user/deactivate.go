@@ -15,6 +15,7 @@ func (svc *UserService) DeactivateUserHandler(w http.ResponseWriter, req *http.R
 		userId int
 		RES    StandardRes
 		err    error
+		ctx    = req.Context()
 	)
 
 	handleResponse := func() {
@@ -24,7 +25,7 @@ func (svc *UserService) DeactivateUserHandler(w http.ResponseWriter, req *http.R
 		RES.Message = "User successfully deactivated"
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 			RES.Success = false
 			RES.Message = ""
 		}

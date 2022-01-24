@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -40,6 +41,7 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
 	symbol := vars["symbol"]
 	tokenType := vars["token_type"]
 	isGetAll := symbol == ""
+	ctx := req.Context()
 
 	RES := make(GetHealthCheckHandlerResponseMap)
 
@@ -49,7 +51,7 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
 		logger.InfoLog(" - GetHealthCheckHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req)
 	}
 
-	ghcs.InvokeGetHealthCheck(&RES, symbol, tokenType)
+	ghcs.InvokeGetHealthCheck(ctx, &RES, symbol, tokenType)
 
 	// handle success response
 	logger.InfoLog(" - GetHealthCheckHandler Success.", req)
@@ -58,12 +60,12 @@ func (ghcs *GetHealthCheckService) GetHealthCheckHandler(w http.ResponseWriter, 
 	json.NewEncoder(w).Encode(RES)
 }
 
-func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(RES *GetHealthCheckHandlerResponseMap, symbol, tokenType string) {
+func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(ctx context.Context, RES *GetHealthCheckHandlerResponseMap, symbol, tokenType string) {
 	var errField *errs.Error = nil
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 	// get maintenance list

@@ -254,7 +254,7 @@ func mapRpcConfig(rows *sql.Rows, rpcConf *rc.RpcConfig) error {
 	return nil
 }
 
-func (r *rpcConfigRepository) Update(rpcConfig rc.RpcConfig) (err error) {
+func (r *rpcConfigRepository) Update(rpcConfig rc.UpdateRpcConfig) (err error) {
 	err = r.db.QueryRow(`
 	UPDATE `+rpcConfigTable+`
 	SET 

@@ -11,14 +11,15 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 )
 
-func Run(mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories) {
+func Run(mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories, validator *util.CustomValidator) {
 	r := mux.NewRouter()
 
-	setRoutes(r, mysqlRepos, exchangeApiRepos)
+	setRoutes(r, mysqlRepos, exchangeApiRepos, validator)
 
 	corsOpts := cors.New(cors.Options{
 		AllowedMethods: []string{

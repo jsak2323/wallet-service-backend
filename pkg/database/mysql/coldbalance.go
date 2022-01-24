@@ -20,7 +20,7 @@ func NewMysqlColdBalanceRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *coldBalanceRepository) Create(coldBalance domain.ColdBalance) (id int, err error) {
+func (r *coldBalanceRepository) Create(coldBalance domain.CreateColdBalance) (id int, err error) {
 	query := `
 		INSERT INTO ` + coldBalanceTable + ` (currency_id, name, type, fireblocks_name, balance, address, last_updated) 
 		VALUES(?, ?, ?, ?, ?, ?, now())

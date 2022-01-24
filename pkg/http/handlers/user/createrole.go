@@ -13,6 +13,7 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 		urReq UserRoleReq
 		RES   StandardRes
 		err   error
+		ctx   = req.Context()
 	)
 
 	handleResponse := func() {
@@ -21,7 +22,7 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 		RES.Success = true
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 			RES.Success = false
 			RES.Message = ""
 		}
@@ -38,8 +39,8 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	if !urReq.valid() {
-		RES.Error = errs.AddTrace(errs.InvalidRequest)
+	if err = svc.validator.Validate(urReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 

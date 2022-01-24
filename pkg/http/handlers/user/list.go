@@ -15,6 +15,7 @@ func (svc *UserService) ListUserHandler(w http.ResponseWriter, req *http.Request
 	var (
 		RES ListRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -22,7 +23,7 @@ func (svc *UserService) ListUserHandler(w http.ResponseWriter, req *http.Request
 
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

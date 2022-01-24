@@ -26,6 +26,7 @@ func (scs *SystemConfigService) MaintenanceListHandler(w http.ResponseWriter, re
 	vars := mux.Vars(req)
 	action := vars["action"]
 	value := strings.ToUpper(vars["value"])
+	ctx := req.Context()
 
 	// define response object
 	RES := StandardRes{}
@@ -35,7 +36,7 @@ func (scs *SystemConfigService) MaintenanceListHandler(w http.ResponseWriter, re
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)

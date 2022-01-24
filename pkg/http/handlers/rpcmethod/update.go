@@ -13,9 +13,10 @@ import (
 
 func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		rpcMethod domain.RpcMethod
+		rpcMethod domain.UpdateRpcMethod
 		RES       StandardRes
 		err       error
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- rpcmethod.UpdateHandler Success!", req)
 
@@ -46,7 +47,7 @@ func (s *RpcMethodService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if err = validateUpdateReq(rpcMethod); err != nil {
+	if err = s.validator.Validate(rpcMethod); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -115,6 +116,17 @@ func MysqlDbConn() (db *sql.DB) {
 	dbUser := CONF.MysqlDbUser
 	dbPass := CONF.MysqlDbPass
 	dbName := CONF.MysqlDbName
+
+	log.Println("ENV DEV :", IS_DEV)
+	if IS_DEV {
+		db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp(localhost:3307)/"+dbName)
+		if err != nil {
+			log.Println("error1", err)
+			panic(err.Error())
+		}
+		db.SetConnMaxIdleTime(0)
+		return db
+	}
 
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {

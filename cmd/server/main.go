@@ -12,7 +12,9 @@ import (
 	"github.com/btcid/wallet-services-backend-go/cmd/server/cron"
 	"github.com/btcid/wallet-services-backend-go/cmd/server/http"
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
+	"github.com/go-playground/validator"
 )
 
 func main() {
@@ -52,10 +54,12 @@ func main() {
 	mysqlRepos := mysql.NewMysqlRepositories(localMysqlDbConn, exchangeSlaveMysqlDbConn)
 	exchangeApiRepos := exchange.NewAPIRepositories()
 
+	validator := &util.CustomValidator{Validator: validator.New()}
+
 	switch *appPtr {
 	case "http":
-		http.Run(mysqlRepos, exchangeApiRepos)
+		http.Run(mysqlRepos, exchangeApiRepos, validator)
 	case "cron":
-		cron.Run(*funcPtr, *sleepPtr, mysqlRepos, exchangeApiRepos)
+		cron.Run(*funcPtr, *sleepPtr, mysqlRepos, exchangeApiRepos, validator)
 	}
 }

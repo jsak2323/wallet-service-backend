@@ -12,9 +12,12 @@ import (
 )
 
 func (s *RpcRequestService) GetByRpcMethodIdHandler(w http.ResponseWriter, req *http.Request) {
-	var RES ListRes
-	var err error
-	var reqRpcMethodId int
+	var (
+		RES            ListRes
+		err            error
+		reqRpcMethodId int
+		ctx            = req.Context()
+	)
 
 	vars := mux.Vars(req)
 
@@ -23,7 +26,7 @@ func (s *RpcRequestService) GetByRpcMethodIdHandler(w http.ResponseWriter, req *
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" - rpcrequest.GetByRpcMethodIdHandler, success!", req)
 		}

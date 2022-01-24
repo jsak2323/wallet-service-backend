@@ -15,6 +15,7 @@ func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		userId, roleId int
 		RES            StandardRes
 		err            error
+		ctx            = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		RES.Message = "Role successfully removed from User"
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 			RES.Success = false
 			RES.Message = ""
 		}

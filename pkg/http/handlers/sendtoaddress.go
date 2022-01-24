@@ -33,13 +33,14 @@ func NewSendToAddressService(moduleServices *modules.ModuleServiceMap) *SendToAd
 func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, req *http.Request) {
 	// define response object
 	RES := SendToAddressRes{}
+	ctx := req.Context()
 
 	// define response handler
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
@@ -51,7 +52,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
 	sendToAddressRequest := SendToAddressRequest{}
 	err := DecodeAndLogPostRequest(req, &sendToAddressRequest)
 	if err != nil {
-		logger.ErrorLog(" - SendToAddressHandler util.DecodeAndLogPostRequest(req, &sendToAddressRequest) err: " + err.Error())
+		logger.ErrorLog(" - SendToAddressHandler util.DecodeAndLogPostRequest(req, &sendToAddressRequest) err: "+err.Error(), ctx)
 		return
 	}
 

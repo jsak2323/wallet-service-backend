@@ -16,6 +16,7 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 		userId int
 		RES    StandardRes
 		err    error
+		ctx    = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- currency.DeactivateHandler Success!", req)
 

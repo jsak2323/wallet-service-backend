@@ -135,7 +135,7 @@ func PercentCurrency(a, b string) (string, error) {
 		return "0", errs.AddTrace(errors.New("division by zero"))
 	}
 
-	aBig.Quo(aBig, bBig)
+	aBig.Mul(aBig.Quo(aBig, bBig), big.NewFloat(100))
 
 	return aBig.Text('f', 2), nil
 }

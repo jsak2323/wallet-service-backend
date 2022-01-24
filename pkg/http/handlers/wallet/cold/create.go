@@ -11,7 +11,7 @@ import (
 )
 
 func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Request) {
-	var createReq domain.ColdBalance
+	var createReq domain.CreateColdBalance
 	var RES StandardRes
 	var err error
 
@@ -35,6 +35,11 @@ func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
+	if err = s.validator.Validate(createReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
+	}
+
 	if err = validateCreateReq(createReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
@@ -48,19 +53,7 @@ func (s *ColdWalletService) CreateHandler(w http.ResponseWriter, req *http.Reque
 	}
 }
 
-func validateCreateReq(createReq domain.ColdBalance) error {
-	if createReq.CurrencyId == 0 {
-		return errs.AddTrace(errors.New("Currency Id"))
-	}
-	if createReq.Name == "" {
-		return errs.AddTrace(errors.New("Name"))
-	}
-	if createReq.Type == "" {
-		return errs.AddTrace(errors.New("Type"))
-	}
-	if createReq.Address == "" {
-		return errs.AddTrace(errors.New("Address"))
-	}
+func validateCreateReq(createReq domain.CreateColdBalance) error {
 
 	if isFireblocksCold(createReq.Type) && createReq.FireblocksName == "" {
 		return errs.AddTrace(errors.New("Fireblocks Name"))

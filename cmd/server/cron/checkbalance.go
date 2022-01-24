@@ -9,16 +9,17 @@ import (
 	hc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/cron"
 	hw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet"
 	hcw "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/wallet/cold"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 )
 
-func runCheckBalance(sleep time.Duration, mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories) {
+func runCheckBalance(sleep time.Duration, mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories, validator *util.CustomValidator) {
 	fmt.Println("Initializing checkbalance service...")
 
 	ModuleServices := modules.NewModuleServices(mysqlRepos.HealthCheck, mysqlRepos.SystemConfig, mysqlRepos.RpcMethod, mysqlRepos.RpcRequest, mysqlRepos.RpcResponse)
 	MarketService := h.NewMarketService(exchangeApiRepos.Market)
-	coldWalletService := hcw.NewColdWalletService(mysqlRepos.ColdBalance)
+	coldWalletService := hcw.NewColdWalletService(mysqlRepos.ColdBalance, *validator)
 	walletService := hw.NewWalletService(ModuleServices, coldWalletService, MarketService, mysqlRepos.Withdraw, exchangeApiRepos.HotLimit, mysqlRepos.UserBalance)
 	checkBalanceService := hc.NewCheckBalanceService(walletService, coldWalletService, MarketService, ModuleServices, exchangeApiRepos.HotLimit, mysqlRepos.User)
 

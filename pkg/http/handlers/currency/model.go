@@ -17,6 +17,6 @@ type StandardRes struct {
 }
 
 type CurrencyRpcReq struct {
-	CurrencyId int `json:"currency_id"`
-	RpcId      int `json:"rpc_id"`
+	CurrencyId int `json:"currency_id" validate:"required"`
+	RpcId      int `json:"rpc_id" validate:"required"`
 }

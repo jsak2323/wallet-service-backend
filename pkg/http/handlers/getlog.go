@@ -35,12 +35,13 @@ func (gls *GetLogService) GetLogHandler(w http.ResponseWriter, req *http.Request
 		SYMBOL                = strings.ToUpper(symbol)
 		TOKENTYPE             = strings.ToUpper(tokenType)
 		errField  *errs.Error = nil
+		ctx                   = req.Context()
 	)
 	logger.InfoLog(" - GetLogHandler For symbol: "+SYMBOL+", date: "+date+", type: "+rpcConfigType+", Requesting ...", req)
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 

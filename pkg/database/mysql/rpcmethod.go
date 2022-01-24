@@ -116,7 +116,7 @@ func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm
 	return rpcMethods, nil
 }
 
-func (r *rpcMethodRepository) Update(rpcMethod rm.RpcMethod) error {
+func (r *rpcMethodRepository) Update(rpcMethod rm.UpdateRpcMethod) error {
 	err := r.db.QueryRow(`
 	UPDATE `+rpcMethodTable+`
 	SET 

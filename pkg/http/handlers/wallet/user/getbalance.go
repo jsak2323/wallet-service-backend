@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -19,6 +20,7 @@ func (s *UserWalletService) GetBalanceHandler(w http.ResponseWriter, req *http.R
 	vars := mux.Vars(req)
 	symbol := strings.ToUpper(vars["symbol"])
 	isGetAll := symbol != ""
+	ctx := req.Context()
 
 	RES := make(GetBalanceHandlerResponseMap)
 
@@ -28,7 +30,7 @@ func (s *UserWalletService) GetBalanceHandler(w http.ResponseWriter, req *http.R
 		logger.InfoLog(" - userwallet.GetBalanceHandler For symbol: "+symbol+", Requesting ...", req)
 	}
 
-	s.InvokeGetBalance(&RES, symbol)
+	s.InvokeGetBalance(ctx, &RES, symbol)
 
 	resJson, _ := json.Marshal(RES)
 	logger.InfoLog(" - userwallet.GetBalanceHandler Success. Symbol: "+symbol+", Res: "+string(resJson), req)
@@ -37,7 +39,7 @@ func (s *UserWalletService) GetBalanceHandler(w http.ResponseWriter, req *http.R
 	json.NewEncoder(w).Encode(RES)
 }
 
-func (s *UserWalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol string) {
+func (s *UserWalletService) InvokeGetBalance(ctx context.Context, RES *GetBalanceHandlerResponseMap, symbol string) {
 	var (
 		err      error
 		errField *errs.Error = nil
@@ -45,7 +47,7 @@ func (s *UserWalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, 
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 

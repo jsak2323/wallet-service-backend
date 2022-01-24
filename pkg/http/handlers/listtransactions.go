@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -35,6 +36,7 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
 	tokenType := vars["token_type"]
 	limit := vars["limit"]
 	isGetAll := symbol == ""
+	ctx := req.Context()
 
 	RES := make(ListTransactionsHandlerResponseMap)
 
@@ -45,7 +47,7 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
 	}
 
 	limitInt, _ := strconv.Atoi(limit)
-	lts.InvokeListTransactions(&RES, symbol, tokenType, limitInt)
+	lts.InvokeListTransactions(ctx, &RES, symbol, tokenType, limitInt)
 
 	// handle success response
 	logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol, req)
@@ -54,7 +56,7 @@ func (lts *ListTransactionsService) ListTransactionsHandler(w http.ResponseWrite
 	json.NewEncoder(w).Encode(RES)
 }
 
-func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactionsHandlerResponseMap, symbol, tokenType string, limit int) {
+func (lts *ListTransactionsService) InvokeListTransactions(ctx context.Context, RES *ListTransactionsHandlerResponseMap, symbol, tokenType string, limit int) {
 	var (
 		rpcConfigCount             = 0
 		resChannel                 = make(chan ListTransactionsRes)
@@ -63,7 +65,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -109,7 +111,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(RES *ListTransactions
 					errField = errs.AssignErr(errs.AddTrace(err), errs.FailedListTransactions)
 
 				} else {
-					logger.Log(" - InvokeListTransactions Symbol: " + currencyConfig.Symbol + ", RpcConfigId: " + strconv.Itoa(rpcConfig.Id) + ", Host: " + rpcConfig.Host)
+					logger.Log(" - InvokeListTransactions Symbol: "+currencyConfig.Symbol+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host, ctx)
 					_RES.Transactions = rpcRes.Transactions
 					errField = errs.AssignErr(errs.AddTrace(errors.New(rpcRes.Error)), errs.FailedListTransactions)
 					_RES.Error = errField

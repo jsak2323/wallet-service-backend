@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -40,6 +41,7 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
 	symbol := vars["symbol"]
 	tokenType := vars["token_type"]
 	isGetAll := symbol == ""
+	ctx := req.Context()
 
 	RES := make(GetBlockCountHandlerResponseMap)
 
@@ -49,7 +51,7 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
 		logger.InfoLog(" - GetBlockCountHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req)
 	}
 
-	gbcs.InvokeGetBlockCount(&RES, symbol, tokenType)
+	gbcs.InvokeGetBlockCount(ctx, &RES, symbol, tokenType)
 
 	// handle success response
 	resJson, _ := json.Marshal(RES)
@@ -59,7 +61,7 @@ func (gbcs *GetBlockCountService) GetBlockCountHandler(w http.ResponseWriter, re
 	json.NewEncoder(w).Encode(RES)
 }
 
-func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerResponseMap, symbol, tokenType string) {
+func (gbcs *GetBlockCountService) InvokeGetBlockCount(ctx context.Context, RES *GetBlockCountHandlerResponseMap, symbol, tokenType string) {
 	var (
 		rpcConfigCount             = 0
 		resChannel                 = make(chan GetBlockCountRes)
@@ -69,13 +71,13 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
 
 	defer func() {
 		if err != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
 	maintenanceList, err := GetMaintenanceList(gbcs.systemConfigRepo)
 	if err != nil {
-		logger.ErrorLog(errs.Logged(errs.FailedGetMaintenanceList))
+		logger.ErrorLog(errs.Logged(errs.FailedGetMaintenanceList), ctx)
 	}
 
 	for _, currRpc := range config.CURRRPC {
@@ -129,7 +131,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(RES *GetBlockCountHandlerR
 				if err != nil {
 					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetBlockCount)
 				} else {
-					logger.Log(" - InvokeGetBlockCount Symbol: " + SYMBOL + ", RpcConfigId: " + strconv.Itoa(rpcConfig.Id) + ", Host: " + rpcConfig.Host + ". Blocks: " + rpcRes.Blocks)
+					logger.Log(" - InvokeGetBlockCount Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Blocks: "+rpcRes.Blocks, ctx)
 					_RES.Blocks = rpcRes.Blocks
 					_RES.Error = errs.AssignErr(errs.AddTrace(errors.New(rpcRes.Error)), errs.FailedGetBlockCount)
 				}

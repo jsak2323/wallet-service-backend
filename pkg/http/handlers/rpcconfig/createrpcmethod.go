@@ -2,7 +2,6 @@ package rpcconfig
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
@@ -14,6 +13,7 @@ func (svc *RpcConfigService) CreateRpcMethodHandler(w http.ResponseWriter, req *
 		rpReq RpcConfigRpcMethodReq
 		RES   StandardRes
 		err   error
+		ctx   = req.Context()
 	)
 
 	handleResponse := func() {
@@ -21,7 +21,7 @@ func (svc *RpcConfigService) CreateRpcMethodHandler(w http.ResponseWriter, req *
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			RES.Success = true
 			RES.Message = "RPC Method successfully added to RPC Config"
@@ -38,9 +38,8 @@ func (svc *RpcConfigService) CreateRpcMethodHandler(w http.ResponseWriter, req *
 		return
 	}
 
-	if !rpReq.valid() {
-		err = errors.New("Invalid request")
-		RES.Error = errs.AddTrace(errs.InvalidRequest)
+	if err = svc.validator.Validate(rpReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 

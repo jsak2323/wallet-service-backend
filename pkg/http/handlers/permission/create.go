@@ -13,6 +13,7 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 		createReq CreateReq
 		RES       CreateRes
 		err       error
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
@@ -22,7 +23,7 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Message = ""
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -36,8 +37,8 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 		return
 	}
 
-	if !createReq.valid() {
-		RES.Error = errs.AddTrace(errs.InvalidRequest)
+	if err = svc.validator.Validate(createReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 

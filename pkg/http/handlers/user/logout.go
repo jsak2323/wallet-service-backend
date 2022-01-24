@@ -16,6 +16,7 @@ func (svc *UserService) LogoutHandler(w http.ResponseWriter, req *http.Request) 
 
 		valid bool
 		err   error
+		ctx   = req.Context()
 	)
 
 	handleResponse := func() {
@@ -24,7 +25,7 @@ func (svc *UserService) LogoutHandler(w http.ResponseWriter, req *http.Request) 
 		RES.Success = true
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 			RES.Success = false
 		}
 
