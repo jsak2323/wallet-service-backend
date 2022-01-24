@@ -186,7 +186,7 @@ func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRep
 	   curl --request PUT localhost:3000/systemconfig/maintenancelist/add/BTC
 	*/
 
-	fireblocksService := h.NewFireblocksService()
+	fireblocksService := h.NewFireblocksService(mysqlRepos.ColdBalance)
 	r.HandleFunc("/fireblocks/tx_sign_request", fireblocksService.CallbackHandler).Methods(http.MethodPost).Name("fireblockscallback")
 
 	auth := authm.NewAuthMiddleware(mysqlRepos.Role, mysqlRepos.Permission, mysqlRepos.RolePermission)
