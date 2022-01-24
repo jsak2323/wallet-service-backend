@@ -2,6 +2,7 @@ package logging
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -44,11 +45,18 @@ func setupLogger() {
 	})
 }
 
-func Log(msg string) {
+// context
+func Log(msg string, ctx context.Context) {
 	updateTime()
 	setupLogger()
 
 	log.Info(msg)
+	// logField := logrus.Fields{}
+	// if reqId, ok := ctx.Value(ctxLib.RequestIdKey).(string); ok {
+	// 	logField["RequestId"] = reqId
+	// }
+
+	// log.WithFields(logField).Error(msg)
 }
 
 func InfoLog(msg string, req *http.Request) {
@@ -111,11 +119,17 @@ func preprocessingGetRequestBody(req *http.Request) (resp io.ReadCloser, err err
 	return resp, nil
 }
 
-func ErrorLog(msg string) {
+// context
+func ErrorLog(msg string, ctx context.Context) {
 	updateTime()
 	setupLogger()
 
-	log.Error(msg)
+	logField := logrus.Fields{}
+	if reqId, ok := ctx.Value(ctxLib.RequestIdKey).(string); ok {
+		logField["RequestId"] = reqId
+	}
+
+	log.WithFields(logField).Error(msg)
 
 	go sendErrorNotificationEmail(msg)
 }

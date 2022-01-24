@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -28,9 +29,12 @@ const IgnoreTransaction = "IGNORE"
 const InvalidDestAddressReason = "Invalid destination address"
 
 func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Request) {
-	var SignReq FireblocksSignReq
-	var RES FireblocksSignRes
-	var err error
+	var (
+		SignReq FireblocksSignReq
+		RES     FireblocksSignRes
+		err     error
+		ctx     = req.Context()
+	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
@@ -51,7 +55,7 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 	RES.Action = ApproveTransaction
 
 	if err = json.NewDecoder(req.Body).Decode(&SignReq); err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler json.NewDecoder err: " + err.Error())
+		logger.ErrorLog(" -- fireblocks.CallbackHandler json.NewDecoder err: "+err.Error(), ctx)
 		RES.Action = RejectTransaction
 		RES.RejectionReason = errInternalServer
 		return
@@ -64,11 +68,11 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 	}
 
 	if SignReq.DestId == config.CONF.FireblocksHotVaultId {
-		validateHotDestAddress(SignReq, &RES)
+		validateHotDestAddress(ctx, SignReq, &RES)
 	}
 }
 
-func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
+func validateHotDestAddress(ctx context.Context, signReq FireblocksSignReq, res *FireblocksSignRes) {
 	var currencyConfig cc.CurrencyConfig
 
 	if signReq.Type == TypeBaseAsset {
@@ -77,7 +81,7 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 
 	currencyConfig, err := config.GetCurrencyBySymbolTokenType(signReq.Asset, signReq.Type)
 	if err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler config.GetCurrencyBySymbol(" + signReq.Asset + "," + signReq.Type + ")+err: " + err.Error())
+		logger.ErrorLog(" -- fireblocks.CallbackHandler config.GetCurrencyBySymbol("+signReq.Asset+","+signReq.Type+")+err: "+err.Error(), ctx)
 		res.Action = RejectTransaction
 		res.RejectionReason = errAssetNotFound
 		return
@@ -85,7 +89,7 @@ func validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
 
 	receiverWallet, err := config.GetRpcConfigByType(currencyConfig.Id, rc.SenderRpcType)
 	if err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: " + err.Error())
+		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: "+err.Error(), ctx)
 		res.Action = RejectTransaction
 		res.RejectionReason = errInternalServer
 		return

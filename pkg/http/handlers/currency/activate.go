@@ -16,6 +16,7 @@ func (svc *CurrencyConfigService) ActivateHandler(w http.ResponseWriter, req *ht
 		id  int
 		RES StandardRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (svc *CurrencyConfigService) ActivateHandler(w http.ResponseWriter, req *ht
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			RES.Success = true
 			RES.Message = "Currency successfully activated"

@@ -17,6 +17,7 @@ func (s *RpcRequestService) DeleteHandler(w http.ResponseWriter, req *http.Reque
 		RES             StandardRes
 		err             error
 		id, RpcMethodId int
+		ctx             = req.Context()
 	)
 
 	vars := mux.Vars(req)
@@ -26,7 +27,7 @@ func (s *RpcRequestService) DeleteHandler(w http.ResponseWriter, req *http.Reque
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- rpcrequest.DeleteHandler Success!", req)
 

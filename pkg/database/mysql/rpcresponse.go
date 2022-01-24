@@ -21,7 +21,7 @@ func NewMysqlRpcResponseRepository(db *sql.DB) rr.Repository {
 	}
 }
 
-func (r *rpcResponseRepository) Create(rpcResponse rr.RpcResponse) error {
+func (r *rpcResponseRepository) Create(rpcResponse rr.CreateRpcResponse) error {
 
 	err := r.db.QueryRow(`
 	INSERT INTO `+rpcResponseTable+`(

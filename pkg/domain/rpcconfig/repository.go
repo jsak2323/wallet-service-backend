@@ -6,6 +6,6 @@ type Repository interface {
 	GetById(id int) (RpcConfig, error)
 	GetByCurrencyId(currency_id int) ([]RpcConfig, error)
 	GetByCurrencySymbol(symbol string) ([]RpcConfig, error)
-	Update(RpcConfig) error
+	Update(UpdateRpcConfig) error
 	ToggleActive(Id int, active bool) error
 }

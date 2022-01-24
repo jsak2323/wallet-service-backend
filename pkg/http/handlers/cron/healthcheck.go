@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -41,11 +42,12 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 		gbcRES    = make(h.GetBlockCountHandlerResponseMap)
 
 		errField *errs.Error = nil
+		ctx                  = context.Background()
 	)
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -64,9 +66,9 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.ErrorHealthCheckHandler)
 	}
 
-	logger.Log(" - HealthCheckHandler Getting node blockcounts ...")
-	getBlockCountService.InvokeGetBlockCount(&gbcRES, "", "")
-	logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched " + strconv.Itoa(len(gbcRES)) + " results.")
+	logger.Log(" - HealthCheckHandler Getting node blockcounts ...", ctx)
+	getBlockCountService.InvokeGetBlockCount(ctx, &gbcRES, "", "")
+	logger.Log(" - HealthCheckHandler Getting node blockcounts done. Fetched "+strconv.Itoa(len(gbcRES))+" results.", ctx)
 
 	for resSymbol, mapTokenType := range gbcRES {
 		for resTokenType, resRpcConfigs := range mapTokenType {
@@ -84,7 +86,7 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 
 				if isPing { // if ping, only check if blockount is 0
 					if nodeBlockCount <= 0 {
-						hcs.sendNotificationEmails(resRpcConfig, -1)
+						hcs.sendNotificationEmails(ctx, resRpcConfig, -1)
 					}
 					fmt.Println(" -- Healthcheck ping " + resSymbol + " Blocks: " + resRpcConfig.Blocks)
 					continue
@@ -102,7 +104,7 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 					continue
 				}
 
-				_isBlockCountHealthy, _blockDiff, err := module.IsBlockCountHealthy(nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
+				_isBlockCountHealthy, _blockDiff, err := module.IsBlockCountHealthy(ctx, nodeBlockCount, resRpcConfig.RpcConfig.RpcConfigId)
 				if err != nil {
 					errField = errs.AssignErr(errs.AddTrace(err), errs.ErrorHealthCheckHandler)
 				}
@@ -111,13 +113,13 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 				blockDiff = _blockDiff
 
 				if !isBlockCountHealthy && config.FirstHealthCheck { // if not healthy, send notification emails
-					hcs.sendNotificationEmails(resRpcConfig, blockDiff)
+					hcs.sendNotificationEmails(ctx, resRpcConfig, blockDiff)
 				}
 
 				config.FirstHealthCheck = true
 
 				if !isPing {
-					hcs.saveHealthCheck(resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
+					hcs.saveHealthCheck(ctx, resRpcConfig.RpcConfig.RpcConfigId, nodeBlockCount, blockDiff, isBlockCountHealthy)
 				}
 			}
 		}
@@ -127,7 +129,7 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 	fmt.Println(" - HealthCheckHandler Time elapsed: " + fmt.Sprintf("%f", elapsedTime.Minutes()) + " minutes.")
 }
 
-func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, blockDiff int, isBlockCountHealthy bool) error {
+func (hcs *HealthCheckService) saveHealthCheck(ctx context.Context, rpcConfigId int, blockCount int, blockDiff int, isBlockCountHealthy bool) error {
 	existingHealthCheck, err := hcs.healthCheckRepo.GetByRpcConfigId(rpcConfigId)
 	if err != nil {
 		return errs.AddTrace(err)
@@ -144,7 +146,7 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
 		if err != nil {
 			err = errs.AddTrace(err)
 		} else {
-			logger.Log(" - saveHealthCheck Create rpcConfigId: " + strconv.Itoa(newHealthCheck.Id) + " Success, HealthCheck: " + fmt.Sprintf("%+v", newHealthCheck))
+			logger.Log(" - saveHealthCheck Create rpcConfigId: "+strconv.Itoa(newHealthCheck.Id)+" Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck), ctx)
 		}
 
 	} else { // already exists, update
@@ -159,15 +161,15 @@ func (hcs *HealthCheckService) saveHealthCheck(rpcConfigId int, blockCount int, 
 		if err != nil {
 			err = errs.AddTrace(err)
 		} else {
-			logger.Log(" - saveHealthCheck Update rpcConfigId: " + strconv.Itoa(rpcConfigId) + " Success, HealthCheck: " + fmt.Sprintf("%+v", newHealthCheck))
+			logger.Log(" - saveHealthCheck Update rpcConfigId: "+strconv.Itoa(rpcConfigId)+" Success, HealthCheck: "+fmt.Sprintf("%+v", newHealthCheck), ctx)
 		}
 	}
 
 	return nil
 }
 
-func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes, blockDiff int) {
-	logger.Log(" - HealthCheckHandler -- Sending notification email ...")
+func (hcs *HealthCheckService) sendNotificationEmails(ctx context.Context, res h.GetBlockCountRes, blockDiff int) {
+	logger.Log(" - HealthCheckHandler -- Sending notification email ...", ctx)
 
 	blockCount := res.Blocks
 	if blockCount == "" {
@@ -188,7 +190,7 @@ func (hcs *HealthCheckService) sendNotificationEmails(res h.GetBlockCountRes, bl
 
 	isEmailSent, err := util.SendEmail(subject, message, recipients)
 	if err != nil {
-		logger.ErrorLog(err.Error())
+		logger.ErrorLog(err.Error(), context.Background())
 	}
-	logger.Log(" - HealthCheckHandler -- Is notification email sent: " + strconv.FormatBool(isEmailSent))
+	logger.Log(" - HealthCheckHandler -- Is notification email sent: "+strconv.FormatBool(isEmailSent), ctx)
 }

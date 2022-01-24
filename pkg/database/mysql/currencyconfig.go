@@ -199,7 +199,7 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
 	return nil
 }
 
-func (r *currencyConfigRepository) Update(currencyConfig cc.CurrencyConfig) (err error) {
+func (r *currencyConfigRepository) Update(currencyConfig cc.UpdateCurrencyConfig) (err error) {
 	err = r.db.QueryRow(`
     UPDATE `+currencyConfigTable+`
     SET 

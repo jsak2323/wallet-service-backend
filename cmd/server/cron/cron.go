@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
 )
 
-func Run(function string, sleep time.Duration, mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories) {
+func Run(function string, sleep time.Duration, mysqlRepos mysql.MysqlRepositories, exchangeApiRepos exchange.APIRepositories, validator *util.CustomValidator) {
 	switch function {
 	case "checkbalance":
-		runCheckBalance(sleep, mysqlRepos, exchangeApiRepos)
+		runCheckBalance(sleep, mysqlRepos, exchangeApiRepos, validator)
 	case "healthcheck":
 		runHealthCheck(sleep, mysqlRepos)
 	case "updatedeposit":

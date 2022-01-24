@@ -15,6 +15,7 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 	var (
 		RES ListRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -22,7 +23,7 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

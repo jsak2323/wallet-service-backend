@@ -13,6 +13,7 @@ func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Reque
 		createReq CreateReq
 		RES       CreateRes
 		err       error
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
@@ -21,7 +22,7 @@ func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Reque
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Message = ""
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -35,8 +36,8 @@ func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if !createReq.valid() {
-		RES.Error = errs.AddTrace(errs.InvalidRequest)
+	if err = svc.validator.Validate(createReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 

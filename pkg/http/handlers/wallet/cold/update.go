@@ -12,15 +12,18 @@ import (
 )
 
 func (s *ColdWalletService) UpdateHandler(w http.ResponseWriter, req *http.Request) {
-	var updateReq domain.ColdBalance
-	var RES StandardRes
-	var err error
+	var (
+		updateReq domain.ColdBalance
+		RES       StandardRes
+		err       error
+		ctx       = req.Context()
+	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			RES.Success = true
 			RES.Message = "Cold balance successfully updated"
@@ -37,7 +40,12 @@ func (s *ColdWalletService) UpdateHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err = validateCreateReq(updateReq); err != nil {
+	if err = s.validator.Validate(updateReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
+	}
+
+	if err = validateUpdateReq(updateReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}

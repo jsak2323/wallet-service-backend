@@ -17,6 +17,7 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 		currencyId, rpcId int
 		RES               StandardRes
 		err               error
+		ctx               = req.Context()
 	)
 
 	handleResponse := func() {
@@ -24,7 +25,7 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- currency.DeleteRpcHandler Success!", req)
 

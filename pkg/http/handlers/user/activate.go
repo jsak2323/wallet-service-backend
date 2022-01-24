@@ -15,6 +15,7 @@ func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Req
 		userId int
 		RES    StandardRes
 		err    error
+		ctx    = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Req
 		RES.Message = "User successfully activated"
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 			RES.Success = false
 			RES.Message = ""
 		}

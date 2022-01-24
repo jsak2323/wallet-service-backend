@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -21,7 +22,11 @@ import (
 type GetBalanceHandlerResponseMap map[int]GetBalanceRes
 
 func (s *WalletService) GetBalanceHandler(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
+	var (
+		vars = mux.Vars(req)
+
+		ctx = req.Context()
+	)
 	currencyId, err := strconv.Atoi(vars["currency_id"])
 	if err != nil {
 
@@ -36,7 +41,7 @@ func (s *WalletService) GetBalanceHandler(w http.ResponseWriter, req *http.Reque
 		logger.InfoLog(" - wallet.GetBalanceHandler For currency_id: "+strconv.Itoa(currencyId)+", Requesting ...", req)
 	}
 
-	s.InvokeGetBalance(&RES, currencyId)
+	s.InvokeGetBalance(ctx, &RES, currencyId)
 
 	resJson, _ := json.Marshal(RES)
 	logger.InfoLog(" - wallet.GetBalanceHandler Success. CurrencyId: "+strconv.Itoa(currencyId)+", Res: "+string(resJson), req)
@@ -45,7 +50,7 @@ func (s *WalletService) GetBalanceHandler(w http.ResponseWriter, req *http.Reque
 	json.NewEncoder(w).Encode(RES)
 }
 
-func (s *WalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, currencyId int) {
+func (s *WalletService) InvokeGetBalance(ctx context.Context, RES *GetBalanceHandlerResponseMap, currencyId int) {
 	if currencyId == 0 {
 		wg := sync.WaitGroup{}
 		wg.Add(len(config.CURRRPC))
@@ -54,44 +59,44 @@ func (s *WalletService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, curr
 			go func(currencyConfiguration config.CurrencyRpcConfig) {
 				defer wg.Done()
 
-				(*RES)[currencyId] = s.GetBalance(currencyConfiguration)
+				(*RES)[currencyId] = s.GetBalance(ctx, currencyConfiguration)
 			}(curr)
 		}
 
 		wg.Wait()
 	} else {
-		(*RES)[currencyId] = s.GetBalance(config.CURRRPC[currencyId])
+		(*RES)[currencyId] = s.GetBalance(ctx, config.CURRRPC[currencyId])
 	}
 }
 
-func (s *WalletService) GetBalance(currConfig config.CurrencyRpcConfig) GetBalanceRes {
+func (s *WalletService) GetBalance(ctx context.Context, currConfig config.CurrencyRpcConfig) GetBalanceRes {
 	var wg sync.WaitGroup
 	var res GetBalanceRes = GetBalanceRes{CurrencyConfig: currConfig.Config}
 
 	wg.Add(5)
-	go func() { defer wg.Done(); s.SetColdBalanceDetails(&res) }()
-	go func() { defer wg.Done(); s.SetHotBalanceDetails(currConfig.RpcConfigs, &res) }()
-	go func() { defer wg.Done(); s.SetUserBalanceDetails(&res) }()
-	go func() { defer wg.Done(); s.SetPendingWithdraw(&res) }()
-	go func() { defer wg.Done(); s.SetHotLimits(&res) }()
+	go func() { defer wg.Done(); s.SetColdBalanceDetails(ctx, &res) }()
+	go func() { defer wg.Done(); s.SetHotBalanceDetails(ctx, currConfig.RpcConfigs, &res) }()
+	go func() { defer wg.Done(); s.SetUserBalanceDetails(ctx, &res) }()
+	go func() { defer wg.Done(); s.SetPendingWithdraw(ctx, &res) }()
+	go func() { defer wg.Done(); s.SetHotLimits(ctx, &res) }()
 	wg.Wait()
 
-	s.SetPercent(&res)
+	s.SetPercent(ctx, &res)
 
 	return res
 }
 
-func (s *WalletService) SetColdBalanceDetails(res *GetBalanceRes) {
+func (s *WalletService) SetColdBalanceDetails(ctx context.Context, res *GetBalanceRes) {
 	var (
 		symbol   string           = res.CurrencyConfig.Symbol
-		cbs      []cb.ColdBalance = s.coldWalletService.GetBalance(res.CurrencyConfig.Id)
+		cbs      []cb.ColdBalance = s.coldWalletService.GetBalance(ctx, res.CurrencyConfig.Id)
 		err      error
 		errField *errs.Error = nil
 	)
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -118,7 +123,7 @@ func (s *WalletService) SetColdBalanceDetails(res *GetBalanceRes) {
 	}
 }
 
-func (s *WalletService) SetHotBalanceDetails(rpcConfigs []rc.RpcConfig, res *GetBalanceRes) {
+func (s *WalletService) SetHotBalanceDetails(ctx context.Context, rpcConfigs []rc.RpcConfig, res *GetBalanceRes) {
 	var (
 		symbol   string      = res.CurrencyConfig.Symbol
 		errField *errs.Error = nil
@@ -126,7 +131,7 @@ func (s *WalletService) SetHotBalanceDetails(rpcConfigs []rc.RpcConfig, res *Get
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -163,7 +168,7 @@ func (s *WalletService) SetHotBalanceDetails(rpcConfigs []rc.RpcConfig, res *Get
 	}
 }
 
-func (s *WalletService) SetUserBalanceDetails(res *GetBalanceRes) {
+func (s *WalletService) SetUserBalanceDetails(ctx context.Context, res *GetBalanceRes) {
 	var (
 		tcb                 ub.TotalCoinBalance
 		err                 error
@@ -175,7 +180,7 @@ func (s *WalletService) SetUserBalanceDetails(res *GetBalanceRes) {
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -207,7 +212,7 @@ func (s *WalletService) SetUserBalanceDetails(res *GetBalanceRes) {
 	}
 }
 
-func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
+func (s *WalletService) SetPendingWithdraw(ctx context.Context, res *GetBalanceRes) {
 	var (
 		err          error
 		errField     *errs.Error = nil
@@ -217,7 +222,7 @@ func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -232,7 +237,7 @@ func (s *WalletService) SetPendingWithdraw(res *GetBalanceRes) {
 	}
 }
 
-func (s *WalletService) SetPercent(res *GetBalanceRes) {
+func (s *WalletService) SetPercent(ctx context.Context, res *GetBalanceRes) {
 	var (
 		err      error
 		errField *errs.Error = nil
@@ -241,7 +246,7 @@ func (s *WalletService) SetPercent(res *GetBalanceRes) {
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -258,7 +263,7 @@ func (s *WalletService) SetPercent(res *GetBalanceRes) {
 	}
 }
 
-func (s *WalletService) SetHotLimits(res *GetBalanceRes) {
+func (s *WalletService) SetHotLimits(ctx context.Context, res *GetBalanceRes) {
 	var (
 		err      error
 		errField *errs.Error = nil
@@ -266,7 +271,7 @@ func (s *WalletService) SetHotLimits(res *GetBalanceRes) {
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 

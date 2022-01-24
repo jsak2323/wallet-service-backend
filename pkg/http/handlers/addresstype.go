@@ -29,13 +29,14 @@ func NewAddressTypeService(moduleServices *modules.ModuleServiceMap, toogle bool
 func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *http.Request) {
 	// define response object
 	RES := AddressTypeRes{}
+	ctx := req.Context()
 
 	// define response handler
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)

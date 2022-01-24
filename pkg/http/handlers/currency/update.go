@@ -13,9 +13,10 @@ import (
 
 func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		currencyConfig domain.CurrencyConfig
+		currencyConfig domain.UpdateCurrencyConfig
 		RES            StandardRes
 		err            error
+		ctx            = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- currency.UpdateHandler Success!", req)
 
@@ -46,7 +47,7 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 		return
 	}
 
-	if err = validateUpdateReq(currencyConfig); err != nil {
+	if err = s.validator.Validate(currencyConfig); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}

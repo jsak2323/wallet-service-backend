@@ -16,13 +16,14 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 		rpcConfig domain.RpcConfig
 		RES       StandardRes
 		err       error
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- rpcconfig.CreateHandler Success!", req)
 
@@ -45,7 +46,7 @@ func (s *RpcConfigService) CreateHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if err = validateCreateReq(rpcConfig); err != nil {
+	if err = s.validator.Validate(rpcConfig); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}

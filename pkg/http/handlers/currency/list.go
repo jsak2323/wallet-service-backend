@@ -13,6 +13,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 	var (
 		RES ListRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -20,7 +21,7 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

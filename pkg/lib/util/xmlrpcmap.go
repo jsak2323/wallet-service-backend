@@ -170,7 +170,9 @@ func DecodeResponseToMap(resBody io.ReadCloser, rpcResMap map[string]rrs.RpcResp
 
 	for _, rpcRes := range rpcResMap {
 		// skip error first
-		if rpcRes.TargetFieldName == rrs.FieldNameError { continue }
+		if rpcRes.TargetFieldName == rrs.FieldNameError {
+			continue
+		}
 
 		if resValues[rpcRes.TargetFieldName], err = getValueFromResMap(rpcRes, xmlResMap); err != nil {
 			return map[string]interface{}{}, err

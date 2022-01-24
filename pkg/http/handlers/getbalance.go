@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -34,6 +35,7 @@ func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *htt
 	symbol := vars["symbol"]
 	tokenType := vars["token_type"]
 	isGetAll := symbol == ""
+	ctx := req.Context()
 
 	RES := make(GetBalanceHandlerResponseMap)
 
@@ -43,7 +45,7 @@ func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *htt
 		logger.InfoLog(" - GetBalanceHandler For symbol: "+strings.ToUpper(symbol)+", Requesting ...", req)
 	}
 
-	gbcs.InvokeGetBalance(&RES, symbol, tokenType)
+	gbcs.InvokeGetBalance(ctx, &RES, symbol, tokenType)
 
 	// handle success response
 	resJson, _ := json.Marshal(RES)
@@ -53,7 +55,7 @@ func (gbcs *GetBalanceService) GetBalanceHandler(w http.ResponseWriter, req *htt
 	json.NewEncoder(w).Encode(RES)
 }
 
-func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMap, symbol, tokenType string) {
+func (gbcs *GetBalanceService) InvokeGetBalance(ctx context.Context, RES *GetBalanceHandlerResponseMap, symbol, tokenType string) {
 	var (
 		errField       *errs.Error = nil
 		rpcConfigCount             = 0
@@ -62,7 +64,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 
@@ -102,7 +104,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(RES *GetBalanceHandlerResponseMa
 					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetBalance)
 
 				} else {
-					logger.Log(" -- InvokeGetBalance Symbol: " + SYMBOL + ", RpcConfigId: " + strconv.Itoa(rpcConfig.Id) + ", Host: " + rpcConfig.Host + ". Balance: " + rpcRes.Balance)
+					logger.Log(" -- InvokeGetBalance Symbol: "+SYMBOL+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host+". Balance: "+rpcRes.Balance, ctx)
 					_RES.Balance = rpcRes.Balance
 					_RES.Error = errs.AddTrace(errors.New(rpcRes.Error))
 				}

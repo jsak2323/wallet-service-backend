@@ -16,13 +16,14 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 		id  int
 		RES StandardRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- rpcconfig.DeactivateHandler Success!", req)
 

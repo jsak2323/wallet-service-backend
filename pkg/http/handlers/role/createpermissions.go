@@ -13,6 +13,7 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 		rpReq RolePermissionReq
 		RES   StandardRes
 		err   error
+		ctx   = req.Context()
 	)
 
 	handleResponse := func() {
@@ -24,7 +25,7 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 			resStatus = http.StatusInternalServerError
 			RES.Success = false
 			RES.Message = ""
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -38,9 +39,8 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 		return
 	}
 
-	if !rpReq.valid() {
-		err = errs.InvalidRequest
-		RES.Error = errs.AddTrace(errs.InvalidRequest)
+	if err = svc.validator.Validate(rpReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 

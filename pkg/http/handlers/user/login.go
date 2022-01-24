@@ -20,6 +20,7 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 		user user.User
 		td   jwt.TokenDetails
 		err  error
+		ctx  = req.Context()
 	)
 
 	handleResponse := func() {
@@ -27,7 +28,7 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -39,6 +40,11 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 
 	if err = json.NewDecoder(req.Body).Decode(&loginReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
+		return
+	}
+
+	if err = svc.validator.Validate(loginReq); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
 

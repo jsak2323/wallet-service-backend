@@ -1,14 +1,18 @@
 package rpcresponse
 
-type RpcResponse struct {
-	Id              int
-	XMLPath         string
-	DataTypeXMLTag  string
-	TargetFieldName string
-	ParseType       string
-	JsonFieldsStr   string
+type CreateRpcResponse struct {
+	XMLPath         string `validate:"required"`
+	DataTypeXMLTag  string `validate:"required"`
+	TargetFieldName string `validate:"required"`
+	ParseType       string `validate:"required"`
+	JsonFieldsStr   string `validate:"required"`
 	JsonFields      []JsonField
-	RpcMethodId     int
+	RpcMethodId     int `validate:"required"`
+}
+
+type RpcResponse struct {
+	Id int `validate:"required"`
+	CreateRpcResponse
 }
 
 type JsonField struct {

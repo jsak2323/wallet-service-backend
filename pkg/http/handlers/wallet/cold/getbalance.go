@@ -1,6 +1,8 @@
 package cold
 
 import (
+	"context"
+
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
@@ -9,7 +11,7 @@ import (
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
-func (s *ColdWalletService) GetBalance(currencyConfigId int) (coldBalances []cb.ColdBalance) {
+func (s *ColdWalletService) GetBalance(ctx context.Context, currencyConfigId int) (coldBalances []cb.ColdBalance) {
 
 	var (
 		currency             = config.CURRRPC[currencyConfigId].Config
@@ -18,7 +20,7 @@ func (s *ColdWalletService) GetBalance(currencyConfigId int) (coldBalances []cb.
 
 	defer func() {
 		if errField != nil {
-			logger.ErrorLog(errs.Logged(errField))
+			logger.ErrorLog(errs.Logged(errField), ctx)
 		}
 	}()
 

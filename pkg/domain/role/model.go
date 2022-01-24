@@ -1,8 +1,8 @@
 package role
 
 type Role struct {
-	Id    		   int		    `json:"id"`
-	Name  		   string	    `json:"name"`
-	PermissionList []string     `json:"permission_list"`
-	Permissions    interface{}  `json:"permissions"`
+	Id             int         `json:"id" validate:"required"`
+	Name           string      `json:"name" validate:"required"`
+	PermissionList []string    `json:"permission_list"`
+	Permissions    interface{} `json:"permissions"`
 }

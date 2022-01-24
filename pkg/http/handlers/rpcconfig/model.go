@@ -16,8 +16,8 @@ type ListRes struct {
 }
 
 type RpcConfigRpcMethodReq struct {
-	RpcConfigId int `json:"rpc_config_id"`
-	RpcMethodId int `json:"rpc_method_id"`
+	RpcConfigId int `json:"rpc_config_id" validate:"required"`
+	RpcMethodId int `json:"rpc_method_id" validate:"required"`
 }
 
 type StandardRes struct {

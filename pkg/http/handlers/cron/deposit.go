@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -34,12 +35,13 @@ func NewDepositService(
 
 func (s *DepositService) Update() {
 	startTime := time.Now()
+	ctx := context.Background()
 
 	ltRES := make(h.ListTransactionsHandlerResponseMap)
 
-	logger.Log(" - Deposit Update - Getting node list transactions ...")
-	s.listTransactionsService.InvokeListTransactions(&ltRES, "", "", 1000)
-	logger.Log(" - Deposit Update - Getting node list transactions done. Fetched " + strconv.Itoa(len(ltRES)) + " results.")
+	logger.Log(" - Deposit Update - Getting node list transactions ...", ctx)
+	s.listTransactionsService.InvokeListTransactions(ctx, &ltRES, "", "", 1000)
+	logger.Log(" - Deposit Update - Getting node list transactions done. Fetched "+strconv.Itoa(len(ltRES))+" results.", ctx)
 
 	for symbol, mapTokenType := range ltRES {
 		for tokenType, resRpcConfigs := range mapTokenType {
@@ -48,15 +50,15 @@ func (s *DepositService) Update() {
 			var currency cc.CurrencyConfig
 			var err error
 
-			logger.Log(fmt.Sprintf("- Deposit Update - Saving - %s...", symbolTokenTypeLogStr))
+			logger.Log(fmt.Sprintf("- Deposit Update - Saving - %s...", symbolTokenTypeLogStr), ctx)
 
 			if currency, err = config.GetCurrencyBySymbolTokenType(symbol, tokenType); err != nil {
-				logger.ErrorLog(fmt.Sprintf(" - Deposit Update - %s err: %s", symbolTokenTypeLogStr, err.Error()))
+				logger.ErrorLog(fmt.Sprintf(" - Deposit Update - %s err: %s", symbolTokenTypeLogStr, err.Error()), ctx)
 				continue
 			}
 
 			for _, resRpcConfig := range resRpcConfigs {
-				logger.Log(fmt.Sprintf("- Deposit Update - Saving - %s rpc_config_id: %d", symbolTokenTypeLogStr, resRpcConfig.RpcConfig.RpcConfigId))
+				logger.Log(fmt.Sprintf("- Deposit Update - Saving - %s rpc_config_id: %d", symbolTokenTypeLogStr, resRpcConfig.RpcConfig.RpcConfigId), ctx)
 
 				for _, tx := range resRpcConfig.Transactions {
 					amountRaw := util.CoinToRaw(tx.Amount, 8)
@@ -71,7 +73,7 @@ func (s *DepositService) Update() {
 					}); err != nil {
 						txFailCount++
 
-						logger.ErrorLog(fmt.Sprintf(" - Deposit Update - %s tx: %s depositRepo.CreateOrUpdate err: %s", symbolTokenTypeLogStr, tx.Tx, err.Error()))
+						logger.ErrorLog(fmt.Sprintf(" - Deposit Update - %s tx: %s depositRepo.CreateOrUpdate err: %s", symbolTokenTypeLogStr, tx.Tx, err.Error()), ctx)
 						continue
 					}
 
@@ -79,7 +81,7 @@ func (s *DepositService) Update() {
 				}
 			}
 
-			logger.Log(fmt.Sprintf("- Deposit Update - Finished Saving - %s success: %d fail: %d", symbolTokenTypeLogStr, txSuccessCount, txFailCount))
+			logger.Log(fmt.Sprintf("- Deposit Update - Finished Saving - %s success: %d fail: %d", symbolTokenTypeLogStr, txSuccessCount, txFailCount), ctx)
 		}
 	}
 

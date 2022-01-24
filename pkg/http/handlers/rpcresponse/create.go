@@ -13,9 +13,10 @@ import (
 
 func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Request) {
 	var (
-		rpcResponse domain.RpcResponse
+		rpcResponse domain.CreateRpcResponse
 		RES         StandardRes
 		err         error
+		ctx         = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- rpcresponse.CreateHandler Success!", req)
 
@@ -50,6 +51,10 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}
+	if err = s.validator.Validate(rpcResponse); err != nil {
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
+		return
+	}
 
 	if err = s.rrsRepo.Create(rpcResponse); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCResponse)
@@ -57,22 +62,7 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 	}
 }
 
-func validateCreateReq(rpcResponse domain.RpcResponse) error {
-	if rpcResponse.TargetFieldName == "" {
-		return errs.AddTrace(errors.New("Target Field Name"))
-	}
-	if rpcResponse.XMLPath == "" {
-		return errs.AddTrace(errors.New("XML Path"))
-	}
-	if rpcResponse.DataTypeXMLTag == "" {
-		return errs.AddTrace(errors.New("Data Type XML Tag"))
-	}
-	if rpcResponse.ParseType == "" {
-		return errs.AddTrace(errors.New("Parse Type"))
-	}
-	if rpcResponse.RpcMethodId == 0 {
-		return errs.AddTrace(errors.New("Rpc Method Id"))
-	}
+func validateCreateReq(rpcResponse domain.CreateRpcResponse) error {
 
 	err := json.Unmarshal([]byte(rpcResponse.JsonFieldsStr), rpcResponse.JsonFields)
 	if err != nil && rpcResponse.JsonFieldsStr != "" {

@@ -16,6 +16,7 @@ func (s *RpcMethodService) CreateHandler(w http.ResponseWriter, req *http.Reques
 		rpcMethod domain.RpcMethod
 		RES       StandardRes
 		err       error
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (s *RpcMethodService) CreateHandler(w http.ResponseWriter, req *http.Reques
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- rpcmethod.CreateHandler Success!", req)
 
@@ -46,7 +47,7 @@ func (s *RpcMethodService) CreateHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if err = validateCreateReq(rpcMethod); err != nil {
+	if err = s.validator.Validate(rpcMethod); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 		return
 	}

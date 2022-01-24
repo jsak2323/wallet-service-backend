@@ -6,16 +6,18 @@ import (
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
 )
 
 const errInternalServer = "Internal server error"
 
 type ColdWalletService struct {
-	cbRepo domain.Repository
+	cbRepo    domain.Repository
+	validator util.CustomValidator
 }
 
-func NewColdWalletService(cbRepo domain.Repository) *ColdWalletService {
-	return &ColdWalletService{cbRepo: cbRepo}
+func NewColdWalletService(cbRepo domain.Repository, validator util.CustomValidator) *ColdWalletService {
+	return &ColdWalletService{cbRepo: cbRepo, validator: validator}
 }
 
 func FireblocksVaultAccountId(cbType string) (string, error) {

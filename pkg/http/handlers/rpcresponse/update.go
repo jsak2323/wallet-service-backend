@@ -16,6 +16,7 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 		rpcResponse domain.RpcResponse
 		RES         StandardRes
 		err         error
+		ctx         = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 
 			logger.InfoLog(" -- rpcresponse.UpdateHandler Success!", req)

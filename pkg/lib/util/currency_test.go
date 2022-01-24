@@ -260,17 +260,12 @@ func TestPercentCurrency(t *testing.T) {
 		{
 			name: "ok",
 			args: args{value1: "100", value2: "3"},
-			want: "33.33",
+			want: "3333.33",
 		},
 		{
 			name: "ok",
-			args: args{value1: "100", value2: "33"},
-			want: "3.03",
-		},
-		{
-			name: "ok",
-			args: args{value1: "100", value2: "6"},
-			want: "16.67",
+			args: args{value1: "9609225235464214001", value2: "9609225235464214001"},
+			want: "100.00",
 		},
 	}
 	for _, tt := range tests {

@@ -70,7 +70,7 @@ func (r *rpcRequestRepository) GetByRpcMethodId(rpcMethodId int) (rpcRequests []
 	return rpcRequests, nil
 }
 
-func (r *rpcRequestRepository) Update(rpcRequest rr.RpcRequest) error {
+func (r *rpcRequestRepository) Update(rpcRequest rr.UpdateRpcRequest) error {
 	err := r.db.QueryRow(`
 	UPDATE `+rpcRequestTable+`
 	SET 

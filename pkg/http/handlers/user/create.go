@@ -15,6 +15,7 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 		createReq CreateReq
 		RES       CreateRes
 		err       error
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
@@ -23,7 +24,7 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
 			RES.Message = ""
-			logger.ErrorLog(errs.Logged(RES.Error))
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
