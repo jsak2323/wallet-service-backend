@@ -114,6 +114,9 @@ func preprocessingGetRequestBody(req *http.Request) (resp io.ReadCloser, err err
 
 	// reconstruction request body for log
 	jsonString, err := json.Marshal(respLog)
+	if err != nil {
+		return resp, errs.AddTrace(errors.New("failed marshal request body"))
+	}
 	resp = ioutil.NopCloser(bytes.NewBuffer(jsonString))
 
 	return resp, nil

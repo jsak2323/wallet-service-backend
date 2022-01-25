@@ -2,6 +2,7 @@ package util
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -172,7 +173,7 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 	valueA := CoinToRaw(a, lenDec(a))
 	valueB := CoinToRaw(b, lenDec(b))
 
-	if lenDec(a) > lenDec(b) || lenDec(a) < lenDec(b) {
+	if lenDec(a) != lenDec(b) {
 		valueA, valueB = balancingDecimal(valueA, valueB, lenDec(a), lenDec(b))
 	}
 
@@ -204,7 +205,10 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 
 	if lenDec(a) > 8 || lenDec(b) > 8 {
 		split := strings.Split(res, ".")
-		afTrunc := truncateText(split[1], 8)
+		afTrunc, err := truncateText(split[1], 8)
+		if err != nil {
+			return "0", errs.AddTrace(err)
+		}
 		res = split[0] + "." + afTrunc
 	}
 
@@ -222,8 +226,11 @@ func lenDec(req string) int {
 	return lenDec
 }
 
-func truncateText(s string, max int) string {
-	return s[:max]
+func truncateText(s string, max int) (string, error) {
+	if max > len(s) {
+		return "", errs.AddTrace(errors.New("slice bounds out of range [:" + fmt.Sprintf("%v", max) + "] with length " + fmt.Sprintf("%v", len(s))))
+	}
+	return s[:max], nil
 }
 
 func balancingDecimal(a, b string, lenDescA, lenDescB int) (string, string) {
