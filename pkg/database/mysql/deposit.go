@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/deposit"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
 const depositTable = "deposit"
@@ -26,18 +27,18 @@ func (r *depositRepository) CreateOrUpdate(deposit domain.Deposit) (id int, err 
 
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 	defer stmt.Close()
 
 	res, err := stmt.Exec(deposit.CurrencyId, deposit.Tx, deposit.AddressTo, deposit.Memo, deposit.Amount, deposit.LogIndex, deposit.Confirmations, deposit.Confirmations)
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	lastInsertId, err := res.LastInsertId()
 	if err != nil {
-		return 0, err
+		return 0, errs.AddTrace(err)
 	}
 
 	return int(lastInsertId), nil
@@ -50,7 +51,7 @@ func (r *depositRepository) Get(page, limit int, filters []map[string]interface{
 	query = "SELECT id, currency_id, tx, address_to, memo, amount, log_index, confirmations, success_time, last_updated FROM " + depositTable
 
 	if err := parseFilters(filters, &query, &params); err != nil {
-		return []domain.Deposit{}, err
+		return []domain.Deposit{}, errs.AddTrace(err)
 	}
 
 	if limit <= 0 {
@@ -84,7 +85,7 @@ func (r *depositRepository) GetById(id int) (deposit domain.Deposit, err error) 
 		&successTime,
 		&deposit.LastUpdated,
 	); err != nil {
-		return domain.Deposit{}, err
+		return domain.Deposit{}, errs.AddTrace(err)
 	}
 
 	if successTime.Valid {
@@ -99,7 +100,7 @@ func (r *depositRepository) queryRows(query string, params ...interface{}) (depo
 
 	rows, err := r.db.Query(query, params...)
 	if err != nil {
-		return []domain.Deposit{}, err
+		return []domain.Deposit{}, errs.AddTrace(err)
 	}
 	defer rows.Close()
 
@@ -118,7 +119,7 @@ func (r *depositRepository) queryRows(query string, params ...interface{}) (depo
 			&successTime,
 			&deposit.LastUpdated,
 		); err != nil {
-			return []domain.Deposit{}, err
+			return []domain.Deposit{}, errs.AddTrace(err)
 		}
 
 		if successTime.Valid {
@@ -132,19 +133,20 @@ func (r *depositRepository) queryRows(query string, params ...interface{}) (depo
 }
 
 func (r *depositRepository) Update(deposit domain.Deposit) (err error) {
-	return r.db.QueryRow(`
-        UPDATE `+depositTable+`
-        SET 
-            currency_id = ?,
-            tx = ?,
-            address_to = ?,
-            memo = ?,
-            amount = ?,
-            log_index = ?,
-            confirmations = ?,
-            success_time = ?,
-            last_updated = now()
-        WHERE id = ?`,
+
+	err = r.db.QueryRow(`
+	UPDATE `+depositTable+`
+	SET 
+		currency_id = ?,
+		tx = ?,
+		address_to = ?,
+		memo = ?,
+		amount = ?,
+		log_index = ?,
+		confirmations = ?,
+		success_time = ?,
+		last_updated = now()
+	WHERE id = ?`,
 		deposit.CurrencyId,
 		deposit.Tx,
 		deposit.AddressTo,
@@ -155,4 +157,8 @@ func (r *depositRepository) Update(deposit domain.Deposit) (err error) {
 		deposit.SuccessTime,
 		deposit.Id,
 	).Err()
+	if err != nil {
+		return errs.AddTrace(err)
+	}
+	return nil
 }

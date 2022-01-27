@@ -2,10 +2,11 @@ package withdraw
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"strconv"
 
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
@@ -13,6 +14,7 @@ func (s *WithdrawService) ListHandler(w http.ResponseWriter, req *http.Request) 
 	var (
 		RES ListRes
 		err error
+		ctx = req.Context()
 
 		page, limit int
 		filters     []map[string]interface{}
@@ -23,6 +25,14 @@ func (s *WithdrawService) ListHandler(w http.ResponseWriter, req *http.Request) 
 		if err != nil {
 			resStatus = http.StatusInternalServerError
 		}
+
+		resStatus = http.StatusOK
+		if RES.Error != nil {
+			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resStatus)
 		json.NewEncoder(w).Encode(RES)
 	}
@@ -31,20 +41,17 @@ func (s *WithdrawService) ListHandler(w http.ResponseWriter, req *http.Request) 
 	logger.InfoLog(" - withdraw.ListHandler, Requesting ...", req)
 
 	if filters, err = parseFilters(req); err != nil {
-		logger.ErrorLog(" -- withdraw.ListHandler parseFilters Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedParseFilter)
 		return
 	}
 
 	if page, limit, err = parsePagination(req); err != nil {
-		logger.ErrorLog(" -- withdraw.ListHandler parsePagination Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedParsePagination)
 		return
 	}
 
 	if RES.Withdraws, err = s.wRepo.Get(page, limit, filters); err != nil {
-		logger.ErrorLog(" -- withdraw.ListHandler wRepo.Get Error: " + err.Error())
-		RES.Error = err.Error()
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetListWithdraws)
 		return
 	}
 }
@@ -56,7 +63,7 @@ func parseFilters(req *http.Request) (filters []map[string]interface{}, err erro
 
 	if req.URL.Query().Get("currency_id") != "" {
 		if currencyId, err = strconv.Atoi(req.URL.Query().Get("currency_id")); err != nil {
-			err = fmt.Errorf("error parsing currency_id value: " + req.URL.Query().Get("currency_id") + " Error: " + err.Error())
+			err = errs.AddTrace(errors.New("error parsing currency_id value: " + req.URL.Query().Get("currency_id") + " Error: " + err.Error()))
 			return []map[string]interface{}{}, err
 		}
 
@@ -80,12 +87,12 @@ func parseFilters(req *http.Request) (filters []map[string]interface{}, err erro
 
 func parsePagination(req *http.Request) (page, limit int, err error) {
 	if page, err = strconv.Atoi(req.URL.Query().Get("page")); err != nil && req.URL.Query().Get("page") != "" {
-		err = fmt.Errorf("error parsing page value: " + req.URL.Query().Get("page") + " Error: " + err.Error())
+		err = errs.AddTrace(errors.New("error parsing page value: " + req.URL.Query().Get("page") + " Error: " + err.Error()))
 		return 0, 0, err
 	}
 
 	if limit, err = strconv.Atoi(req.URL.Query().Get("limit")); err != nil && req.URL.Query().Get("limit") != "" {
-		err = fmt.Errorf("error parsing limit value: " + req.URL.Query().Get("limit") + " Error: " + err.Error())
+		err = errs.AddTrace(errors.New("error parsing limit value: " + req.URL.Query().Get("limit") + " Error: " + err.Error()))
 		return 0, 0, err
 	}
 

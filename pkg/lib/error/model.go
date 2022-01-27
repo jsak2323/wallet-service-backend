@@ -152,6 +152,9 @@ var (
 	FailedListTransactions   = NewError("failed list transactions", "Error", "")
 	FailedUpdateSystemConfig = NewError("failed update system config", "Error", "")
 
+	// withdraws
+	FailedGetListWithdraws = NewError("failed get list withdraws", "Error", "")
+
 	InvalidToken   = NewError("invalid token", "Error", "")
 	InvalidRequest = NewError("invalid request", "Error", "")
 )

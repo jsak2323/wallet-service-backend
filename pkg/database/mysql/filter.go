@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -16,7 +17,7 @@ func parseFilters(filters []map[string]interface{}, query *string, params *[]int
 		filter := Filter{}
 
 		if err := mapstructure.Decode(mapFilter, &filter); err != nil {
-			return err
+			return errs.AddTrace(err)
 		}
 
 		if i == 0 {

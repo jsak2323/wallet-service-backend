@@ -2,7 +2,7 @@ package deposit
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -17,12 +17,14 @@ func (s *DepositService) ListHandler(w http.ResponseWriter, req *http.Request) {
 
 		page, limit int
 		filters     []map[string]interface{}
+		ctx         = req.Context()
 	)
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
 		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -56,8 +58,7 @@ func parseFilters(req *http.Request) (filters []map[string]interface{}, err erro
 
 	if req.URL.Query().Get("currency_id") != "" {
 		if currencyId, err = strconv.Atoi(req.URL.Query().Get("currency_id")); err != nil {
-			err = fmt.Errorf("error parsing currency_id value: " + req.URL.Query().Get("currency_id") + " Error: " + err.Error())
-			return []map[string]interface{}{}, errs.AddTrace(err)
+			return []map[string]interface{}{}, errs.AddTrace(errors.New("error parsing currency_id value: " + req.URL.Query().Get("currency_id") + " Error: " + err.Error()))
 		}
 
 		filters = append(filters, map[string]interface{}{"key": "currency_id", "value": currencyId})
@@ -80,13 +81,11 @@ func parseFilters(req *http.Request) (filters []map[string]interface{}, err erro
 
 func parsePagination(req *http.Request) (page, limit int, err error) {
 	if page, err = strconv.Atoi(req.URL.Query().Get("page")); err != nil && req.URL.Query().Get("page") != "" {
-		err = fmt.Errorf("error parsing page value: " + req.URL.Query().Get("page") + " Error: " + err.Error())
-		return 0, 0, errs.AddTrace(err)
+		return 0, 0, errs.AddTrace(errors.New("error parsing page value: " + req.URL.Query().Get("page") + " Error: " + err.Error()))
 	}
 
 	if limit, err = strconv.Atoi(req.URL.Query().Get("limit")); err != nil && req.URL.Query().Get("limit") != "" {
-		err = fmt.Errorf("error parsing limit value: " + req.URL.Query().Get("limit") + " Error: " + err.Error())
-		return 0, 0, errs.AddTrace(err)
+		return 0, 0, errs.AddTrace(errors.New("error parsing limit value: " + req.URL.Query().Get("limit") + " Error: " + err.Error()))
 	}
 
 	return page, limit, nil

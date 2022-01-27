@@ -13,8 +13,7 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 		updateReq UpdateReq
 		RES       StandardRes
 		err       error
-		// ctx       = context.Background()
-		ctx = req.Context()
+		ctx       = req.Context()
 	)
 
 	handleResponse := func() {
