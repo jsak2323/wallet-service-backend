@@ -29,7 +29,7 @@ func (r *GetBalanceRpcRes) SetFromMapValues(mapValues map[string]interface{}, re
 	}
 
 	if ok = balanceRpcResp.ParseField(mapValues[rrs.FieldNameBalance], &r.Balance); !ok {
-		return fmt.Errorf("misconfigured rpc_response", )
+		return fmt.Errorf("misconfigured rpc_response id: %d", balanceRpcResp.Id)
 	}
 
 	return nil

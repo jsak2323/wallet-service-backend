@@ -1,23 +1,23 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
-	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
+	cb "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 )
 
 type FireblocksService struct {
+	cbRepo cb.Repository
 }
 
-func NewFireblocksService() *FireblocksService {
-	return &FireblocksService{}
+func NewFireblocksService(cbRepo cb.Repository) *FireblocksService {
+	return &FireblocksService{cbRepo: cbRepo}
 }
 
 const TypeBaseAsset = "BASE_ASSET"
@@ -38,8 +38,13 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
-		if RES.RejectionReason == errInternalServer {
+		if RES.Error != nil {
 			resStatus = http.StatusInternalServerError
+
+			RES.Action = RejectTransaction
+			RES.RejectionReason = RES.Error.Error()
+
+			logger.ErrorLog(errs.Logged(RES.Error), ctx)
 		} else {
 			logger.InfoLog(" -- fireblocks.CallbackHandler Success!", req)
 		}
@@ -55,9 +60,7 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 	RES.Action = ApproveTransaction
 
 	if err = json.NewDecoder(req.Body).Decode(&SignReq); err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler json.NewDecoder err: "+err.Error(), ctx)
-		RES.Action = RejectTransaction
-		RES.RejectionReason = errInternalServer
+		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.ErrorUnmarshalBodyRequest)
 		return
 	}
 
@@ -68,30 +71,22 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 	}
 
 	if SignReq.DestId == config.CONF.FireblocksHotVaultId {
-		validateHotDestAddress(ctx, SignReq, &RES)
+		s.validateHotDestAddress(SignReq, &RES)
 	}
 }
 
-func validateHotDestAddress(ctx context.Context, signReq FireblocksSignReq, res *FireblocksSignRes) {
-	var currencyConfig cc.CurrencyConfig
-
-	if signReq.Type == TypeBaseAsset {
-		signReq.Type = cc.MainTokenType
-	}
-
-	currencyConfig, err := config.GetCurrencyBySymbolTokenType(signReq.Asset, signReq.Type)
+func (s *FireblocksService) validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
+	coldBalance, err := s.cbRepo.GetByFireblocksName(signReq.Asset)
 	if err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler config.GetCurrencyBySymbol("+signReq.Asset+","+signReq.Type+")+err: "+err.Error(), ctx)
-		res.Action = RejectTransaction
-		res.RejectionReason = errAssetNotFound
+		res.Error = errs.AssignErr(errs.AddTrace(err), errs.InternalServerErr)
 		return
 	}
 
-	receiverWallet, err := config.GetRpcConfigByType(currencyConfig.Id, rc.SenderRpcType)
+	currencyRPC := config.CURRRPC[coldBalance.CurrencyId]
+
+	receiverWallet, err := config.GetRpcConfigByType(currencyRPC.Config.Id, rc.SenderRpcType)
 	if err != nil {
-		logger.ErrorLog(" -- fireblocks.CallbackHandler rc.GetRpcConfigByType err: "+err.Error(), ctx)
-		res.Action = RejectTransaction
-		res.RejectionReason = errInternalServer
+		res.Error = errs.AssignErr(errs.AddTrace(err), errs.InternalServerErr)
 		return
 	}
 
@@ -104,10 +99,6 @@ func validateHotDestAddress(ctx context.Context, signReq FireblocksSignReq, res 
 func (r *FireblocksSignReq) Validate() (err error) {
 	if r.Asset == "" {
 		return errs.AddTrace(errors.New("asset is required"))
-	}
-
-	if r.Type == "" {
-		return errs.AddTrace(errors.New("type is required"))
 	}
 
 	if r.DestId == "" {

@@ -95,7 +95,7 @@ func (r *depositRepository) GetById(id int) (deposit domain.Deposit, err error) 
 }
 
 func (r *depositRepository) queryRows(query string, params ...interface{}) (deposits []domain.Deposit, err error) {
-	var successTime sql.NullTime
+	var successTime sql.NullString
 
 	rows, err := r.db.Query(query, params...)
 	if err != nil {
@@ -122,7 +122,7 @@ func (r *depositRepository) queryRows(query string, params ...interface{}) (depo
 		}
 
 		if successTime.Valid {
-			deposit.SuccessTime = successTime.Time.String()
+			deposit.SuccessTime = successTime.String
 		}
 
 		deposits = append(deposits, deposit)

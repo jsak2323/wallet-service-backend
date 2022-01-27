@@ -58,6 +58,10 @@ func (s *DepositService) Update() {
 			}
 
 			for _, resRpcConfig := range resRpcConfigs {
+				if resRpcConfig.Error != nil {
+					logger.ErrorLog(fmt.Sprintf(" - Deposit Update - %s err: %s", symbolTokenTypeLogStr, resRpcConfig.Error), ctx)
+					continue
+				}
 				logger.Log(fmt.Sprintf("- Deposit Update - Saving - %s rpc_config_id: %d", symbolTokenTypeLogStr, resRpcConfig.RpcConfig.RpcConfigId), ctx)
 
 				for _, tx := range resRpcConfig.Transactions {
