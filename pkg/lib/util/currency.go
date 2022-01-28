@@ -9,8 +9,6 @@ import (
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
-const maxDecimal = 8
-
 func RawToCoin(raw string, maxDecimal int) string {
 	if raw == "0" {
 		return "0"
@@ -165,6 +163,8 @@ func FormatCurrency(value string) (result string) {
 }
 
 func calculateCurrency(method, a, b string) (res string, err error) {
+	const maxDecimal = 8
+
 	if a == "" {
 		a = "0"
 	}
