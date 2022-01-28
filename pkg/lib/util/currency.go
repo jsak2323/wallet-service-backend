@@ -9,6 +9,8 @@ import (
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
+const maxDecimal = 8
+
 func RawToCoin(raw string, maxDecimal int) string {
 	if raw == "0" {
 		return "0"
@@ -174,15 +176,16 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 	valueB := CoinToRaw(b, lenDec(b))
 
 	if lenDec(a) != lenDec(b) {
-		valueA, valueB = balancingDecimal(valueA, valueB, lenDec(a), lenDec(b))
+		valueA, valueB, err = matchDecimal(valueA, valueB, lenDec(a), lenDec(b))
+		return "0", errs.AddTrace(err)
 	}
 
-	aBig, ok := big.NewInt(int64(0)).SetString(valueA, 10)
+	aBig, ok := new(big.Int).SetString(valueA, 10)
 	if !ok {
 		return "0", errs.AddTrace(errors.New("fail big.SetString(" + a + ")"))
 	}
 
-	bBig, ok := big.NewInt(int64(0)).SetString(valueB, 10)
+	bBig, ok := new(big.Int).SetString(valueA, 10)
 	if !ok {
 		return "0", errs.AddTrace(errors.New("fail big.SetString(" + b + ")"))
 	}
@@ -190,9 +193,9 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 	calculate := ""
 	switch types := method; types {
 	case "sub":
-		calculate = aBig.Sub(aBig, bBig).Text(10)
+		calculate = aBig.Sub(aBig, bBig).String()
 	case "add":
-		calculate = aBig.Add(aBig, bBig).Text(10)
+		calculate = aBig.Add(aBig, bBig).String()
 	default:
 		return "0", errs.AddTrace(errors.New("wrong method of calculate currency"))
 	}
@@ -203,9 +206,9 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 		res = RawToCoin(calculate, lenDec(b))
 	}
 
-	if lenDec(a) > 8 || lenDec(b) > 8 {
+	if lenDec(a) > maxDecimal || lenDec(b) > maxDecimal {
 		split := strings.Split(res, ".")
-		afTrunc, err := truncateText(split[1], 8)
+		afTrunc, err := truncateText(split[1], maxDecimal)
 		if err != nil {
 			return "0", errs.AddTrace(err)
 		}
@@ -216,7 +219,7 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 }
 
 func lenDec(req string) int {
-	var lenDec = int(0)
+	var lenDec int
 
 	parts := strings.Split(req, ".")
 	if len(parts) > 1 {
@@ -233,20 +236,24 @@ func truncateText(s string, max int) (string, error) {
 	return s[:max], nil
 }
 
-func balancingDecimal(a, b string, lenDescA, lenDescB int) (string, string) {
+func matchDecimal(a, b string, lenDecA, lenDecB int) (string, string, error) {
 
-	if lenDescA > lenDescB {
-		for i := int(0); i < (lenDescA - lenDescB); i++ {
+	if lenDecA < 0 || lenDecB < 0 {
+		return a, b, errs.AddTrace(errors.New("length decimal can't be minus, len decimal A: " + fmt.Sprintf("%v", lenDecA) + "len decimal B: " + fmt.Sprintf("%v", lenDecB)))
+	}
+
+	if lenDecA > lenDecB {
+		for i := int(0); i < (lenDecA - lenDecB); i++ {
 			b = b + "0"
 		}
 	}
 
-	if lenDescA < lenDescB {
-		for i := int(0); i < (lenDescB - lenDescA); i++ {
+	if lenDecA < lenDecB {
+		for i := int(0); i < (lenDecB - lenDecA); i++ {
 			a = a + "0"
 		}
 	}
 
-	return a, b
+	return a, b, nil
 
 }

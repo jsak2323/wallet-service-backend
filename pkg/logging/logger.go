@@ -51,12 +51,12 @@ func Log(msg string, ctx context.Context) {
 	setupLogger()
 
 	log.Info(msg)
-	// logField := logrus.Fields{}
-	// if reqId, ok := ctx.Value(ctxLib.RequestIdKey).(string); ok {
-	// 	logField["RequestId"] = reqId
-	// }
+	logField := logrus.Fields{}
+	if reqId, ok := ctx.Value(ctxLib.RequestIdKey).(string); ok {
+		logField["RequestId"] = reqId
+	}
 
-	// log.WithFields(logField).Error(msg)
+	log.WithFields(logField).Error(msg)
 }
 
 func InfoLog(msg string, req *http.Request) {

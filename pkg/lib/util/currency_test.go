@@ -30,7 +30,7 @@ func TestCoinToRaw(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := CoinToRaw(tt.args.value, tt.args.decimal)
 			if got != tt.want {
-				t.Errorf("RawToCoin() = %v, want %v", got, tt.want)
+				t.Errorf("CoinToRaw() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -192,10 +192,10 @@ func TestAddCurency(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := AddCurrency(tt.args.value1, tt.args.value2)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AddCoin() Error = %v", err)
+				t.Errorf("AddCurrency() Error = %v", err)
 			}
 			if got != tt.want {
-				t.Errorf("AddCoin() = %v, want %v", got, tt.want)
+				t.Errorf("AddCurrency() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -237,10 +237,10 @@ func TestSubCurrency(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := SubCurrency(tt.args.value1, tt.args.value2)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AddCoin() Error = %v", err)
+				t.Errorf("SubCurrency() Error = %v", err)
 			}
 			if got != tt.want {
-				t.Errorf("AddCoin() = %v, want %v", got, tt.want)
+				t.Errorf("SubCurrency() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -272,10 +272,10 @@ func TestPercentCurrency(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := PercentCurrency(tt.args.value1, tt.args.value2)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AddCoin() Error = %v", err)
+				t.Errorf("PercentCurrency() Error = %v", err)
 			}
 			if got != tt.want {
-				t.Errorf("AddCoin() = %v, want %v", got, tt.want)
+				t.Errorf("PercentCurrency() = %v, want %v", got, tt.want)
 			}
 		})
 	}
