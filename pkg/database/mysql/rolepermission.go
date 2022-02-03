@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rolepermission"
@@ -76,9 +77,9 @@ func (r *rolePermissionRepository) DeleteByRoleId(roleId int) (err error) {
 	return nil
 }
 
-func (r *rolePermissionRepository) DeleteByPermissionId(permissionId int) (err error) {
+func (r *rolePermissionRepository) DeleteByPermissionId(ctx context.Context, permissionId int) (err error) {
 	query := "DELETE FROM " + rolePermissionTable + " WHERE permission_id = ?"
-	err = r.db.QueryRow(query, permissionId).Err()
+	err = r.db.QueryRowContext(ctx, query, permissionId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

@@ -42,12 +42,12 @@ func (svc *PermissionService) DeletePermissionHandler(w http.ResponseWriter, req
 		return
 	}
 
-	if err = svc.rpRepo.DeleteByPermissionId(permissionId); err != nil {
+	if err = svc.rpRepo.DeleteByPermissionId(ctx, permissionId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRolePermissionByPermissionID)
 		return
 	}
 
-	if err = svc.permissionRepo.Delete(permissionId); err != nil {
+	if err = svc.permissionRepo.Delete(ctx, permissionId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeletePermissionByID)
 		return
 	}

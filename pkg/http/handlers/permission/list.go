@@ -36,7 +36,7 @@ func (svc *PermissionService) ListPermissionHandler(w http.ResponseWriter, req *
 	page, _ := strconv.Atoi(vars["page"])
 	limit, _ := strconv.Atoi(vars["limit"])
 
-	RES.Permissions, err = svc.permissionRepo.GetAll(page, limit)
+	RES.Permissions, err = svc.permissionRepo.GetAll(ctx, page, limit)
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllPermission)
 		return

@@ -21,10 +21,10 @@ func NewMysqlPermissionRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *permissionRepository) Create(name string) (id int, err error) {
+func (r *permissionRepository) Create(ctx context.Context, name string) (id int, err error) {
 	query := "INSERT INTO " + permissionTable + " (name) VALUES(?)"
 
-	err = r.db.QueryRow(query, name).Err()
+	err = r.db.QueryRowContext(ctx, query, name).Err()
 	if err != nil {
 		return 0, errs.AddTrace(err)
 	}
@@ -43,7 +43,7 @@ func (r *permissionRepository) Update(ctx context.Context, permission domain.Per
 	return nil
 }
 
-func (r *permissionRepository) GetAll(page, limit int) (permissions []domain.Permission, err error) {
+func (r *permissionRepository) GetAll(ctx context.Context, page, limit int) (permissions []domain.Permission, err error) {
 	query := "SELECT id, name FROM " + permissionTable
 
 	if limit <= 0 {
@@ -54,7 +54,7 @@ func (r *permissionRepository) GetAll(page, limit int) (permissions []domain.Per
 		query = query + " offset " + strconv.Itoa(page) + " limit " + strconv.Itoa(limit)
 	}
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return []domain.Permission{}, errs.AddTrace(err)
 	}
@@ -153,9 +153,9 @@ func (r *permissionRepository) queryRowsNames(query string, param int) (permissi
 	return permissions, nil
 }
 
-func (r *permissionRepository) Delete(permissionId int) (err error) {
+func (r *permissionRepository) Delete(ctx context.Context, permissionId int) (err error) {
 	query := "DELETE FROM " + permissionTable + " WHERE id = ?"
-	err = r.db.QueryRow(query, permissionId).Err()
+	err = r.db.QueryRowContext(ctx, query, permissionId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

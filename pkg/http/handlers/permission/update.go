@@ -1,6 +1,7 @@
 package permission
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -39,13 +40,22 @@ func (svc *PermissionService) UpdatePermissionHandler(w http.ResponseWriter, req
 		return
 	}
 
+	err = UpdatePermission(err, svc, updateReq, RES, ctx)
+	if err != nil {
+		RES.Error = errs.AddTrace(err)
+		return
+	}
+}
+
+func UpdatePermission(err error, svc *PermissionService, updateReq UpdateReq, RES StandardRes, ctx context.Context) error {
 	if err = svc.validator.Validate(updateReq); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
-		return
+		return RES.Error
 	}
 
 	if err = svc.permissionRepo.Update(ctx, updateReq.Permission); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdatePermission)
-		return
+		return RES.Error
 	}
+	return nil
 }

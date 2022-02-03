@@ -42,7 +42,7 @@ func (svc *PermissionService) CreatePermissionHandler(w http.ResponseWriter, req
 		return
 	}
 
-	if RES.Id, err = svc.permissionRepo.Create(createReq.Name); err != nil {
+	if RES.Id, err = svc.permissionRepo.Create(ctx, createReq.Name); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreatePermission)
 		return
 	}
