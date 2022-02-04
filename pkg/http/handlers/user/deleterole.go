@@ -46,7 +46,7 @@ func (svc *UserService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err = svc.urRepo.Delete(userId, roleId); err != nil {
+	if err = svc.urRepo.Delete(ctx, userId, roleId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRoleUser)
 		return
 	}

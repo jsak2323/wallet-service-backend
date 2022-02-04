@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 	"strconv"
 
@@ -21,10 +22,10 @@ func NewMysqlUserRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *userRepository) Create(u domain.User) (id int, err error) {
+func (r *userRepository) Create(ctx context.Context, u domain.User) (id int, err error) {
 	query := "INSERT INTO " + userTable + " (username, name, email, password, ip_address) VALUES(?, ?, ?, ?, ?)"
 
-	err = r.db.QueryRow(query, u.Username, u.Name, u.Email, u.Password, u.IPAddress).Err()
+	err = r.db.QueryRowContext(ctx, query, u.Username, u.Name, u.Email, u.Password, u.IPAddress).Err()
 	if err != nil {
 		return 0, errs.AddTrace(err)
 	}
@@ -32,7 +33,7 @@ func (r *userRepository) Create(u domain.User) (id int, err error) {
 	return id, nil
 }
 
-func (r *userRepository) Update(u domain.User) (err error) {
+func (r *userRepository) Update(ctx context.Context, u domain.User) (err error) {
 	var params []interface{}
 	var query string
 
@@ -47,17 +48,17 @@ func (r *userRepository) Update(u domain.User) (err error) {
 	query = query + " WHERE id = ?"
 	params = append(params, u.Id)
 
-	if err = r.db.QueryRow(query, params...).Err(); err != nil {
+	if err = r.db.QueryRowContext(ctx, query, params...).Err(); err != nil {
 		return errs.AddTrace(err)
 	}
 
 	return nil
 }
 
-func (r *userRepository) GetByUsername(username string) (user domain.User, err error) {
+func (r *userRepository) GetByUsername(ctx context.Context, username string) (user domain.User, err error) {
 	query := "SELECT id, username, name, email, password, ip_address, active FROM " + userTable + " where username = ? limit 1"
 
-	err = r.db.QueryRow(query, username).Scan(
+	err = r.db.QueryRowContext(ctx, query, username).Scan(
 		&user.Id,
 		&user.Username,
 		&user.Name,
@@ -138,10 +139,10 @@ func (r userRepository) GetAll(page, limit int) (users []domain.User, err error)
 	return users, nil
 }
 
-func (r *userRepository) ToggleActive(userId int, active bool) error {
+func (r *userRepository) ToggleActive(ctx context.Context, userId int, active bool) error {
 	query := "UPDATE " + userTable + " SET active = ? WHERE id = ?"
 
-	if err := r.db.QueryRow(query, active, userId).Err(); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, active, userId).Err(); err != nil {
 		return errs.AddTrace(err)
 	}
 

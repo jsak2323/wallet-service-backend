@@ -6,8 +6,8 @@ import (
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
-func (svc *permissionService) CreatePermission(ctx context.Context, name string) (id int, err error) {
-	// if err = svc.validator.Validate(createReq); err != nil {
+func (s *permissionService) CreatePermission(ctx context.Context, name string) (id int, err error) {
+	// if err = s.validator.Validate(createReq); err != nil {
 	// 	RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 	// 	return id, err
 	// }
@@ -17,7 +17,7 @@ func (svc *permissionService) CreatePermission(ctx context.Context, name string)
 		return id, err
 	}
 
-	if id, err = svc.permissionRepo.Create(ctx, name); err != nil {
+	if id, err = s.permissionRepo.Create(ctx, name); err != nil {
 		err = errs.AssignErr(errs.AddTrace(err), errs.FailedCreatePermission)
 		return id, err
 	}

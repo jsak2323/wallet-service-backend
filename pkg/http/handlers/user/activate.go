@@ -41,7 +41,7 @@ func (svc *UserService) ActivateUserHandler(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if err = svc.userRepo.ToggleActive(userId, true); err != nil {
+	if err = svc.userRepo.ToggleActive(ctx, userId, true); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivateUser)
 		return
 	}

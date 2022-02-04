@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 	"strconv"
 
@@ -115,12 +116,12 @@ func (r *roleRepository) GetByUserId(userId int) (roles []domain.Role, err error
 	return roles, nil
 }
 
-func (r *roleRepository) GetNamesByUserId(userId int) (roles []string, err error) {
+func (r *roleRepository) GetNamesByUserId(ctx context.Context, userId int) (roles []string, err error) {
 	query := "SELECT r.name FROM " + roleTable + " as r"
 	query = query + " JOIN user_role ur ON ur.role_id = r.id"
 	query = query + " WHERE ur.user_id = ?"
 
-	rows, err := r.db.Query(query, userId)
+	rows, err := r.db.QueryContext(ctx, query, userId)
 	if err != nil {
 		return []string{}, errs.AddTrace(err)
 	}

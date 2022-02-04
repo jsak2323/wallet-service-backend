@@ -100,6 +100,7 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 
 			routeName = mux.CurrentRoute(req).GetName()
 			ad, _     = req.Context().Value("access_details").(jwt.AccessDetails)
+			ctx       = req.Context()
 		)
 
 		if skipRoute(mux.CurrentRoute(req).GetName()) || skipHost(req.Host) {
@@ -117,7 +118,7 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 		}
 		defer handleResponse()
 
-		if routeRoles, err = am.getRouteRoles(routeName); err != nil {
+		if routeRoles, err = am.getRouteRoles(ctx, routeName); err != nil {
 			logger.ErrorLog("- AUTH -- User -- am.getRouteRoles err: "+err.Error(), req.Context())
 			return
 		}
@@ -139,9 +140,9 @@ func (am *authMiddleware) Authorize(hf http.Handler) http.Handler {
 	})
 }
 
-func (am *authMiddleware) getRouteRoles(routeName string) (routeRoles []string, err error) {
+func (am *authMiddleware) getRouteRoles(ctx context.Context, routeName string) (routeRoles []string, err error) {
 
-	permission, err := am.permissionRepo.GetByName(routeName)
+	permission, err := am.permissionRepo.GetByName(ctx, routeName)
 	if err != nil {
 		return []string{}, err
 	}

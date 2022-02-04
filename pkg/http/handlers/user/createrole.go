@@ -44,7 +44,7 @@ func (svc *UserService) AddRolesHandler(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	if err = svc.urRepo.Create(urReq.UserId, urReq.RoleId); err != nil {
+	if err = svc.urRepo.Create(ctx, urReq.UserId, urReq.RoleId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRoleUser)
 		return
 	}

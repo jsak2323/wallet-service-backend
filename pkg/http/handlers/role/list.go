@@ -43,7 +43,7 @@ func (svc *RoleService) ListRoleHandler(w http.ResponseWriter, req *http.Request
 	}
 
 	for i, role := range roles {
-		roles[i].Permissions, err = svc.permissionRepo.GetByRoleId(role.Id)
+		roles[i].Permissions, err = svc.permissionRepo.GetByRoleId(ctx, role.Id)
 		if err != nil {
 			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetPermissionByRole)
 			return

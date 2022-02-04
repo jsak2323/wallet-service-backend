@@ -16,11 +16,11 @@ func (req CreateReq) valid() bool {
 	return true
 }
 
-func (req UpdateReq) valid() bool {
+func (req UpdateReq) Valid() bool {
 	if req.Id == 0 {
 		return false
 	}
-	
+
 	if req.Username == "" {
 		return false
 	}

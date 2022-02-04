@@ -35,7 +35,7 @@ func (r *permissionRepository) Create(ctx context.Context, name string) (id int,
 func (r *permissionRepository) Update(ctx context.Context, permission domain.Permission) (err error) {
 	query := "UPDATE " + permissionTable + " SET name = ? WHERE id = ?"
 
-	err = r.db.QueryRow(query, permission.Name, permission.Id).Err()
+	err = r.db.QueryRowContext(ctx, query, permission.Name, permission.Id).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}
@@ -73,10 +73,10 @@ func (r *permissionRepository) GetAll(ctx context.Context, page, limit int) (per
 	return permissions, nil
 }
 
-func (r *permissionRepository) GetByName(name string) (permission domain.Permission, err error) {
+func (r *permissionRepository) GetByName(ctx context.Context, name string) (permission domain.Permission, err error) {
 	query := "SELECT id, name FROM " + permissionTable + " where name = ? limit 1"
 
-	if err = r.db.QueryRow(query, name).Scan(
+	if err = r.db.QueryRowContext(ctx, query, name).Scan(
 		&permission.Id,
 		&permission.Name,
 	); err != nil {
@@ -86,12 +86,12 @@ func (r *permissionRepository) GetByName(name string) (permission domain.Permiss
 	return permission, nil
 }
 
-func (r *permissionRepository) GetByRoleId(roleId int) (permissions []domain.Permission, err error) {
+func (r *permissionRepository) GetByRoleId(ctx context.Context, roleId int) (permissions []domain.Permission, err error) {
 	query := "SELECT p.id, p.name FROM " + permissionTable + " as p"
 	query = query + " JOIN role_permission rp ON rp.permission_id = p.id"
 	query = query + " WHERE rp.role_id = ?"
 
-	rows, err := r.db.Query(query, roleId)
+	rows, err := r.db.QueryContext(ctx, query, roleId)
 	if err != nil {
 		return []domain.Permission{}, errs.AddTrace(err)
 	}
@@ -110,31 +110,31 @@ func (r *permissionRepository) GetByRoleId(roleId int) (permissions []domain.Per
 	return permissions, nil
 }
 
-func (r *permissionRepository) GetNamesByUserId(userId int) (permissions []string, err error) {
+func (r *permissionRepository) GetNamesByUserId(ctx context.Context, userId int) (permissions []string, err error) {
 	query := "SELECT p.name FROM " + permissionTable + " as p"
 	query = query + " JOIN role_permission rp ON rp.permission_id = p.id"
 	query = query + " JOIN user_role ur ON ur.role_id = rp.role_id"
 	query = query + " WHERE ur.user_id = ?"
-	permissions, err = r.queryRowsNames(query, userId)
+	permissions, err = r.queryRowsNames(ctx, query, userId)
 	if err != nil {
 		return permissions, errs.AddTrace(err)
 	}
 	return permissions, nil
 }
 
-func (r *permissionRepository) GetNamesByRoleId(roleId int) (permissions []string, err error) {
+func (r *permissionRepository) GetNamesByRoleId(ctx context.Context, roleId int) (permissions []string, err error) {
 	query := "SELECT p.name FROM " + permissionTable + " as p"
 	query = query + " JOIN role_permission rp ON rp.permission_id = p.id"
 	query = query + " WHERE rp.role_id = ?"
-	permissions, err = r.queryRowsNames(query, roleId)
+	permissions, err = r.queryRowsNames(ctx, query, roleId)
 	if err != nil {
 		return permissions, errs.AddTrace(err)
 	}
 	return permissions, nil
 }
 
-func (r *permissionRepository) queryRowsNames(query string, param int) (permissions []string, err error) {
-	rows, err := r.db.Query(query, param)
+func (r *permissionRepository) queryRowsNames(ctx context.Context, query string, param int) (permissions []string, err error) {
+	rows, err := r.db.QueryContext(ctx, query, param)
 	if err != nil {
 		return []string{}, errs.AddTrace(err)
 	}

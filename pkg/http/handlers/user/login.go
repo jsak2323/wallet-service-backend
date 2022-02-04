@@ -48,17 +48,17 @@ func (svc *UserService) LoginHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if user, err = svc.userRepo.GetByUsername(loginReq.Username); err != nil {
+	if user, err = svc.userRepo.GetByUsername(ctx, loginReq.Username); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.UsernameNotFound)
 		return
 	}
 
-	if user.RoleNames, err = svc.roleRepo.GetNamesByUserId(user.Id); err != nil {
+	if user.RoleNames, err = svc.roleRepo.GetNamesByUserId(ctx, user.Id); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRolesByUserID)
 		return
 	}
 
-	if user.PermissionNames, err = svc.permissionRepo.GetNamesByUserId(user.Id); err != nil {
+	if user.PermissionNames, err = svc.permissionRepo.GetNamesByUserId(ctx, user.Id); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.Permissions)
 		return
 	}

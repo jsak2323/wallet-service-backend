@@ -51,7 +51,7 @@ func (svc *UserService) CreateUserHandler(w http.ResponseWriter, req *http.Reque
 
 	createReq.Password = string(hashPasswordByte)
 
-	if RES.Id, err = svc.userRepo.Create(createReq.User); err != nil {
+	if RES.Id, err = svc.userRepo.Create(ctx, createReq.User); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateUser)
 		return
 	}

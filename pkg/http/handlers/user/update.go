@@ -42,7 +42,7 @@ func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if !updateReq.valid() {
+	if !updateReq.Valid() {
 		RES.Error = errs.AddTrace(errs.InvalidRequest)
 		return
 	}
@@ -57,7 +57,7 @@ func (svc *UserService) UpdateUserHandler(w http.ResponseWriter, req *http.Reque
 		updateReq.Password = string(hashPasswordByte)
 	}
 
-	if err = svc.userRepo.Update(updateReq.User); err != nil {
+	if err = svc.userRepo.Update(ctx, updateReq.User); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateUser)
 		return
 	}

@@ -7,8 +7,8 @@ import (
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
-func (svc *permissionService) ListPermissions(ctx context.Context, page int, limit int) (res []permission.Permission, err error) {
-	res, err = svc.permissionRepo.GetAll(ctx, page, limit)
+func (s *permissionService) ListPermissions(ctx context.Context, page int, limit int) (res []permission.Permission, err error) {
+	res, err = s.permissionRepo.GetAll(ctx, page, limit)
 	if err != nil {
 		err = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllPermission)
 		return res, err

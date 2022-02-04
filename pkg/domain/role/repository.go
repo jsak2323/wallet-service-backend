@@ -1,5 +1,7 @@
 package role
 
+import "context"
+
 type Repository interface {
 	Create(name string) (id int, err error)
 	Update(Role) error
@@ -7,6 +9,6 @@ type Repository interface {
 	GetByName(name string) (Role, error)
 	GetById(id int) (Role, error)
 	GetByUserId(userId int) ([]Role, error)
-	GetNamesByUserId(userId int) ([]string, error)
+	GetNamesByUserId(ctx context.Context, userId int) ([]string, error)
 	Delete(roleId int) error
 }
