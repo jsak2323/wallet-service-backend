@@ -1,23 +1,25 @@
 package btcxmlrpc
 
-import(
-    "errors"
-    // "encoding/json"
+import (
+	"context"
+	"errors"
 
-    // "github.com/mitchellh/mapstructure"
-    // "github.com/elliotchance/phpserialize"
+	// "encoding/json"
 
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-    // logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	// "github.com/mitchellh/mapstructure"
+	// "github.com/elliotchance/phpserialize"
+
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	// logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 type ListTransactionsNodeXmlRpcRes struct {
-    Content ListTransactionsNodeXmlRpcResStruct
+	Content ListTransactionsNodeXmlRpcResStruct
 }
 type ListTransactionsNodeXmlRpcResStruct struct {
-    Transactions string
+	Transactions string
 }
 
 // type TransactionRes struct {
@@ -39,34 +41,34 @@ type ListTransactionsNodeXmlRpcResStruct struct {
 // }
 
 // todo: add limit compatibility
-func (bs *BtcService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
-    res := model.ListTransactionsRpcRes{}
+func (bs *BtcService) ListTransactions(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
+	res := model.ListTransactionsRpcRes{}
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
-    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+	rpcReq := util.GenerateRpcReq(rpcConfig, "", "", "")
+	xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    nodeRpcRes := ListTransactionsNodeXmlRpcRes{}
+	nodeRpcRes := ListTransactionsNodeXmlRpcRes{}
 
-    err := xmlrpc.XmlRpcCall("listtransactions", &rpcReq, &nodeRpcRes)
+	err := xmlrpc.XmlRpcCall("listtransactions", &rpcReq, &nodeRpcRes)
 
-    if err == nil {
-        // transactionsJson, err := serializedTransactionsToJson(nodeRpcRes.Content.Transactions)
-        // if err != nil {
-        //     logger.ErrorLog(" ---- btcxmlrpc ListTransactions serializedTransactionsToJson(nodeRpcRes.Content.Transactions) transactions: "+nodeRpcRes.Content.Transactions+", err: "+err.Error())
-        //     return &res, err
-        // }
-        // res.Transactions = transactionsJson
+	if err == nil {
+		// transactionsJson, err := serializedTransactionsToJson(nodeRpcRes.Content.Transactions)
+		// if err != nil {
+		//     logger.ErrorLog(" ---- btcxmlrpc ListTransactions serializedTransactionsToJson(nodeRpcRes.Content.Transactions) transactions: "+nodeRpcRes.Content.Transactions+", err: "+err.Error())
+		//     return &res, err
+		// }
+		// res.Transactions = transactionsJson
 
-        // res.Transactions = nodeRpcRes.Content.Transactions
+		// res.Transactions = nodeRpcRes.Content.Transactions
 
-        return &res, nil
+		return &res, nil
 
-    } else if err != nil {
-        return &res, err
+	} else if err != nil {
+		return &res, err
 
-    } else {
-        return &res, errors.New("Unexpected error occured in Node.")
-    }
+	} else {
+		return &res, errors.New("Unexpected error occured in Node.")
+	}
 }
 
 // func serializedTransactionsToJson(serializedTransactions string) (string, error) {
@@ -82,6 +84,6 @@ func (bs *BtcService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*mode
 
 //     transactionsJson, err := json.Marshal(transactions)
 //     if err != nil { return "", err }
-    
+
 //     return string(transactionsJson), nil
 // }

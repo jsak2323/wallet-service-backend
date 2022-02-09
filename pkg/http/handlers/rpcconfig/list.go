@@ -39,7 +39,7 @@ func (s *RpcConfigService) ListHandler(w http.ResponseWriter, req *http.Request)
 
 	logger.InfoLog(" - rpcconfig.ListHandler, Requesting ...", req)
 
-	if RES.RpcConfigs, err = s.rcRepo.GetAll(page, limit); err != nil {
+	if RES.RpcConfigs, err = s.rcRepo.GetAll(ctx, page, limit); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllRPCConfig)
 		return
 	}

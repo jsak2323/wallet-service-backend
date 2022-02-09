@@ -48,12 +48,12 @@ func (svc *RoleService) DeleteRoleHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err = svc.rpRepo.DeleteByRoleId(roleId); err != nil {
+	if err = svc.rpRepo.DeleteByRoleId(ctx, roleId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRolePermission)
 		return
 	}
 
-	if err = svc.roleRepo.Delete(roleId); err != nil {
+	if err = svc.roleRepo.Delete(ctx, roleId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRole)
 		return
 	}

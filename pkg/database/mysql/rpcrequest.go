@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,8 +22,8 @@ func NewMysqlRpcRequestRepository(db *sql.DB) rr.Repository {
 	}
 }
 
-func (r *rpcRequestRepository) Create(rpcRequest rr.RpcRequest) error {
-	err := r.db.QueryRow(`
+func (r *rpcRequestRepository) Create(ctx context.Context, rpcRequest rr.RpcRequest) error {
+	err := r.db.QueryRowContext(ctx, `
 	INSERT INTO `+rpcRequestTable+`(
 		arg_name,
 		type,

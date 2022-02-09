@@ -43,7 +43,7 @@ func (s *RpcMethodService) GetByRpcConfigIdHandler(w http.ResponseWriter, req *h
 		return
 	}
 
-	if RES.RpcMethods, err = s.rmRepo.GetByRpcConfigId(reqRpcConfigId); err != nil {
+	if RES.RpcMethods, err = s.rmRepo.GetByRpcConfigId(ctx, reqRpcConfigId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCMethodByConfigID)
 		return
 	}

@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -12,12 +13,12 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-func (gms *GeneralMapService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*model.SendToAddressRpcRes, error) {
+func (gms *GeneralMapService) SendToAddress(ctx context.Context, rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*model.SendToAddressRpcRes, error) {
 	res := &model.SendToAddressRpcRes{}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeSendToAddress)
+	rpcMethod, err := config.GetRpcMethod(ctx, gms.rpcMethodRepo, rpcConfig.Id, rm.TypeSendToAddress)
 	if err != nil {
 		return &model.SendToAddressRpcRes{}, err
 	}

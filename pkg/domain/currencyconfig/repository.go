@@ -1,9 +1,11 @@
 package currencyconfig
 
+import "context"
+
 type Repository interface {
-	Create(CurrencyConfig) error
-	GetAll() ([]CurrencyConfig, error)
+	Create(context.Context, CurrencyConfig) error
+	GetAll(context.Context) ([]CurrencyConfig, error)
 	GetBySymbol(symbol string) (*CurrencyConfig, error)
-	Update(UpdateCurrencyConfig) error
-	ToggleActive(Id int, active bool) error
+	Update(context.Context, UpdateCurrencyConfig) error
+	ToggleActive(ctx context.Context, Id int, active bool) error
 }

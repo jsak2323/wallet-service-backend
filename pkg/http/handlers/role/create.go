@@ -41,7 +41,7 @@ func (svc *RoleService) CreateRoleHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if RES.Id, err = svc.roleRepo.Create(createReq.Name); err != nil {
+	if RES.Id, err = svc.roleRepo.Create(ctx, createReq.Name); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRole)
 		return
 	}

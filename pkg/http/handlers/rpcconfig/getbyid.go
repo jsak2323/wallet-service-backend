@@ -40,7 +40,7 @@ func (s *RpcConfigService) GetByIdHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if RES.RpcConfig, err = s.rcRepo.GetById(reqId); err != nil {
+	if RES.RpcConfig, err = s.rcRepo.GetById(ctx, reqId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCConfigByID)
 		return
 	}

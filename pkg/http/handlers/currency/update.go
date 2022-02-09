@@ -31,7 +31,7 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 			RES.Success = true
 			RES.Message = "Currency successfully updated"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -52,7 +52,7 @@ func (s *CurrencyConfigService) UpdateHandler(w http.ResponseWriter, req *http.R
 		return
 	}
 
-	if err = s.ccRepo.Update(currencyConfig); err != nil {
+	if err = s.ccRepo.Update(ctx, currencyConfig); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateCurrencyConfig)
 		return
 	}

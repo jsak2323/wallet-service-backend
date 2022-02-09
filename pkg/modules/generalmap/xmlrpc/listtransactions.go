@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -12,12 +13,12 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-func (gms *GeneralMapService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (res *model.ListTransactionsRpcRes, err error) {
+func (gms *GeneralMapService) ListTransactions(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (res *model.ListTransactionsRpcRes, err error) {
 	res = &model.ListTransactionsRpcRes{}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeListTransactions)
+	rpcMethod, err := config.GetRpcMethod(ctx, gms.rpcMethodRepo, rpcConfig.Id, rm.TypeListTransactions)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}

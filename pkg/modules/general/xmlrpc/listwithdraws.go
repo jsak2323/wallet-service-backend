@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -18,7 +19,7 @@ type ListWithdrawsXmlRpcResStruct struct {
 	Error     string
 }
 
-func (gs *GeneralService) ListWithdraws(rpcConfig rc.RpcConfig, limit int) (*model.ListWithdrawsRpcRes, error) {
+func (gs *GeneralService) ListWithdraws(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (*model.ListWithdrawsRpcRes, error) {
 	res := model.ListWithdrawsRpcRes{}
 
 	rpcReq := util.GenerateRpcReq(rpcConfig, strconv.Itoa(limit), "", "")

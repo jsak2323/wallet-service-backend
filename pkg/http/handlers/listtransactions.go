@@ -106,7 +106,7 @@ func (lts *ListTransactionsService) InvokeListTransactions(ctx context.Context, 
 					return
 				}
 
-				rpcRes, err := module.ListTransactions(rpcConfig, limit)
+				rpcRes, err := module.ListTransactions(ctx, rpcConfig, limit)
 				if err != nil {
 					errField = errs.AssignErr(errs.AddTrace(err), errs.FailedListTransactions)
 

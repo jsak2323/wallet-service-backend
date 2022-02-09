@@ -1,7 +1,9 @@
 package rpcrequest
 
+import "context"
+
 type Repository interface {
-	Create(RpcRequest) error
+	Create(context.Context, RpcRequest) error
 	GetByRpcMethodId(rpcMethodId int) ([]RpcRequest, error)
 	Update(UpdateRpcRequest) error
 	Delete(id int) error

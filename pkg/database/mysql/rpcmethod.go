@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,9 +22,9 @@ func NewMysqlRpcMethodRepository(db *sql.DB) rm.Repository {
 	}
 }
 
-func (r *rpcMethodRepository) Create(rpcMethod rm.RpcMethod) (int, error) {
-	stmt, err := r.db.Prepare(`
-        INSERT INTO ` + rpcMethodTable + `(
+func (r *rpcMethodRepository) Create(ctx context.Context, rpcMethod rm.RpcMethod) (int, error) {
+	stmt, err := r.db.PrepareContext(ctx, `
+        INSERT INTO `+rpcMethodTable+`(
             name,
             type,
             num_of_args,
@@ -36,7 +37,7 @@ func (r *rpcMethodRepository) Create(rpcMethod rm.RpcMethod) (int, error) {
 		return 0, errs.AddTrace(err)
 	}
 
-	res, err := stmt.Exec(
+	res, err := stmt.ExecContext(ctx,
 		rpcMethod.Name,
 		rpcMethod.Type,
 		rpcMethod.NumOfArgs,
@@ -54,7 +55,7 @@ func (r *rpcMethodRepository) Create(rpcMethod rm.RpcMethod) (int, error) {
 	return int(lastId), nil
 }
 
-func (r *rpcMethodRepository) GetAll(page, limit int) (rpcMethods []rm.RpcMethod, err error) {
+func (r *rpcMethodRepository) GetAll(ctx context.Context, page, limit int) (rpcMethods []rm.RpcMethod, err error) {
 	query := `
         SELECT
             id,
@@ -83,7 +84,7 @@ func (r *rpcMethodRepository) GetAll(page, limit int) (rpcMethods []rm.RpcMethod
 	return rpcMethods, nil
 }
 
-func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm.RpcMethod, err error) {
+func (r *rpcMethodRepository) GetByRpcConfigId(ctx context.Context, rpcConfigId int) (rpcMethods []rm.RpcMethod, err error) {
 	query := `
 		SELECT 
 			rm.id,
@@ -97,7 +98,7 @@ func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm
 		WHERE rcrm.rpc_config_id = ?
 	`
 
-	rows, err := r.db.Query(query, rpcConfigId)
+	rows, err := r.db.QueryContext(ctx, query, rpcConfigId)
 	if err != nil {
 		return []rm.RpcMethod{}, errs.AddTrace(err)
 	}
@@ -116,8 +117,8 @@ func (r *rpcMethodRepository) GetByRpcConfigId(rpcConfigId int) (rpcMethods []rm
 	return rpcMethods, nil
 }
 
-func (r *rpcMethodRepository) Update(rpcMethod rm.UpdateRpcMethod) error {
-	err := r.db.QueryRow(`
+func (r *rpcMethodRepository) Update(ctx context.Context, rpcMethod rm.UpdateRpcMethod) error {
+	err := r.db.QueryRowContext(ctx, `
 	UPDATE `+rpcMethodTable+`
 	SET 
 		name = ?,

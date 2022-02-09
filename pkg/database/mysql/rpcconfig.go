@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 	"strconv"
 
@@ -22,8 +23,8 @@ func NewMysqlRpcConfigRepository(db *sql.DB) rc.Repository {
 	}
 }
 
-func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
-	err := r.db.QueryRow(`
+func (r *rpcConfigRepository) Create(ctx context.Context, rpcConfig rc.RpcConfig) error {
+	err := r.db.QueryRowContext(ctx, `
 	INSERT INTO `+rpcConfigTable+`(
 		type,
 		name,
@@ -62,7 +63,7 @@ func (r *rpcConfigRepository) Create(rpcConfig rc.RpcConfig) error {
 	return nil
 }
 
-func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig, err error) {
+func (r *rpcConfigRepository) GetAll(ctx context.Context, page, limit int) (rpcConfigs []rc.RpcConfig, err error) {
 	query := `
         SELECT
             id,
@@ -83,7 +84,7 @@ func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig
 			active
         FROM ` + rpcConfigTable
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return []rc.RpcConfig{}, errs.AddTrace(err)
 	}
@@ -102,7 +103,7 @@ func (r *rpcConfigRepository) GetAll(page, limit int) (rpcConfigs []rc.RpcConfig
 	return rpcConfigs, nil
 }
 
-func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
+func (r *rpcConfigRepository) GetById(ctx context.Context, id int) (rc.RpcConfig, error) {
 	query := `
         SELECT
             id,
@@ -125,7 +126,7 @@ func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
 
 	rpcConfig := rc.RpcConfig{}
 
-	rows, err := r.db.Query(query, id)
+	rows, err := r.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return rc.RpcConfig{}, errs.AddTrace(err)
 	}
@@ -141,7 +142,7 @@ func (r *rpcConfigRepository) GetById(id int) (rc.RpcConfig, error) {
 	return rpcConfig, nil
 }
 
-func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, error) {
+func (r *rpcConfigRepository) GetByCurrencyId(ctx context.Context, currency_id int) ([]rc.RpcConfig, error) {
 	query := `
         SELECT
             id,
@@ -166,7 +167,7 @@ func (r *rpcConfigRepository) GetByCurrencyId(currency_id int) ([]rc.RpcConfig, 
 	query += " WHERE " + currencyRpcTable + ".currency_config_id = " + strconv.Itoa(currency_id)
 	rpcConfigs := []rc.RpcConfig{}
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return rpcConfigs, errs.AddTrace(err)
 	}
@@ -254,8 +255,8 @@ func mapRpcConfig(rows *sql.Rows, rpcConf *rc.RpcConfig) error {
 	return nil
 }
 
-func (r *rpcConfigRepository) Update(rpcConfig rc.UpdateRpcConfig) (err error) {
-	err = r.db.QueryRow(`
+func (r *rpcConfigRepository) Update(ctx context.Context, rpcConfig rc.UpdateRpcConfig) (err error) {
+	err = r.db.QueryRowContext(ctx, `
 	UPDATE `+rpcConfigTable+`
 	SET 
 		type = ?,
@@ -295,9 +296,9 @@ func (r *rpcConfigRepository) Update(rpcConfig rc.UpdateRpcConfig) (err error) {
 	return nil
 }
 
-func (r *rpcConfigRepository) ToggleActive(userId int, active bool) error {
+func (r *rpcConfigRepository) ToggleActive(ctx context.Context, userId int, active bool) error {
 	query := "UPDATE " + rpcConfigTable + " SET active = ? WHERE id = ?"
-	err := r.db.QueryRow(query, active, userId).Err()
+	err := r.db.QueryRowContext(ctx, query, active, userId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

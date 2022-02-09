@@ -1,10 +1,12 @@
 package rpcconfigrpcmethod
 
+import "context"
+
 type Repository interface {
-	Create(rpcConfigId, rpcMethodId int) error
+	Create(ctx context.Context, rpcConfigId, rpcMethodId int) error
 	GetByRpcConfig(rpcConfigId int) ([]RpcConfigRpcMethod, error)
 	GetByRpcMethod(rpcMethodId int) ([]RpcConfigRpcMethod, error)
 	DeleteByRpcConfig(rpcConfigId int) error
-	DeleteByRpcMethod(rpcMethodId int) error
-	Delete(rpcConfigId, rpcMethodId int) error
+	DeleteByRpcMethod(ctx context.Context, rpcMethodId int) error
+	Delete(ctx context.Context, rpcConfigId, rpcMethodId int) error
 }

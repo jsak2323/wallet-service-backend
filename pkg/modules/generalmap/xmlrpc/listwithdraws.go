@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"strconv"
 	"strings"
 
@@ -12,12 +13,12 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-func (gms *GeneralMapService) ListWithdraws(rpcConfig rc.RpcConfig, limit int) (res *model.ListWithdrawsRpcRes, err error) {
+func (gms *GeneralMapService) ListWithdraws(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (res *model.ListWithdrawsRpcRes, err error) {
 	res = &model.ListWithdrawsRpcRes{}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeListWithdraws)
+	rpcMethod, err := config.GetRpcMethod(ctx, gms.rpcMethodRepo, rpcConfig.Id, rm.TypeListWithdraws)
 	if err != nil {
 		return &model.ListWithdrawsRpcRes{}, err
 	}

@@ -46,7 +46,7 @@ func (svc *RpcConfigService) ActivateHandler(w http.ResponseWriter, req *http.Re
 		return
 	}
 
-	if err = svc.rcRepo.ToggleActive(id, true); err != nil {
+	if err = svc.rcRepo.ToggleActive(ctx, id, true); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivateRPCConfig)
 		return
 	}

@@ -20,9 +20,9 @@ func NewMysqlRolePermissionRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *rolePermissionRepository) Create(roleId, permissionId int) (err error) {
+func (r *rolePermissionRepository) Create(ctx context.Context, roleId, permissionId int) (err error) {
 	query := "INSERT INTO " + rolePermissionTable + " (role_id, permission_id) VALUES(?, ?)"
-	err = r.db.QueryRow(query, roleId, permissionId).Err()
+	err = r.db.QueryRowContext(ctx, query, roleId, permissionId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}
@@ -68,9 +68,9 @@ func (r *rolePermissionRepository) queryRows(query string, param int) (rps []dom
 	return rps, nil
 }
 
-func (r *rolePermissionRepository) DeleteByRoleId(roleId int) (err error) {
+func (r *rolePermissionRepository) DeleteByRoleId(ctx context.Context, roleId int) (err error) {
 	query := "DELETE FROM " + rolePermissionTable + " WHERE role_id = ?"
-	err = r.db.QueryRow(query, roleId).Err()
+	err = r.db.QueryRowContext(ctx, query, roleId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

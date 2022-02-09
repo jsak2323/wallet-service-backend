@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfigrpcmethod"
@@ -19,9 +20,9 @@ func NewMysqlRpcConfigRpcMethodRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *rpcConfigRpcMethodRepository) Create(rpcConfigId, rpcMethodId int) (err error) {
+func (r *rpcConfigRpcMethodRepository) Create(ctx context.Context, rpcConfigId, rpcMethodId int) (err error) {
 	query := "INSERT INTO " + rpcConfigRpcMethodTable + " (rpc_config_id, rpc_method_id) VALUES(?, ?)"
-	err = r.db.QueryRow(query, rpcConfigId, rpcMethodId).Err()
+	err = r.db.QueryRowContext(ctx, query, rpcConfigId, rpcMethodId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}
@@ -76,18 +77,18 @@ func (r *rpcConfigRpcMethodRepository) DeleteByRpcConfig(rpcConfigId int) (err e
 	return nil
 }
 
-func (r *rpcConfigRpcMethodRepository) DeleteByRpcMethod(rpcMethodId int) (err error) {
+func (r *rpcConfigRpcMethodRepository) DeleteByRpcMethod(ctx context.Context, rpcMethodId int) (err error) {
 	query := "DELETE FROM " + rpcConfigRpcMethodTable + " WHERE rpc_method_id = ?"
-	err = r.db.QueryRow(query, rpcMethodId).Err()
+	err = r.db.QueryRowContext(ctx, query, rpcMethodId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}
 	return nil
 }
 
-func (r *rpcConfigRpcMethodRepository) Delete(rpcConfigId, rpcMethodId int) (err error) {
+func (r *rpcConfigRpcMethodRepository) Delete(ctx context.Context, rpcConfigId, rpcMethodId int) (err error) {
 	query := "DELETE FROM " + rpcConfigRpcMethodTable + " WHERE rpc_config_id = ? and rpc_method_id = ?"
-	err = r.db.QueryRow(query, rpcConfigId, rpcMethodId).Err()
+	err = r.db.QueryRowContext(ctx, query, rpcConfigId, rpcMethodId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

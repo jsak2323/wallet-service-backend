@@ -45,7 +45,7 @@ func (svc *RoleService) UpdateRoleHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err = svc.roleRepo.Update(updateReq.Role); err != nil {
+	if err = svc.roleRepo.Update(ctx, updateReq.Role); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRole)
 		return
 	}

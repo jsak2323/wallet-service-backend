@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"errors"
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
@@ -18,12 +19,12 @@ type GetBlockCountXmlRpcResStruct struct {
 	Error  string
 }
 
-func (gms *GeneralMapService) GetBlockCount(rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
+func (gms *GeneralMapService) GetBlockCount(ctx context.Context, rpcConfig rc.RpcConfig) (*model.GetBlockCountRpcRes, error) {
 	res := &model.GetBlockCountRpcRes{Blocks: "0"}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBlockCount)
+	rpcMethod, err := config.GetRpcMethod(ctx, gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBlockCount)
 	if err != nil {
 		return &model.GetBlockCountRpcRes{}, err
 	}

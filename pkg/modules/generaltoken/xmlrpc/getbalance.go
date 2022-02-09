@@ -1,46 +1,45 @@
 package xmlrpc
 
 import (
-    "errors"
-    "strings"
+	"context"
+	"errors"
+	"strings"
 
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
 type GetBalanceXmlRpcRes struct {
-    Content GetBalanceXmlRpcResStruct
+	Content GetBalanceXmlRpcResStruct
 }
 type GetBalanceXmlRpcResStruct struct {
-    Balance string
-    Error   string
+	Balance string
+	Error   string
 }
 
-func (gts *GeneralTokenService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRes, error) {
-    res := model.GetBalanceRpcRes{ Balance: "0" }
+func (gts *GeneralTokenService) GetBalance(ctx context.Context, rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRes, error) {
+	res := model.GetBalanceRpcRes{Balance: "0"}
 
-    token := strings.ToLower(gts.Symbol)
+	token := strings.ToLower(gts.Symbol)
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, token, "", "")
-    client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+	rpcReq := util.GenerateRpcReq(rpcConfig, token, "", "")
+	client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    rpcRes := GetBalanceXmlRpcRes{}
+	rpcRes := GetBalanceXmlRpcRes{}
 
-    err := client.XmlRpcCall(gts.ParentSymbol+"Rpc.GetBalance", &rpcReq, &rpcRes)
+	err := client.XmlRpcCall(gts.ParentSymbol+"Rpc.GetBalance", &rpcReq, &rpcRes)
 
-    if err != nil {
-        return &res, err
+	if err != nil {
+		return &res, err
 
-    } else if rpcRes.Content.Error != "" {
-        return &res, errors.New(rpcRes.Content.Error)
+	} else if rpcRes.Content.Error != "" {
+		return &res, errors.New(rpcRes.Content.Error)
 
-    } else if rpcRes.Content.Balance == "0" || rpcRes.Content.Balance == "" {
-        return &res, errors.New("Unexpected error occured in Node.")
-    } 
+	} else if rpcRes.Content.Balance == "0" || rpcRes.Content.Balance == "" {
+		return &res, errors.New("Unexpected error occured in Node.")
+	}
 
-    res.Balance = rpcRes.Content.Balance
-    return &res, nil
+	res.Balance = rpcRes.Content.Balance
+	return &res, nil
 }
-
-

@@ -43,7 +43,7 @@ func (svc *RpcConfigService) CreateRpcMethodHandler(w http.ResponseWriter, req *
 		return
 	}
 
-	if err = svc.rcrmRepo.Create(rpReq.RpcConfigId, rpReq.RpcMethodId); err != nil {
+	if err = svc.rcrmRepo.Create(ctx, rpReq.RpcConfigId, rpReq.RpcMethodId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCConfigRPCMethod)
 		return
 	}

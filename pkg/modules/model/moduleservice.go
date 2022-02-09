@@ -23,13 +23,13 @@ type ModuleService interface {
 	GetHealthCheckRepo() hc.Repository
 	IsBlockCountHealthy(ctx context.Context, nodeBlockCount int, rpcConfigId int) (bool, int, error)
 
-	GetBlockCount(rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
-	GetBalance(rpcConfig rc.RpcConfig) (*GetBalanceRpcRes, error)
-	ListTransactions(rpcConfig rc.RpcConfig, limit int) (*ListTransactionsRpcRes, error)
-	ListWithdraws(rpcConfig rc.RpcConfig, limit int) (*ListWithdrawsRpcRes, error)
-	SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*SendToAddressRpcRes, error)
-	GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (*GetNewAddressRpcRes, error)
-	AddressType(rpcConfig rc.RpcConfig, address string) (*AddressTypeRpcRes, error)
+	GetBlockCount(ctx context.Context, rpcConfig rc.RpcConfig) (*GetBlockCountRpcRes, error)
+	GetBalance(ctx context.Context, rpcConfig rc.RpcConfig) (*GetBalanceRpcRes, error)
+	ListTransactions(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (*ListTransactionsRpcRes, error)
+	ListWithdraws(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (*ListWithdrawsRpcRes, error)
+	SendToAddress(ctx context.Context, rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*SendToAddressRpcRes, error)
+	GetNewAddress(ctx context.Context, rpcConfig rc.RpcConfig, addressType string) (*GetNewAddressRpcRes, error)
+	AddressType(ctx context.Context, rpcConfig rc.RpcConfig, address string) (*AddressTypeRpcRes, error)
 }
 
 type RpcRes interface {

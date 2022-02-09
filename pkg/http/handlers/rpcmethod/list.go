@@ -40,7 +40,7 @@ func (s *RpcMethodService) ListHandler(w http.ResponseWriter, req *http.Request)
 
 	logger.InfoLog(" - rpcmethod.ListHandler, Requesting ...", req)
 
-	if RES.RpcMethods, err = s.rmRepo.GetAll(page, limit); err != nil {
+	if RES.RpcMethods, err = s.rmRepo.GetAll(ctx, page, limit); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllRPCMethod)
 		return
 	}

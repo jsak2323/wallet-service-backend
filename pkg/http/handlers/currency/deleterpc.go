@@ -32,7 +32,7 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 			RES.Success = true
 			RES.Message = "Rpc successfully removed"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -55,7 +55,7 @@ func (s *CurrencyConfigService) DeleteRpcHandler(w http.ResponseWriter, req *htt
 		return
 	}
 
-	if err = s.crRepo.Delete(currencyId, rpcId); err != nil {
+	if err = s.crRepo.Delete(ctx, currencyId, rpcId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteCurrencyRPC)
 		return
 	}

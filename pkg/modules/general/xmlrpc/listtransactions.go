@@ -1,7 +1,8 @@
 package xmlrpc
 
 import (
-    "encoding/json"
+	"context"
+	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -11,38 +12,36 @@ import (
 )
 
 type ListTransactionsXmlRpcRes struct {
-    Content ListTransactionsXmlRpcResStruct
+	Content ListTransactionsXmlRpcResStruct
 }
 type ListTransactionsXmlRpcResStruct struct {
-    Transactions string
-    Error        string
+	Transactions string
+	Error        string
 }
 
-func (gs *GeneralService) ListTransactions(rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
-    res := model.ListTransactionsRpcRes{}
+func (gs *GeneralService) ListTransactions(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (*model.ListTransactionsRpcRes, error) {
+	res := model.ListTransactionsRpcRes{}
 
-    rpcReq := util.GenerateRpcReq(rpcConfig, strconv.Itoa(limit), "", "")
-    client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+	rpcReq := util.GenerateRpcReq(rpcConfig, strconv.Itoa(limit), "", "")
+	client := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    rpcRes := ListTransactionsXmlRpcRes{}
+	rpcRes := ListTransactionsXmlRpcRes{}
 
-    err := client.XmlRpcCall(gs.Symbol+"Rpc.ListTransactions", &rpcReq, &rpcRes)
+	err := client.XmlRpcCall(gs.Symbol+"Rpc.ListTransactions", &rpcReq, &rpcRes)
 
-    if err != nil {
-        return &res, err
+	if err != nil {
+		return &res, err
 
-    } else if rpcRes.Content.Error != "" {
-        return &res, errors.New(rpcRes.Content.Error)
+	} else if rpcRes.Content.Error != "" {
+		return &res, errors.New(rpcRes.Content.Error)
 
-    } else if rpcRes.Content.Transactions == "" {
-        return &res, errors.New("Unexpected error occured in Node.")
-    }
+	} else if rpcRes.Content.Transactions == "" {
+		return &res, errors.New("Unexpected error occured in Node.")
+	}
 
-    if err = json.Unmarshal([]byte(rpcRes.Content.Transactions), &res.Transactions); err != nil {
-        return nil, err
-    }
-    
-    return &res, nil
+	if err = json.Unmarshal([]byte(rpcRes.Content.Transactions), &res.Transactions); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
 }
-
-

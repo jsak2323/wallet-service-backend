@@ -95,7 +95,7 @@ func (lts *ListWithdrawsService) InvokeListWithdraws(ctx context.Context, RES *L
 					return
 				}
 
-				rpcRes, err := module.ListWithdraws(rpcConfig, limit)
+				rpcRes, err := module.ListWithdraws(ctx, rpcConfig, limit)
 				if err != nil {
 					logger.ErrorLog(" - ListWithdrawsHandler (*lts.moduleServices)[SYMBOL].ListWithdraws(rpcConfig, limit) Error: "+err.Error(), ctx)
 					_RES.Error = err.Error()

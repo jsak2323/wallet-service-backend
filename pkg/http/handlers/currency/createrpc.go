@@ -27,7 +27,7 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 			RES.Success = true
 			RES.Message = "Currency successfully updated"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -48,7 +48,7 @@ func (s *CurrencyConfigService) CreateRpcHandler(w http.ResponseWriter, req *htt
 		return
 	}
 
-	if err = s.crRepo.Create(cRreq.CurrencyId, cRreq.RpcId); err != nil {
+	if err = s.crRepo.Create(ctx, cRreq.CurrencyId, cRreq.RpcId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateCurrencyRPC)
 		return
 	}

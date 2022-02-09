@@ -1,9 +1,11 @@
 package rpcmethod
 
+import "context"
+
 type Repository interface {
-	Create(RpcMethod) (int, error)
-	GetAll(page, limit int) ([]RpcMethod, error)
-	GetByRpcConfigId(rpcConfigId int) ([]RpcMethod, error)
-	Update(UpdateRpcMethod) error
+	Create(context.Context, RpcMethod) (int, error)
+	GetAll(ctx context.Context, page, limit int) ([]RpcMethod, error)
+	GetByRpcConfigId(ctx context.Context, rpcConfigId int) ([]RpcMethod, error)
+	Update(context.Context, UpdateRpcMethod) error
 	Delete(id int) error
 }

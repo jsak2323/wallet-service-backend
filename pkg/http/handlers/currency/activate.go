@@ -29,7 +29,7 @@ func (svc *CurrencyConfigService) ActivateHandler(w http.ResponseWriter, req *ht
 			RES.Success = true
 			RES.Message = "Currency successfully activated"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -45,7 +45,7 @@ func (svc *CurrencyConfigService) ActivateHandler(w http.ResponseWriter, req *ht
 
 	}
 
-	if err = svc.ccRepo.ToggleActive(id, true); err != nil {
+	if err = svc.ccRepo.ToggleActive(ctx, id, true); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivateCurrencyConfig)
 		return
 	}

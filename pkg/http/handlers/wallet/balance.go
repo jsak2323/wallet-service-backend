@@ -145,7 +145,7 @@ func (s *WalletService) SetHotBalanceDetails(ctx context.Context, rpcConfigs []r
 			continue
 		}
 
-		if rpcRes, err = module.GetBalance(rpcConfig); err != nil {
+		if rpcRes, err = module.GetBalance(ctx, rpcConfig); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedSetHotBalanceDetails)
 			continue
 		}

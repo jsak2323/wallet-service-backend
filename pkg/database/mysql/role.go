@@ -21,20 +21,20 @@ func NewMysqlRoleRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *roleRepository) Create(name string) (id int, err error) {
+func (r *roleRepository) Create(ctx context.Context, name string) (id int, err error) {
 	query := "INSERT INTO " + roleTable + " (name) VALUES(?);"
 
-	if err = r.db.QueryRow(query, name).Err(); err != nil {
+	if err = r.db.QueryRowContext(ctx, query, name).Err(); err != nil {
 		return 0, errs.AddTrace(err)
 	}
 
 	return id, nil
 }
 
-func (r *roleRepository) Update(role domain.Role) (err error) {
+func (r *roleRepository) Update(ctx context.Context, role domain.Role) (err error) {
 	query := "UPDATE " + roleTable + " SET name = ? WHERE id = ?"
 
-	err = r.db.QueryRow(query, role.Name, role.Id).Err()
+	err = r.db.QueryRowContext(ctx, query, role.Name, role.Id).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}
@@ -140,9 +140,9 @@ func (r *roleRepository) GetNamesByUserId(ctx context.Context, userId int) (role
 	return roles, nil
 }
 
-func (r *roleRepository) Delete(roleId int) error {
+func (r *roleRepository) Delete(ctx context.Context, roleId int) error {
 	query := "DELETE FROM " + roleTable + " WHERE id = ?"
-	err := r.db.QueryRow(query, roleId).Err()
+	err := r.db.QueryRowContext(ctx, query, roleId).Err()
 	if err != nil {
 		errs.AddTrace(err)
 

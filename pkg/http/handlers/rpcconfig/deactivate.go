@@ -45,7 +45,7 @@ func (svc *RpcConfigService) DeactivateHandler(w http.ResponseWriter, req *http.
 		return
 	}
 
-	if err = svc.rcRepo.ToggleActive(id, false); err != nil {
+	if err = svc.rcRepo.ToggleActive(ctx, id, false); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivateRPCConfig)
 		return
 	}

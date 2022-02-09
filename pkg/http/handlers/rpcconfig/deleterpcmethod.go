@@ -15,6 +15,7 @@ func (svc *RpcConfigService) DeleteRpcMethodHandler(w http.ResponseWriter, req *
 		roleId, permissionId int
 		RES                  StandardRes
 		err                  error
+		ctx                  = req.Context()
 	)
 
 	handleResponse := func() {
@@ -44,7 +45,7 @@ func (svc *RpcConfigService) DeleteRpcMethodHandler(w http.ResponseWriter, req *
 		return
 	}
 
-	if err = svc.rcrmRepo.Delete(roleId, permissionId); err != nil {
+	if err = svc.rcrmRepo.Delete(ctx, roleId, permissionId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRPCConfigRPCMethod)
 		return
 	}

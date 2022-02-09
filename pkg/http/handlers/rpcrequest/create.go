@@ -53,7 +53,7 @@ func (s *RpcRequestService) CreateHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	if err = s.rrqRepo.Create(rpcRequest); err != nil {
+	if err = s.rrqRepo.Create(ctx, rpcRequest); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCRequest)
 		return
 	}

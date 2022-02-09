@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -19,7 +20,7 @@ type ListWithdrawsXmlRpcResStruct struct {
 	Error     string
 }
 
-func (gts *GeneralTokenService) ListWithdraws(rpcConfig rc.RpcConfig, limit int) (*model.ListWithdrawsRpcRes, error) {
+func (gts *GeneralTokenService) ListWithdraws(ctx context.Context, rpcConfig rc.RpcConfig, limit int) (*model.ListWithdrawsRpcRes, error) {
 	res := model.ListWithdrawsRpcRes{}
 
 	token := strings.ToLower(gts.Symbol)

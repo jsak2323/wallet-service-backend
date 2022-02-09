@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -19,12 +20,12 @@ type GetBalanceXmlRpcResStruct struct {
 	Error   string
 }
 
-func (gms *GeneralMapService) GetBalance(rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRes, error) {
+func (gms *GeneralMapService) GetBalance(ctx context.Context, rpcConfig rc.RpcConfig) (*model.GetBalanceRpcRes, error) {
 	res := &model.GetBalanceRpcRes{Balance: "0"}
 
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(ctx, gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
 	if err != nil {
 		return &model.GetBalanceRpcRes{}, err
 	}

@@ -31,7 +31,7 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 			RES.Success = true
 			RES.Message = "Currency successfully deactivated"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -46,7 +46,7 @@ func (svc *CurrencyConfigService) DeactivateHandler(w http.ResponseWriter, req *
 		return
 	}
 
-	if err = svc.ccRepo.ToggleActive(userId, false); err != nil {
+	if err = svc.ccRepo.ToggleActive(ctx, userId, false); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivateCurrencyConfig)
 		return
 	}

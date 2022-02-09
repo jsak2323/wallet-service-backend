@@ -11,12 +11,13 @@ import (
 
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	"github.com/btcid/wallet-services-backend-go/cmd/server/cron"
-	"github.com/btcid/wallet-services-backend-go/delivery/rest"
 	"github.com/btcid/wallet-services-backend-go/pkg/database/mysql"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest"
 	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	authm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/auth"
 	logm "github.com/btcid/wallet-services-backend-go/pkg/middlewares/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/service"
 	"github.com/btcid/wallet-services-backend-go/pkg/thirdparty/exchange"
-	"github.com/btcid/wallet-services-backend-go/service"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -69,8 +70,8 @@ func serv() {
 		routes := mux.NewRouter()
 
 		rest.New(
-			service,
 			routes,
+			service,
 		).Route()
 
 		corsOpts := cors.New(cors.Options{
@@ -88,6 +89,10 @@ func serv() {
 		})
 
 		routes.Use(logm.LogMiddleware)
+
+		auth := authm.NewAuthMiddleware(mysqlRepos.Role, mysqlRepos.Permission, mysqlRepos.RolePermission)
+		routes.Use(auth.Authenticate)
+		routes.Use(auth.Authorize)
 
 		server := &http.Server{
 			Handler:      corsOpts.Handler(routes),

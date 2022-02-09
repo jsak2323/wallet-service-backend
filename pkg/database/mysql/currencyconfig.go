@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -23,9 +24,9 @@ func NewMysqlCurrencyConfigRepository(db *sql.DB) cc.Repository {
 
 // errs.AddTrace(err)
 
-func (r *currencyConfigRepository) Create(currencyConfig cc.CurrencyConfig) error {
+func (r *currencyConfigRepository) Create(ctx context.Context, currencyConfig cc.CurrencyConfig) error {
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
     INSERT INTO `+currencyConfigTable+`(
         symbol,
         name,
@@ -70,7 +71,7 @@ func (r *currencyConfigRepository) Create(currencyConfig cc.CurrencyConfig) erro
 	return nil
 }
 
-func (r *currencyConfigRepository) GetAll() ([]cc.CurrencyConfig, error) {
+func (r *currencyConfigRepository) GetAll(ctx context.Context) ([]cc.CurrencyConfig, error) {
 	query := `
         SELECT 
             id,
@@ -95,7 +96,7 @@ func (r *currencyConfigRepository) GetAll() ([]cc.CurrencyConfig, error) {
         FROM ` + currencyConfigTable
 	currencyConfigs := []cc.CurrencyConfig{}
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return currencyConfigs, errs.AddTrace(err)
 	}
@@ -199,8 +200,8 @@ func mapCurrencyConfig(rows *sql.Rows, currConf *cc.CurrencyConfig) error {
 	return nil
 }
 
-func (r *currencyConfigRepository) Update(currencyConfig cc.UpdateCurrencyConfig) (err error) {
-	err = r.db.QueryRow(`
+func (r *currencyConfigRepository) Update(ctx context.Context, currencyConfig cc.UpdateCurrencyConfig) (err error) {
+	err = r.db.QueryRowContext(ctx, `
     UPDATE `+currencyConfigTable+`
     SET 
         symbol = ?,
@@ -245,10 +246,10 @@ func (r *currencyConfigRepository) Update(currencyConfig cc.UpdateCurrencyConfig
 	return
 }
 
-func (r *currencyConfigRepository) ToggleActive(userId int, active bool) error {
+func (r *currencyConfigRepository) ToggleActive(ctx context.Context, userId int, active bool) error {
 	query := "UPDATE " + currencyConfigTable + " SET active = ? WHERE id = ?"
 
-	err := r.db.QueryRow(query, active, userId).Err()
+	err := r.db.QueryRowContext(ctx, query, active, userId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

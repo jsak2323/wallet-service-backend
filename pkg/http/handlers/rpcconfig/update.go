@@ -30,7 +30,7 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 			RES.Success = true
 			RES.Message = "Currency successfully updated"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -51,7 +51,7 @@ func (s *RpcConfigService) UpdateHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if err = s.rcRepo.Update(rpcConfig); err != nil {
+	if err = s.rcRepo.Update(ctx, rpcConfig); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCConfig)
 		return
 	}

@@ -29,7 +29,7 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 			RES.Success = true
 			RES.Message = "Currency successfully created"
 
-			config.LoadCurrencyConfigs()
+			config.LoadCurrencyConfigs(ctx)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -50,7 +50,7 @@ func (s *CurrencyConfigService) CreateHandler(w http.ResponseWriter, req *http.R
 		return
 	}
 
-	if err = s.ccRepo.Create(currencyConfig); err != nil {
+	if err = s.ccRepo.Create(ctx, currencyConfig); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateCurrencyConfig)
 		return
 	}

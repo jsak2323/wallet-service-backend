@@ -82,7 +82,7 @@ func (ats *AddressTypeService) AddressTypeHandler(w http.ResponseWriter, req *ht
 	}
 
 	// execute rpc call
-	rpcRes, err := module.AddressType(rpcConfig, address)
+	rpcRes, err := module.AddressType(ctx, rpcConfig, address)
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedAddressType)
 		return

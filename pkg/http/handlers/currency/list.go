@@ -37,14 +37,14 @@ func (s *CurrencyConfigService) ListHandler(w http.ResponseWriter, req *http.Req
 			RES.CurrencyConfigs = append(RES.CurrencyConfigs, curr.Config)
 		}
 	} else {
-		if RES.CurrencyConfigs, err = s.ccRepo.GetAll(); err != nil {
+		if RES.CurrencyConfigs, err = s.ccRepo.GetAll(ctx); err != nil {
 			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllCurrencyConfig)
 			return
 		}
 	}
 
 	for i, currency := range RES.CurrencyConfigs {
-		RES.CurrencyConfigs[i].RpcConfigs, err = s.rcRepo.GetByCurrencyId(currency.Id)
+		RES.CurrencyConfigs[i].RpcConfigs, err = s.rcRepo.GetByCurrencyId(ctx, currency.Id)
 		if err != nil {
 			RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetRPCConfigByCurrencyID)
 			return

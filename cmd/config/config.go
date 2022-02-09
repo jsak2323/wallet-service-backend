@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -87,9 +88,9 @@ func init() {
 		env = "production"
 	}
 	fmt.Println("Environment: " + env)
-
+	ctx := context.Background()
 	LoadAppConfig()
-	LoadCurrencyConfigs()
+	LoadCurrencyConfigs(ctx)
 }
 
 func LoadAppConfig() {
@@ -140,7 +141,7 @@ func ExchangeSlaveMysqlDbConn() (db *sql.DB) {
 	return db
 }
 
-func LoadCurrencyConfigs() {
+func LoadCurrencyConfigs(ctx context.Context) {
 	fmt.Print("Loading Currency Configurations ... ")
 
 	mysqlDb := MysqlDbConn()
@@ -149,7 +150,7 @@ func LoadCurrencyConfigs() {
 	currencyConfigRepo := mysqldb.NewMysqlCurrencyConfigRepository(mysqlDb)
 	rpcConfigRepo := mysqldb.NewMysqlRpcConfigRepository(mysqlDb)
 
-	currencyConfigs, err := currencyConfigRepo.GetAll()
+	currencyConfigs, err := currencyConfigRepo.GetAll(ctx)
 	if err != nil {
 		panic("Unexpected error when executing currencyConfigRepo.GetAll(). Error: " + err.Error())
 	}
@@ -160,7 +161,7 @@ func LoadCurrencyConfigs() {
 			getSymbol = currencyConfig.ParentSymbol
 		}
 
-		rpcConfigs, err := rpcConfigRepo.GetByCurrencyId(currencyConfig.Id)
+		rpcConfigs, err := rpcConfigRepo.GetByCurrencyId(ctx, currencyConfig.Id)
 		if err != nil {
 			panic("Unexpected error when executing rpcConfigRepo.GetByCurrencySymbol(getSymbol). " + getSymbol + " Error: " + err.Error())
 		}

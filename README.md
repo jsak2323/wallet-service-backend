@@ -69,6 +69,18 @@
     // run app
     ./main
 
+## Run HTTP App V2
+    go mod init
+
+    // build app
+    go build cmd/*.go
+
+    // setup database
+
+    // run app
+    ./main
+
+
 ## Run Cron App
     // build app
     go build cmd/server/main.go

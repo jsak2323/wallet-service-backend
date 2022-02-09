@@ -1,39 +1,44 @@
 package ethxmlrpc
 
 import (
-    "errors"
-    "encoding/hex"
+	"context"
+	"encoding/hex"
+	"errors"
 
-    "github.com/btcid/wallet-services-backend-go/cmd/config"
-    rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
-    "github.com/btcid/wallet-services-backend-go/pkg/modules/model"
-    "github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	"github.com/btcid/wallet-services-backend-go/cmd/config"
+	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	"github.com/btcid/wallet-services-backend-go/pkg/lib/util"
+	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-func (es *EthService) SendToAddress(rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*model.SendToAddressRpcRes, error) {
-    txRes := struct {Value string}{}
-    res := model.SendToAddressRpcRes{}
+func (es *EthService) SendToAddress(ctx context.Context, rpcConfig rc.RpcConfig, amountInDecimal string, address string, memo string) (*model.SendToAddressRpcRes, error) {
+	txRes := struct{ Value string }{}
+	res := model.SendToAddressRpcRes{}
 
-    encryptedEncryptKey, err := hex.DecodeString(config.CONF.EthEncryptKeyEncrypted)
-    if err != nil { return &res, err }
+	encryptedEncryptKey, err := hex.DecodeString(config.CONF.EthEncryptKeyEncrypted)
+	if err != nil {
+		return &res, err
+	}
 
-    decryptedencryptedEncryptKey, err := util.Decrypt(encryptedEncryptKey, []byte(config.CONF.EthEncryptKeyKey))
-    if err != nil { return &res, err }
-    
-    rpcReq := util.GenerateRpcReq(rpcConfig, string(decryptedencryptedEncryptKey), address, amountInDecimal)
-    xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
+	decryptedencryptedEncryptKey, err := util.Decrypt(encryptedEncryptKey, []byte(config.CONF.EthEncryptKeyKey))
+	if err != nil {
+		return &res, err
+	}
 
-    err = xmlrpc.XmlRpcCall("send_transaction", &rpcReq, &txRes)
+	rpcReq := util.GenerateRpcReq(rpcConfig, string(decryptedencryptedEncryptKey), address, amountInDecimal)
+	xmlrpc := util.NewXmlRpcClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-    res.TxHash = txRes.Value
+	err = xmlrpc.XmlRpcCall("send_transaction", &rpcReq, &txRes)
 
-    if err == nil {
-        return &res, nil
+	res.TxHash = txRes.Value
 
-    } else if err != nil {
-        return &res, err
+	if err == nil {
+		return &res, nil
 
-    } else {
-        return &res, errors.New("Unexpected error occured in Node.")
-    }
+	} else if err != nil {
+		return &res, err
+
+	} else {
+		return &res, errors.New("Unexpected error occured in Node.")
+	}
 }

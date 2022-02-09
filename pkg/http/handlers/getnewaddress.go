@@ -81,7 +81,7 @@ func (gnas *GetNewAddressService) GetNewAddressHandler(w http.ResponseWriter, re
 	}
 
 	// execute rpc call
-	rpcRes, err := module.GetNewAddress(rpcConfig, addressType)
+	rpcRes, err := module.GetNewAddress(ctx, rpcConfig, addressType)
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetNewAddress)
 		return

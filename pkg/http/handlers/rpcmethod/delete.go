@@ -34,7 +34,7 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 			RES.Success = true
 			RES.Message = "RPC Request successfully deleted"
 
-			config.LoadRpcMethodByRpcConfigId(s.rmRepo, RpcConfigId)
+			config.LoadRpcMethodByRpcConfigId(ctx, s.rmRepo, RpcConfigId)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -55,7 +55,7 @@ func (s *RpcMethodService) DeleteHandler(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if err = s.rcrmRepo.DeleteByRpcMethod(id); err != nil {
+	if err = s.rcrmRepo.DeleteByRpcMethod(ctx, id); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRPCConfigRPCMethodByRPCMethodID)
 		return
 	}

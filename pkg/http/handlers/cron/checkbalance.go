@@ -324,7 +324,7 @@ func (s *CheckBalanceService) checkHotLimit(ctx context.Context, currency cc.Cur
 		}
 
 		logger.Log(" - CheckBalanceService -- Sending "+currency.Symbol+" from hot to cold...", ctx)
-		if res, err := module.SendToAddress(senderRpc, amount, address, memo); err != nil {
+		if res, err := module.SendToAddress(ctx, senderRpc, amount, address, memo); err != nil {
 			errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			return
 		} else {

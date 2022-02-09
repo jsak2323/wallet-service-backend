@@ -127,7 +127,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(ctx context.Context, RES *
 					return
 				}
 
-				rpcRes, err := module.GetBlockCount(rpcConfig)
+				rpcRes, err := module.GetBlockCount(ctx, rpcConfig)
 				if err != nil {
 					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetBlockCount)
 				} else {

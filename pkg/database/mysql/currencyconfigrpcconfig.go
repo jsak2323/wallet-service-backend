@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,10 +22,10 @@ func NewMysqlCurrencyRpcRepository(db *sql.DB) domain.Repository {
 	}
 }
 
-func (r *currencyRpcRepository) Create(currencyConfigId, rpcConfigId int) (err error) {
+func (r *currencyRpcRepository) Create(ctx context.Context, currencyConfigId, rpcConfigId int) (err error) {
 	query := "INSERT INTO " + currencyRpcTable + " (currency_config_id, rpc_config_id) VALUES(?, ?)"
 
-	err = r.db.QueryRow(query, currencyConfigId, rpcConfigId).Err()
+	err = r.db.QueryRowContext(ctx, query, currencyConfigId, rpcConfigId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}
@@ -89,9 +90,9 @@ func (r *currencyRpcRepository) DeleteByRpcConfigId(rpcConfigId int) (err error)
 	return nil
 }
 
-func (r *currencyRpcRepository) Delete(currencyConfigId, rpcConfigId int) (err error) {
+func (r *currencyRpcRepository) Delete(ctx context.Context, currencyConfigId, rpcConfigId int) (err error) {
 	query := "DELETE FROM " + currencyRpcTable + " WHERE currency_config_id = ? and rpc_config_id = ?"
-	err = r.db.QueryRow(query, currencyConfigId, rpcConfigId).Err()
+	err = r.db.QueryRowContext(ctx, query, currencyConfigId, rpcConfigId).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

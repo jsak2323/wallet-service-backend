@@ -99,7 +99,7 @@ func (gbcs *GetBalanceService) InvokeGetBalance(ctx context.Context, RES *GetBal
 					return
 				}
 
-				rpcRes, err := module.GetBalance(rpcConfig)
+				rpcRes, err := module.GetBalance(ctx, rpcConfig)
 				if err != nil {
 					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetBalance)
 

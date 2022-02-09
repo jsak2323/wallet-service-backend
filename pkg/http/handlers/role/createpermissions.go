@@ -44,7 +44,7 @@ func (svc *RoleService) CreatePermissionHandler(w http.ResponseWriter, req *http
 		return
 	}
 
-	if err = svc.rpRepo.Create(rpReq.RoleId, rpReq.PermissionId); err != nil {
+	if err = svc.rpRepo.Create(ctx, rpReq.RoleId, rpReq.PermissionId); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRolePermission)
 		return
 	}

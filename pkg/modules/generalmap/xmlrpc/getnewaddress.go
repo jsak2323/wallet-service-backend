@@ -1,6 +1,7 @@
 package xmlrpc
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -11,10 +12,10 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/modules/model"
 )
 
-func (gms *GeneralMapService) GetNewAddress(rpcConfig rc.RpcConfig, addressType string) (res *model.GetNewAddressRpcRes, err error) {
+func (gms *GeneralMapService) GetNewAddress(ctx context.Context, rpcConfig rc.RpcConfig, addressType string) (res *model.GetNewAddressRpcRes, err error) {
 	client := util.NewXmlRpcMapClient(rpcConfig.Host, rpcConfig.Port, rpcConfig.Path)
 
-	rpcMethod, err := config.GetRpcMethod(gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
+	rpcMethod, err := config.GetRpcMethod(ctx, gms.rpcMethodRepo, rpcConfig.Id, rm.TypeGetBalance)
 	if err != nil {
 		return &model.GetNewAddressRpcRes{}, err
 	}

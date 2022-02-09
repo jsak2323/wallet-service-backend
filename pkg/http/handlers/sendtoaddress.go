@@ -97,7 +97,7 @@ func (stas *SendToAddressService) SendToAddressHandler(w http.ResponseWriter, re
 	}
 
 	// execute rpc call
-	rpcRes, err := module.SendToAddress(rpcConfig, amountInDecimal, address, memo)
+	rpcRes, err := module.SendToAddress(ctx, rpcConfig, amountInDecimal, address, memo)
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedSendToAddress)
 		return
