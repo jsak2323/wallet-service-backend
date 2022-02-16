@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -27,9 +28,9 @@ func DecodeAndLogPostRequest(req *http.Request, output interface{}) error {
 	return nil
 }
 
-func GetMaintenanceList(systemConfigRepo sc.Repository) (map[string]bool, error) {
+func GetMaintenanceList(ctx context.Context, systemConfigRepo sc.Repository) (map[string]bool, error) {
 	maintenanceList := map[string]bool{}
-	maintenanceListObj, err := systemConfigRepo.GetByName(sc.MAINTENANCE_LIST)
+	maintenanceListObj, err := systemConfigRepo.GetByName(ctx, sc.MAINTENANCE_LIST)
 	if err != nil {
 		return maintenanceList, errs.AddTrace(err)
 	}

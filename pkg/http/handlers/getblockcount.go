@@ -75,7 +75,7 @@ func (gbcs *GetBlockCountService) InvokeGetBlockCount(ctx context.Context, RES *
 		}
 	}()
 
-	maintenanceList, err := GetMaintenanceList(gbcs.systemConfigRepo)
+	maintenanceList, err := GetMaintenanceList(ctx, gbcs.systemConfigRepo)
 	if err != nil {
 		logger.ErrorLog(errs.Logged(errs.FailedGetMaintenanceList), ctx)
 	}

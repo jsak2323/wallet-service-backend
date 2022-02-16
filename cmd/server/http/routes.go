@@ -9,6 +9,7 @@ import (
 	h "github.com/btcid/wallet-services-backend-go/pkg/http/handlers"
 	hc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/currency"
 	hd "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/deposit"
+	hf "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/fireblocks"
 	hp "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/permission"
 	hr "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/role"
 	hrc "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/rpcconfig"
@@ -187,7 +188,7 @@ func setRoutes(r *mux.Router, mysqlRepos mysql.MysqlRepositories, exchangeApiRep
 	   curl --request PUT localhost:3000/systemconfig/maintenancelist/add/BTC
 	*/
 
-	fireblocksService := h.NewFireblocksService(mysqlRepos.ColdBalance)
+	fireblocksService := hf.NewFireblocksService(mysqlRepos.ColdBalance)
 	r.HandleFunc("/fireblocks/tx_sign_request", fireblocksService.CallbackHandler).Methods(http.MethodPost).Name("fireblockscallback")
 
 	auth := authm.NewAuthMiddleware(mysqlRepos.Role, mysqlRepos.Permission, mysqlRepos.RolePermission)

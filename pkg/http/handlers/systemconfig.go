@@ -45,7 +45,7 @@ func (scs *SystemConfigService) MaintenanceListHandler(w http.ResponseWriter, re
 	defer handleResponse()
 
 	// get maintenance list
-	maintenanceList, err := GetMaintenanceList(scs.systemConfigRepo)
+	maintenanceList, err := GetMaintenanceList(ctx, scs.systemConfigRepo)
 	if err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetMaintenanceList)
 		return

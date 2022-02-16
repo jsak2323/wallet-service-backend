@@ -61,7 +61,7 @@ func (hcs *HealthCheckService) HealthCheckHandler() {
 	}
 
 	// get maintenance list
-	maintenanceList, err := h.GetMaintenanceList(hcs.systemConfigRepo)
+	maintenanceList, err := h.GetMaintenanceList(ctx, hcs.systemConfigRepo)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.ErrorHealthCheckHandler)
 	}

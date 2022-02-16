@@ -4,28 +4,36 @@ import (
 	"net/http"
 
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/currency"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/deposit"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/fireblocks"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/permission"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/role"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/rpcconfig"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/rpcmethod"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/rpcrequest"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/rpcresponse"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/user"
-
-	// "github.com/btcid/wallet-services-backend-go/pkg/http/handlers/currency"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/walletrpc"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/withdraw"
 	"github.com/btcid/wallet-services-backend-go/pkg/service"
 	"github.com/gorilla/mux"
 )
 
 type Rest struct {
-	routes     *mux.Router
-	svc        service.Service
-	permission permission.PermissionHandler
-	role       role.RoleHandler
-	user       user.UserHandler
-	currency   currency.CurrencyHandler
-	rpcConfig  rpcconfig.RpcConfigHandler
-	rpcMethod  rpcmethod.RpcMethodHandler
-	rpcRequest rpcrequest.RpcRequestHandler
+	routes      *mux.Router
+	svc         service.Service
+	permission  permission.PermissionHandler
+	role        role.RoleHandler
+	user        user.UserHandler
+	currency    currency.CurrencyHandler
+	rpcConfig   rpcconfig.RpcConfigHandler
+	rpcMethod   rpcmethod.RpcMethodHandler
+	rpcRequest  rpcrequest.RpcRequestHandler
+	rpcresponse rpcresponse.RpcResponseHandler
+	deposit     deposit.DepositHandler
+	fireblocks  fireblocks.FireblocksHandler
+	withdraw    withdraw.WithdrawHandler
+	walletrpc   walletrpc.WalletRpcHandler
 }
 
 // New ...
@@ -34,15 +42,20 @@ func New(
 	svc service.Service,
 ) *Rest {
 	return &Rest{
-		routes:     routes,
-		svc:        svc,
-		permission: permission.NewPermissionHandler(routes, svc),
-		role:       role.NewRoleHandler(routes, svc),
-		user:       user.NewUserHandler(routes, svc),
-		currency:   currency.NewCurrencyHandler(routes, svc),
-		rpcConfig:  rpcconfig.NewRpcConfigHandler(routes, svc),
-		rpcMethod:  rpcmethod.NewRpcMethodHandler(routes, svc),
-		rpcRequest: rpcrequest.NewRpcRequestHandler(routes, svc),
+		routes:      routes,
+		svc:         svc,
+		permission:  permission.NewPermissionHandler(routes, svc),
+		role:        role.NewRoleHandler(routes, svc),
+		user:        user.NewUserHandler(routes, svc),
+		currency:    currency.NewCurrencyHandler(routes, svc),
+		rpcConfig:   rpcconfig.NewRpcConfigHandler(routes, svc),
+		rpcMethod:   rpcmethod.NewRpcMethodHandler(routes, svc),
+		rpcRequest:  rpcrequest.NewRpcRequestHandler(routes, svc),
+		rpcresponse: rpcresponse.NewRpcResponseHandler(routes, svc),
+		deposit:     deposit.NewDepositHandler(routes, svc),
+		fireblocks:  fireblocks.NewFireblocksHandler(routes, svc),
+		withdraw:    withdraw.NewWithdrawHandler(routes, svc),
+		walletrpc:   walletrpc.NewWalletRpcHandler(routes, svc),
 	}
 }
 
@@ -120,4 +133,58 @@ func (re *Rest) Route() {
 	rpcRequest.HandleFunc("", rpcRequestHandler.CreateHandler).Methods(http.MethodPost).Name("createrpcrequest")
 	rpcRequest.HandleFunc("", rpcRequestHandler.UpdateHandler).Methods(http.MethodPut).Name("updaterpcrequest")
 	rpcRequest.HandleFunc("/{id}/rpcmethod/{rpc_method_id}", rpcRequestHandler.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcrequest")
+
+	rpcResponse := re.routes.PathPrefix("/rpcresponse").Subrouter()
+	rpcResponseHandler := re.rpcresponse
+	rpcResponse.HandleFunc("/rpcmethod/{rpc_method_id}", rpcResponseHandler.GetByRpcMethodIdHandler).Methods(http.MethodGet).Name("rpcresponsebyrpcmethod")
+	rpcResponse.HandleFunc("", rpcResponseHandler.CreateHandler).Methods(http.MethodPost).Name("createrpcresponse")
+	rpcResponse.HandleFunc("", rpcResponseHandler.UpdateHandler).Methods(http.MethodPut).Name("updaterpcresponse")
+	rpcResponse.HandleFunc("/{id}/rpcmethod/{rpc_method_id}", rpcResponseHandler.DeleteHandler).Methods(http.MethodDelete).Name("deleterpcresponse")
+
+	deposit := re.routes.PathPrefix("/deposit").Subrouter()
+	depositHandler := re.deposit
+	deposit.HandleFunc("/deposit", depositHandler.ListHandler).Methods(http.MethodGet).Name("listdeposits")
+
+	fireblocks := re.routes.PathPrefix("/fireblocks").Subrouter()
+	fireblocksHandler := re.fireblocks
+	fireblocks.HandleFunc("/tx_sign_request", fireblocksHandler.CallbackHandler).Methods(http.MethodPost).Name("fireblockscallback")
+
+	withdraw := re.routes.PathPrefix("/withdraw").Subrouter()
+	withdrawHandler := re.deposit
+	withdraw.HandleFunc("", withdrawHandler.ListHandler).Methods(http.MethodGet).Name("listwithdraws")
+
+	// command
+	walletRpcHandler := re.walletrpc
+	listTransactions := re.routes.PathPrefix("/listtransactions").Subrouter()
+	listTransactions.HandleFunc("", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	listTransactions.HandleFunc("/{limit}", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	re.routes.HandleFunc("/{symbol}/listtransactions", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	re.routes.HandleFunc("/{symbol}/listtransactions/{limit}", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+
+	sendToAddress := re.routes.PathPrefix("/sendtoaddress").Subrouter()
+	sendToAddress.HandleFunc("", walletRpcHandler.SendToAddressHandler).Methods(http.MethodPost).Name("sendhotwallet")
+
+	re.routes.HandleFunc("/{symbol}/addresstype/{address}", walletRpcHandler.AddressTypeHandler).Methods(http.MethodGet)
+
+	nodes := re.routes.PathPrefix("/nodes").Subrouter()
+	nodes.HandleFunc("/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet)
+	nodes.HandleFunc("/{symbol}/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet)
+
+	wallet := re.routes.PathPrefix("/wallet").Subrouter()
+	wallet.HandleFunc("/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
+	wallet.HandleFunc("/{currency_id}/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
+
+	re.routes.HandleFunc("/getblockcount", walletRpcHandler.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcount")
+	re.routes.HandleFunc("/{symbol}/getblockcount", walletRpcHandler.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcountbysymbol")
+
+	re.routes.HandleFunc("/gethealthcheck", walletRpcHandler.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheck")
+	re.routes.HandleFunc("/{symbol}/gethealthcheck", walletRpcHandler.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheckbysymbol")
+
+	re.routes.HandleFunc("/{symbol}/getnewaddress", walletRpcHandler.GetNewAddressHandler).Methods(http.MethodGet)
+	re.routes.HandleFunc("/{symbol}/getnewaddress/{type}", walletRpcHandler.GetNewAddressHandler).Methods(http.MethodGet)
+
+	re.routes.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", walletRpcHandler.GetLogHandler).Methods(http.MethodGet).Name("getlog")
+
+	// // r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
+
 }

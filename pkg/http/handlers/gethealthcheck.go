@@ -69,7 +69,7 @@ func (ghcs *GetHealthCheckService) InvokeGetHealthCheck(ctx context.Context, RES
 		}
 	}()
 	// get maintenance list
-	maintenanceList, err := GetMaintenanceList(ghcs.systemConfigRepo)
+	maintenanceList, err := GetMaintenanceList(ctx, ghcs.systemConfigRepo)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetMaintenanceList)
 	}

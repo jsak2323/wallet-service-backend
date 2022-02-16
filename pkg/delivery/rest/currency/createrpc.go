@@ -46,7 +46,7 @@ func (re *Rest) CreateRpcHandler(w http.ResponseWriter, req *http.Request) {
 
 	service := re.svc.Currency
 	if err = service.CreateCurrencyRpc(ctx, cRreq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateCurrencyRPC)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

@@ -45,7 +45,7 @@ func (re *Rest) UpdateHandler(w http.ResponseWriter, req *http.Request) {
 
 	service := re.svc.RpcMethod
 	if err = service.Update(ctx, rpcMethod); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCMethod)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

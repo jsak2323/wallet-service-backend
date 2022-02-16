@@ -1,6 +1,7 @@
-package handlers
+package fireblocks
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -29,9 +30,9 @@ const IgnoreTransaction = "IGNORE"
 const InvalidDestAddressReason = "Invalid destination address"
 
 type FireblocksSignReq struct {
-	Asset       string `json:"asset"`
-	DestId      string `json:"destId"`
-	DestAddress string `json:"destAddress"`
+	Asset       string `json:"asset" validate:"required"`
+	DestId      string `json:"destId" validate:"required"`
+	DestAddress string `json:"destAddress" validate:"required"`
 }
 
 type FireblocksSignRes struct {
@@ -83,12 +84,12 @@ func (s *FireblocksService) CallbackHandler(w http.ResponseWriter, req *http.Req
 	}
 
 	if SignReq.DestId == config.CONF.FireblocksHotVaultId {
-		s.validateHotDestAddress(SignReq, &RES)
+		s.validateHotDestAddress(ctx, SignReq, &RES)
 	}
 }
 
-func (s *FireblocksService) validateHotDestAddress(signReq FireblocksSignReq, res *FireblocksSignRes) {
-	coldBalance, err := s.cbRepo.GetByFireblocksName(signReq.Asset)
+func (s *FireblocksService) validateHotDestAddress(ctx context.Context, signReq FireblocksSignReq, res *FireblocksSignRes) {
+	coldBalance, err := s.cbRepo.GetByFireblocksName(ctx, signReq.Asset)
 	if err != nil {
 		res.Error = errs.AssignErr(errs.AddTrace(err), errs.InternalServerErr)
 		return

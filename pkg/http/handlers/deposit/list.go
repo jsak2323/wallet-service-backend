@@ -45,7 +45,7 @@ func (s *DepositService) ListHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if RES.Deposits, err = s.dRepo.Get(page, limit, filters); err != nil {
+	if RES.Deposits, err = s.dRepo.Get(ctx, page, limit, filters); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetDeposit)
 		return
 	}

@@ -32,7 +32,7 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 			RES.Success = true
 			RES.Message = "RPC Response successfully updated"
 
-			config.LoadRpcResponseByRpcMethodId(s.rrsRepo, rpcResponse.RpcMethodId)
+			config.LoadRpcResponseByRpcMethodId(ctx, s.rrsRepo, rpcResponse.RpcMethodId)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -53,7 +53,7 @@ func (s *RpcResponseService) UpdateHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if err = s.rrsRepo.Update(rpcResponse); err != nil {
+	if err = s.rrsRepo.Update(ctx, rpcResponse); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRPCResponse)
 		return
 	}

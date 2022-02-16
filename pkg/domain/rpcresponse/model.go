@@ -5,7 +5,7 @@ type CreateRpcResponse struct {
 	DataTypeXMLTag  string `validate:"required"`
 	TargetFieldName string `validate:"required"`
 	ParseType       string `validate:"required"`
-	JsonFieldsStr   string `validate:"required"`
+	JsonFieldsStr   string
 	JsonFields      []JsonField
 	RpcMethodId     int `validate:"required"`
 }

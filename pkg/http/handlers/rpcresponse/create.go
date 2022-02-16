@@ -31,7 +31,7 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 			RES.Success = true
 			RES.Message = "Rpc Response successfully created"
 
-			config.LoadRpcResponseByRpcMethodId(s.rrsRepo, rpcResponse.RpcMethodId)
+			config.LoadRpcResponseByRpcMethodId(ctx, s.rrsRepo, rpcResponse.RpcMethodId)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -56,7 +56,7 @@ func (s *RpcResponseService) CreateHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if err = s.rrsRepo.Create(rpcResponse); err != nil {
+	if err = s.rrsRepo.Create(ctx, rpcResponse); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCResponse)
 		return
 	}

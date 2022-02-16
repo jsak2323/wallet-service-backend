@@ -48,7 +48,7 @@ func (re *Rest) UpdateHandler(w http.ResponseWriter, req *http.Request) {
 
 	service := re.svc.Currency
 	if err = service.UpdateCurrencyConfig(ctx, currencyConfig); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateCurrencyConfig)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

@@ -1,8 +1,10 @@
 package rpcresponse
 
+import "context"
+
 type Repository interface {
-	Create(CreateRpcResponse) error
-	GetByRpcMethodId(rpcMethodId int) ([]RpcResponse, error)
-	Update(RpcResponse) error
-	Delete(id int) error
+	Create(context.Context, CreateRpcResponse) error
+	GetByRpcMethodId(ctx context.Context, rpcMethodId int) ([]RpcResponse, error)
+	Update(context.Context, RpcResponse) error
+	Delete(ctx context.Context, id int) error
 }

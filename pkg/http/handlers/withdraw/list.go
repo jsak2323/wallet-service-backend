@@ -50,7 +50,7 @@ func (s *WithdrawService) ListHandler(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	if RES.Withdraws, err = s.wRepo.Get(page, limit, filters); err != nil {
+	if RES.Withdraws, err = s.wRepo.Get(ctx, page, limit, filters); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetListWithdraws)
 		return
 	}

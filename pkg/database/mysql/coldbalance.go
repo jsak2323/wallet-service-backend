@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
@@ -85,10 +86,10 @@ func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalan
 	return balance, nil
 }
 
-func (r *coldBalanceRepository) GetByFireblocksName(name string) (balance domain.ColdBalance, err error) {
+func (r *coldBalanceRepository) GetByFireblocksName(ctx context.Context, name string) (balance domain.ColdBalance, err error) {
 	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where fireblocks_name = ?"
 
-	if err = r.db.QueryRow(query, name).Scan(
+	if err = r.db.QueryRowContext(ctx, query, name).Scan(
 		&balance.Id,
 		&balance.CurrencyId,
 		&balance.Name,

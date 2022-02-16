@@ -50,7 +50,7 @@ func (re *Rest) DeleteRolePermissionHandler(w http.ResponseWriter, req *http.Req
 
 	service := re.svc.Role
 	if err = service.DeleteRolePermission(ctx, roleId, permissionId); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeleteRolePermission)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

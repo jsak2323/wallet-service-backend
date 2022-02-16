@@ -42,7 +42,7 @@ func (gms *GeneralMapService) SendToAddress(ctx context.Context, rpcConfig rc.Rp
 
 	req := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(ctx, gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.SendToAddressRpcRes{}, err
 	}

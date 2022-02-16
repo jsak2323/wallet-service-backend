@@ -46,7 +46,7 @@ func (gms *GeneralMapService) GetBalance(ctx context.Context, rpcConfig rc.RpcCo
 
 	req := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(ctx, gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.GetBalanceRpcRes{}, err
 	}

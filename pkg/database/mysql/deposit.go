@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/deposit"
@@ -44,7 +45,7 @@ func (r *depositRepository) CreateOrUpdate(deposit domain.Deposit) (id int, err 
 	return int(lastInsertId), nil
 }
 
-func (r *depositRepository) Get(page, limit int, filters []map[string]interface{}) ([]domain.Deposit, error) {
+func (r *depositRepository) Get(ctx context.Context, page, limit int, filters []map[string]interface{}) ([]domain.Deposit, error) {
 	var params []interface{}
 	var query string
 
@@ -65,7 +66,7 @@ func (r *depositRepository) Get(page, limit int, filters []map[string]interface{
 	query = query + " limit ?, ? "
 	params = append(params, page, limit)
 
-	return r.queryRows(query, params...)
+	return r.queryRows(ctx, query, params...)
 }
 
 func (r *depositRepository) GetById(id int) (deposit domain.Deposit, err error) {
@@ -95,10 +96,10 @@ func (r *depositRepository) GetById(id int) (deposit domain.Deposit, err error) 
 	return deposit, nil
 }
 
-func (r *depositRepository) queryRows(query string, params ...interface{}) (deposits []domain.Deposit, err error) {
+func (r *depositRepository) queryRows(ctx context.Context, query string, params ...interface{}) (deposits []domain.Deposit, err error) {
 	var successTime sql.NullString
 
-	rows, err := r.db.Query(query, params...)
+	rows, err := r.db.QueryContext(ctx, query, params...)
 	if err != nil {
 		return []domain.Deposit{}, errs.AddTrace(err)
 	}

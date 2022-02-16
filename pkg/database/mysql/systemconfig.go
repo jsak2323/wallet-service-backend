@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -44,12 +45,12 @@ func (r *systemConfigRepository) GetAll() ([]sc.SystemConfig, error) {
 	return systemConfigs, nil
 }
 
-func (r *systemConfigRepository) GetByName(configName string) (*sc.SystemConfig, error) {
+func (r *systemConfigRepository) GetByName(ctx context.Context, configName string) (*sc.SystemConfig, error) {
 	query := "SELECT * FROM " + systemConfigTable
 	query += " WHERE name = \"" + configName + "\" "
 	var sysConf sc.SystemConfig
 
-	rows, err := r.db.Query(query)
+	rows, err := r.db.QueryContext(ctx, query)
 	defer rows.Close()
 	if err != nil {
 		return &sysConf, errs.AddTrace(err)

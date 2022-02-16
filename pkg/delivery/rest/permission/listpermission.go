@@ -38,7 +38,7 @@ func (re *Rest) ListPermissionHandler(w http.ResponseWriter, req *http.Request) 
 	service := re.svc.Permission
 	RES.Permissions, err = service.ListPermissions(ctx, page, limit)
 	if err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllPermission)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

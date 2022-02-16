@@ -34,7 +34,7 @@ func (re *Rest) ListHandler(w http.ResponseWriter, req *http.Request) {
 
 	service := re.svc.Currency
 	if RES, err = service.ListCurrency(ctx); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllCurrencyConfig)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

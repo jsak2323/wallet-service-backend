@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/withdraw"
@@ -55,7 +56,7 @@ func (r *withdrawRepository) CreateOrUpdate(withdraw domain.Withdraw) (id int, e
 	return int(lastInsertId), nil
 }
 
-func (r *withdrawRepository) Get(page, limit int, filters []map[string]interface{}) ([]domain.Withdraw, error) {
+func (r *withdrawRepository) Get(ctx context.Context, page, limit int, filters []map[string]interface{}) ([]domain.Withdraw, error) {
 	var params []interface{}
 	var query string
 
@@ -76,7 +77,7 @@ func (r *withdrawRepository) Get(page, limit int, filters []map[string]interface
 	query = query + " limit ?, ? "
 	params = append(params, page, limit)
 
-	return r.queryRows(query, params...)
+	return r.queryRows(ctx, query, params...)
 }
 
 func (r *withdrawRepository) GetById(id int) (withdraw domain.Withdraw, err error) {
@@ -108,10 +109,10 @@ func (r *withdrawRepository) GetById(id int) (withdraw domain.Withdraw, err erro
 	return withdraw, nil
 }
 
-func (r *withdrawRepository) queryRows(query string, params ...interface{}) (deposits []domain.Withdraw, err error) {
+func (r *withdrawRepository) queryRows(ctx context.Context, query string, params ...interface{}) (deposits []domain.Withdraw, err error) {
 	var successTime sql.NullString
 
-	rows, err := r.db.Query(query, params...)
+	rows, err := r.db.QueryContext(ctx, query, params...)
 	if err != nil {
 		return []domain.Withdraw{}, errs.AddTrace(err)
 	}

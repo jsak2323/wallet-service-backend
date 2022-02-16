@@ -40,7 +40,7 @@ func (gms *GeneralMapService) ListTransactions(ctx context.Context, rpcConfig rc
 
 	req := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(ctx, gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.ListTransactionsRpcRes{}, err
 	}

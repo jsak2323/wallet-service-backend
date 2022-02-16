@@ -42,7 +42,7 @@ func (re *Rest) UpdateRoleHandler(w http.ResponseWriter, req *http.Request) {
 
 	service := re.svc.Role
 	if err = service.UpdateRole(ctx, updateReq); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateRole)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

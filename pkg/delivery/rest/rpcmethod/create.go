@@ -46,7 +46,7 @@ func (re *Rest) CreateHandler(w http.ResponseWriter, req *http.Request) {
 
 	service := re.svc.RpcMethod
 	if err = service.Create(ctx, rpcMethod); err != nil {
-		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedCreateRPCConfigRPCMethod)
+		RES.Error = errs.AddTrace(err)
 		return
 	}
 }

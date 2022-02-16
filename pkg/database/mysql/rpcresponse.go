@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,9 +22,9 @@ func NewMysqlRpcResponseRepository(db *sql.DB) rr.Repository {
 	}
 }
 
-func (r *rpcResponseRepository) Create(rpcResponse rr.CreateRpcResponse) error {
+func (r *rpcResponseRepository) Create(ctx context.Context, rpcResponse rr.CreateRpcResponse) error {
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
 	INSERT INTO `+rpcResponseTable+`(
 		xml_path,
 		field_name,
@@ -45,10 +46,10 @@ func (r *rpcResponseRepository) Create(rpcResponse rr.CreateRpcResponse) error {
 	return nil
 }
 
-func (r *rpcResponseRepository) GetByRpcMethodId(rpcMethodId int) (rpcResponses []rr.RpcResponse, err error) {
+func (r *rpcResponseRepository) GetByRpcMethodId(ctx context.Context, rpcMethodId int) (rpcResponses []rr.RpcResponse, err error) {
 	query := `SELECT id, xml_path, field_name, data_type_tag, parse_type, json_fields, rpc_method_id FROM ` + rpcResponseTable + ` WHERE rpc_method_id = ?`
 
-	rows, err := r.db.Query(query, rpcMethodId)
+	rows, err := r.db.QueryContext(ctx, query, rpcMethodId)
 	if err != nil {
 		return []rr.RpcResponse{}, errs.AddTrace(err)
 	}
@@ -67,7 +68,7 @@ func (r *rpcResponseRepository) GetByRpcMethodId(rpcMethodId int) (rpcResponses 
 	return rpcResponses, nil
 }
 
-func (r *rpcResponseRepository) Update(rpcResponse rr.RpcResponse) error {
+func (r *rpcResponseRepository) Update(ctx context.Context, rpcResponse rr.RpcResponse) error {
 
 	err := r.db.QueryRow(`
 	UPDATE `+rpcResponseTable+`
@@ -108,10 +109,10 @@ func mapRpcResponse(rows *sql.Rows, rpcResponse *rr.RpcResponse) error {
 	return nil
 }
 
-func (r *rpcResponseRepository) Delete(Id int) (err error) {
+func (r *rpcResponseRepository) Delete(ctx context.Context, Id int) (err error) {
 	query := "DELETE FROM " + rpcResponseTable + " WHERE id = ?"
 
-	err = r.db.QueryRow(query, Id).Err()
+	err = r.db.QueryRowContext(ctx, query, Id).Err()
 	if err != nil {
 		return errs.AddTrace(err)
 	}

@@ -41,7 +41,7 @@ func (gms *GeneralMapService) GetBlockCount(ctx context.Context, rpcConfig rc.Rp
 
 	rpcReq := util.GenerateRpcMapRequest(args)
 
-	resFieldMap, err := config.GetRpcResponseMap(gms.rpcResponseRepo, rpcMethod.Id)
+	resFieldMap, err := config.GetRpcResponseMap(ctx, gms.rpcResponseRepo, rpcMethod.Id)
 	if err != nil {
 		return &model.GetBlockCountRpcRes{}, err
 	}
