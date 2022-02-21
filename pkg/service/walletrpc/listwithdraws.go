@@ -13,7 +13,7 @@ import (
 
 type ListWithdrawsHandlerResponseMap map[string]map[string][]handlers.ListWithdrawsRes // map by symbol, token_type
 
-func (s *walletRpcService) InvokeListWithdraws(ctx context.Context, symbol, tokenType string, limit int) (RES *ListWithdrawsHandlerResponseMap, err error) {
+func (s *walletRpcService) InvokeListWithdraws(ctx context.Context, RES *ListWithdrawsHandlerResponseMap, symbol, tokenType string, limit int) {
 	rpcConfigCount := 0
 	resChannel := make(chan handlers.ListWithdrawsRes)
 
@@ -50,13 +50,13 @@ func (s *walletRpcService) InvokeListWithdraws(ctx context.Context, symbol, toke
 			go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
 				module, err := s.moduleServices.GetModule(currencyConfig.Id)
 				if err != nil {
-					err = errs.AddTrace(errs.AddTrace(err))
+					_RES.Error = errs.AddTrace(err)
 					return
 				}
 
 				rpcRes, err := module.ListWithdraws(ctx, rpcConfig, limit)
 				if err != nil {
-					err = errs.AddTrace(errs.AddTrace(err))
+					_RES.Error = errs.AddTrace(err)
 
 				} else {
 					_RES.Withdraws = rpcRes.Withdraws
@@ -83,5 +83,4 @@ func (s *walletRpcService) InvokeListWithdraws(ctx context.Context, symbol, toke
 		}
 	}
 
-	return RES, err
 }

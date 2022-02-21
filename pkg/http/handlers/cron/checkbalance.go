@@ -289,7 +289,7 @@ func (s *CheckBalanceService) checkHotLimit(ctx context.Context, currency cc.Cur
 		return
 	}
 
-	coldWallet, err := s.coldWalletService.SettlementWallet(currency.Id)
+	coldWallet, err := s.coldWalletService.SettlementWallet(ctx, currency.Id)
 	if err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 		return
@@ -334,7 +334,7 @@ func (s *CheckBalanceService) checkHotLimit(ctx context.Context, currency cc.Cur
 				errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			}
 
-			if err = s.coldWalletService.UpdateBalance(coldWallet.Id, balanceToUpdate); err != nil {
+			if err = s.coldWalletService.UpdateBalance(ctx, coldWallet.Id, balanceToUpdate); err != nil {
 				errField = errs.AssignErr(errs.AddTrace(err), errs.FailedCheckHotLimit)
 			}
 

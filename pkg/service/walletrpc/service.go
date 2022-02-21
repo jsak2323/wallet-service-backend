@@ -20,9 +20,10 @@ type WalletRpcService interface {
 	InvokeGetHealthCheck(ctx context.Context, symbol, tokenType string) (RES *GetHealthCheckHandlerResponseMap, err error)
 	GetLog(ctx context.Context, SYMBOL string, TOKENTYPE string, rpcConfigType string, date string) (resp *http.Response, err error)
 	GetNewAddress(ctx context.Context, symbol string, tokenType string, addressType string) (resp *handlers.GetNewAddressRes, err error)
-	InvokeListTransactions(ctx context.Context, symbol, tokenType string, limit int) (RES *ListTransactionsHandlerResponseMap, err error)
-	InvokeListWithdraws(ctx context.Context, symbol, tokenType string, limit int) (RES *ListWithdrawsHandlerResponseMap, err error)
+	InvokeListTransactions(ctx context.Context, RES *ListTransactionsHandlerResponseMap, symbol, tokenType string, limit int)
+	InvokeListWithdraws(ctx context.Context, RES *ListWithdrawsHandlerResponseMap, symbol, tokenType string, limit int)
 	SendToAddress(ctx context.Context, req handlers.SendToAddressRequest) (resp *handlers.SendToAddressRes, err error)
+	ListMaintenance(ctx context.Context, action, value string) (err error)
 }
 
 type walletRpcService struct {

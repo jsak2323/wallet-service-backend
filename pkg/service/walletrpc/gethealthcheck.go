@@ -15,7 +15,7 @@ type GetHealthCheckHandlerResponseMap map[string]map[string][]handlers.GetHealth
 func (s *walletRpcService) InvokeGetHealthCheck(ctx context.Context, symbol, tokenType string) (RES *GetHealthCheckHandlerResponseMap, err error) {
 
 	// get maintenance list
-	maintenanceList, err := s.GetMaintenanceList(ctx, s.systemConfigRepo)
+	maintenanceList, err := s.GetMaintenanceList(ctx)
 	if err != nil {
 		err = errs.AssignErr(errs.AddTrace(err), errs.FailedGetMaintenanceList)
 	}

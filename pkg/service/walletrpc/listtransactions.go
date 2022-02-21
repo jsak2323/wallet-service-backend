@@ -2,7 +2,6 @@ package walletrpc
 
 import (
 	"context"
-	"errors"
 	"strconv"
 	"strings"
 
@@ -16,7 +15,7 @@ import (
 
 type ListTransactionsHandlerResponseMap map[string]map[string][]handlers.ListTransactionsRes // map by symbol, token_type
 
-func (s *walletRpcService) InvokeListTransactions(ctx context.Context, symbol, tokenType string, limit int) (RES *ListTransactionsHandlerResponseMap, err error) {
+func (s *walletRpcService) InvokeListTransactions(ctx context.Context, RES *ListTransactionsHandlerResponseMap, symbol, tokenType string, limit int) {
 	var (
 		rpcConfigCount = 0
 		resChannel     = make(chan handlers.ListTransactionsRes)
@@ -55,7 +54,7 @@ func (s *walletRpcService) InvokeListTransactions(ctx context.Context, symbol, t
 			go func(currencyConfig cc.CurrencyConfig, rpcConfig rc.RpcConfig) {
 				module, err := s.moduleServices.GetModule(currencyConfig.Id)
 				if err != nil {
-					err = errs.AssignErr(errs.AddTrace(err), errs.FailedGetModule)
+					_RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetModule)
 					return
 				}
 
@@ -66,7 +65,6 @@ func (s *walletRpcService) InvokeListTransactions(ctx context.Context, symbol, t
 				} else {
 					logger.Log(" - InvokeListTransactions Symbol: "+currencyConfig.Symbol+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host, ctx)
 					_RES.Transactions = rpcRes.Transactions
-					err = errs.AssignErr(errs.AddTrace(errors.New(rpcRes.Error)), errs.FailedListTransactions)
 				}
 
 				resChannel <- _RES
@@ -94,5 +92,5 @@ func (s *walletRpcService) InvokeListTransactions(ctx context.Context, symbol, t
 		}
 	}
 
-	return RES, err
+	// return RES, err
 }

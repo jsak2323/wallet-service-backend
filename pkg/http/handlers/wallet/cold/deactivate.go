@@ -15,6 +15,7 @@ func (svc *ColdWalletService) DeactivateHandler(w http.ResponseWriter, req *http
 		id  int
 		RES StandardRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -39,7 +40,7 @@ func (svc *ColdWalletService) DeactivateHandler(w http.ResponseWriter, req *http
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.InvalidRequest)
 	}
 
-	if err = svc.cbRepo.ToggleActive(id, false); err != nil {
+	if err = svc.cbRepo.ToggleActive(ctx, id, false); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedDeactivatedColdBalance)
 		return
 	}

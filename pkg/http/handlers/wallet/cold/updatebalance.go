@@ -1,6 +1,7 @@
 package cold
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -12,6 +13,7 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 	var updateReq UpdateBalanceReq
 	var RES StandardRes
 	var err error
+	var ctx = req.Context()
 
 	handleResponse := func() {
 		resStatus := http.StatusOK
@@ -33,16 +35,16 @@ func (s *ColdWalletService) UpdateBalanceHandler(w http.ResponseWriter, req *htt
 		return
 	}
 
-	if err = s.UpdateBalance(updateReq.Id, updateReq.Balance); err != nil {
+	if err = s.UpdateBalance(ctx, updateReq.Id, updateReq.Balance); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedUpdateColdBalance)
 		return
 	}
 }
 
-func (s *ColdWalletService) UpdateBalance(id int, balance string) (err error) {
+func (s *ColdWalletService) UpdateBalance(ctx context.Context, id int, balance string) (err error) {
 	balanceRaw := util.CoinToRaw(balance, 8)
 
-	if err = s.cbRepo.UpdateBalance(id, balanceRaw); err != nil {
+	if err = s.cbRepo.UpdateBalance(ctx, id, balanceRaw); err != nil {
 		return errs.AddTrace(err)
 	}
 

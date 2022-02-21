@@ -3,6 +3,7 @@ package rest
 import (
 	"net/http"
 
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/coldwallet"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/currency"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/deposit"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/fireblocks"
@@ -13,6 +14,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/rpcrequest"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/rpcresponse"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/user"
+	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/userwallet"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/walletrpc"
 	"github.com/btcid/wallet-services-backend-go/pkg/delivery/rest/withdraw"
 	"github.com/btcid/wallet-services-backend-go/pkg/service"
@@ -34,6 +36,8 @@ type Rest struct {
 	fireblocks  fireblocks.FireblocksHandler
 	withdraw    withdraw.WithdrawHandler
 	walletrpc   walletrpc.WalletRpcHandler
+	coldWallet  coldwallet.ColdWalletHandler
+	userWallet  userwallet.UserWalletHandler
 }
 
 // New ...
@@ -56,6 +60,8 @@ func New(
 		fireblocks:  fireblocks.NewFireblocksHandler(routes, svc),
 		withdraw:    withdraw.NewWithdrawHandler(routes, svc),
 		walletrpc:   walletrpc.NewWalletRpcHandler(routes, svc),
+		coldWallet:  coldwallet.NewColdWalletHandler(routes, svc),
+		userWallet:  userwallet.NewUserWalletHandler(routes, svc),
 	}
 }
 
@@ -153,38 +159,52 @@ func (re *Rest) Route() {
 	withdrawHandler := re.deposit
 	withdraw.HandleFunc("", withdrawHandler.ListHandler).Methods(http.MethodGet).Name("listwithdraws")
 
-	// command
 	walletRpcHandler := re.walletrpc
-	listTransactions := re.routes.PathPrefix("/listtransactions").Subrouter()
-	listTransactions.HandleFunc("", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
-	listTransactions.HandleFunc("/{limit}", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
-	re.routes.HandleFunc("/{symbol}/listtransactions", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
-	re.routes.HandleFunc("/{symbol}/listtransactions/{limit}", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	// listTransactions := re.routes.PathPrefix("/listtransactions").Subrouter()
+	// listTransactions.HandleFunc("", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	// listTransactions.HandleFunc("/{limit}", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	// re.routes.HandleFunc("/{symbol}/listtransactions", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
+	// re.routes.HandleFunc("/{symbol}/listtransactions/{limit}", walletRpcHandler.ListTransactionsHandler).Methods(http.MethodGet)
 
-	sendToAddress := re.routes.PathPrefix("/sendtoaddress").Subrouter()
-	sendToAddress.HandleFunc("", walletRpcHandler.SendToAddressHandler).Methods(http.MethodPost).Name("sendhotwallet")
+	// sendToAddress := re.routes.PathPrefix("/sendtoaddress").Subrouter()
+	// sendToAddress.HandleFunc("", walletRpcHandler.SendToAddressHandler).Methods(http.MethodPost).Name("sendhotwallet")
 
-	re.routes.HandleFunc("/{symbol}/addresstype/{address}", walletRpcHandler.AddressTypeHandler).Methods(http.MethodGet)
+	// re.routes.HandleFunc("/{symbol}/addresstype/{address}", walletRpcHandler.AddressTypeHandler).Methods(http.MethodGet)
 
-	nodes := re.routes.PathPrefix("/nodes").Subrouter()
-	nodes.HandleFunc("/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet)
-	nodes.HandleFunc("/{symbol}/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet)
+	// nodes := re.routes.PathPrefix("/nodes").Subrouter()
+	// nodes.HandleFunc("/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet)
+	// nodes.HandleFunc("/{symbol}/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet)
 
-	wallet := re.routes.PathPrefix("/wallet").Subrouter()
-	wallet.HandleFunc("/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
-	wallet.HandleFunc("/{currency_id}/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
+	// wallet := re.routes.PathPrefix("/wallet").Subrouter()
+	// wallet.HandleFunc("/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet).Name("listbalances")
+	// wallet.HandleFunc("/{currency_id}/getbalance", walletRpcHandler.GetBalanceHandler).Methods(http.MethodGet).Name("balancebycurrencyid")
 
-	re.routes.HandleFunc("/getblockcount", walletRpcHandler.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcount")
-	re.routes.HandleFunc("/{symbol}/getblockcount", walletRpcHandler.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcountbysymbol")
+	// re.routes.HandleFunc("/getblockcount", walletRpcHandler.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcount")
+	// re.routes.HandleFunc("/{symbol}/getblockcount", walletRpcHandler.GetBlockCountHandler).Methods(http.MethodGet).Name("getblockcountbysymbol")
 
-	re.routes.HandleFunc("/gethealthcheck", walletRpcHandler.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheck")
-	re.routes.HandleFunc("/{symbol}/gethealthcheck", walletRpcHandler.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheckbysymbol")
+	// re.routes.HandleFunc("/gethealthcheck", walletRpcHandler.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheck")
+	// re.routes.HandleFunc("/{symbol}/gethealthcheck", walletRpcHandler.GetHealthCheckHandler).Methods(http.MethodGet).Name("gethealthcheckbysymbol")
 
-	re.routes.HandleFunc("/{symbol}/getnewaddress", walletRpcHandler.GetNewAddressHandler).Methods(http.MethodGet)
-	re.routes.HandleFunc("/{symbol}/getnewaddress/{type}", walletRpcHandler.GetNewAddressHandler).Methods(http.MethodGet)
+	// re.routes.HandleFunc("/{symbol}/getnewaddress", walletRpcHandler.GetNewAddressHandler).Methods(http.MethodGet)
+	// re.routes.HandleFunc("/{symbol}/getnewaddress/{type}", walletRpcHandler.GetNewAddressHandler).Methods(http.MethodGet)
 
-	re.routes.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", walletRpcHandler.GetLogHandler).Methods(http.MethodGet).Name("getlog")
+	// re.routes.HandleFunc("/log/{symbol}/{rpcconfigtype}/{date}", walletRpcHandler.GetLogHandler).Methods(http.MethodGet).Name("getlog")
 
-	// // r.HandleFunc("/userwallet/getbalance", userWalletService.GetBalanceHandler).Methods(http.MethodGet)
+	systemConfig := re.routes.PathPrefix("/systemconfig").Subrouter()
+	systemConfig.HandleFunc("/maintenancelist/{action}/{value}", walletRpcHandler.MaintenanceListHandler).Methods(http.MethodPut).Name("updatemaintlist")
+
+	coldWallet := re.routes.PathPrefix("/coldwallet").Subrouter()
+	coldWalletHandler := re.coldWallet
+	// TODO get by currency
+	coldWallet.HandleFunc("", coldWalletHandler.CreateHandler).Methods(http.MethodPost).Name("createcoldwallet")
+	coldWallet.HandleFunc("", coldWalletHandler.ListHandler).Methods(http.MethodGet).Name("listcoldwallet")
+	coldWallet.HandleFunc("/sendtohot", coldWalletHandler.SendToHotHandler).Methods(http.MethodPost).Name("sendcoldwallet")
+	coldWallet.HandleFunc("", coldWalletHandler.UpdateHandler).Methods(http.MethodPut).Name("updatecoldwallet")
+	coldWallet.HandleFunc("/updatebalance", coldWalletHandler.UpdateBalanceHandler).Methods(http.MethodPut).Name("updatecoldwalletbalance")
+	coldWallet.HandleFunc("/deactivate/{id}", coldWalletHandler.DeactivateHandler).Methods(http.MethodPost).Name("deactivatecoldwallet")
+	coldWallet.HandleFunc("/activate/{id}", coldWalletHandler.ActivateHandler).Methods(http.MethodPost).Name("activatecoldwallet")
+
+	userWalletHandler := re.userWallet
+	re.routes.HandleFunc("/userwallet/getbalance", userWalletHandler.GetBalanceHandler).Methods(http.MethodGet)
 
 }

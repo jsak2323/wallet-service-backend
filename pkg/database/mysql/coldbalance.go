@@ -46,7 +46,7 @@ func (r *coldBalanceRepository) Create(coldBalance domain.CreateColdBalance) (id
 	return int(lastInsertId), nil
 }
 
-func (r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, error) {
+func (r *coldBalanceRepository) GetAll(ctx context.Context, page, limit int) ([]domain.ColdBalance, error) {
 	var params []interface{}
 
 	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable
@@ -63,7 +63,7 @@ func (r *coldBalanceRepository) GetAll(page, limit int) ([]domain.ColdBalance, e
 	query = query + " limit ?"
 	params = append(params, limit)
 
-	return r.queryRows(query, params...)
+	return r.queryRows(ctx, query, params...)
 }
 
 func (r *coldBalanceRepository) GetByName(name string) (balance domain.ColdBalance, err error) {
@@ -106,14 +106,14 @@ func (r *coldBalanceRepository) GetByFireblocksName(ctx context.Context, name st
 	return balance, nil
 }
 
-func (r *coldBalanceRepository) GetByCurrencyId(currencyId int) (balances []domain.ColdBalance, err error) {
+func (r *coldBalanceRepository) GetByCurrencyId(ctx context.Context, currencyId int) (balances []domain.ColdBalance, err error) {
 	query := "SELECT id, currency_id, name, type, fireblocks_name, balance, address, active, last_updated FROM " + coldBalanceTable + " where currency_id = ?"
 
-	return r.queryRows(query, currencyId)
+	return r.queryRows(ctx, query, currencyId)
 }
 
-func (r *coldBalanceRepository) queryRows(query string, params ...interface{}) (balances []domain.ColdBalance, err error) {
-	rows, err := r.db.Query(query, params...)
+func (r *coldBalanceRepository) queryRows(ctx context.Context, query string, params ...interface{}) (balances []domain.ColdBalance, err error) {
+	rows, err := r.db.QueryContext(ctx, query, params...)
 	if err != nil {
 		return []domain.ColdBalance{}, errs.AddTrace(err)
 	}
@@ -163,8 +163,8 @@ func (r *coldBalanceRepository) Update(coldBalance domain.ColdBalance) (err erro
 	).Err()
 }
 
-func (r *coldBalanceRepository) UpdateBalance(id int, balance string) (err error) {
-	err = r.db.QueryRow("UPDATE cold_balance SET balance = ? WHERE id = ?", balance, id).Err()
+func (r *coldBalanceRepository) UpdateBalance(ctx context.Context, id int, balance string) (err error) {
+	err = r.db.QueryRowContext(ctx, "UPDATE cold_balance SET balance = ? WHERE id = ?", balance, id).Err()
 	if err != nil {
 		errs.AddTrace(err)
 	}
@@ -172,7 +172,7 @@ func (r *coldBalanceRepository) UpdateBalance(id int, balance string) (err error
 	return nil
 }
 
-func (r *coldBalanceRepository) ToggleActive(userId int, active bool) error {
+func (r *coldBalanceRepository) ToggleActive(ctx context.Context, userId int, active bool) error {
 	query := "UPDATE " + coldBalanceTable + " SET active = ? WHERE id = ?"
 
 	err := r.db.QueryRow(query, active, userId).Err()

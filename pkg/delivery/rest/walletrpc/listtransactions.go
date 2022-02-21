@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/service/walletrpc"
 )
 
 func (re *Rest) ListTransactionsHandler(w http.ResponseWriter, req *http.Request) {
@@ -20,6 +21,7 @@ func (re *Rest) ListTransactionsHandler(w http.ResponseWriter, req *http.Request
 	ctx := req.Context()
 	limitInt, _ := strconv.Atoi(limit)
 	status := http.StatusOK
+	ltRES := make(walletrpc.ListTransactionsHandlerResponseMap)
 
 	if isGetAll {
 		logger.InfoLog(" - ListTransactionsHandler For all symbols, Requesting ...", req)
@@ -28,15 +30,16 @@ func (re *Rest) ListTransactionsHandler(w http.ResponseWriter, req *http.Request
 	}
 
 	service := re.svc.WalletRpc
-	res, err := service.InvokeListTransactions(ctx, symbol, tokenType, limitInt)
-	if err != nil {
-		status = http.StatusInternalServerError
-	} else {
-		logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol, req)
-	}
+
+	service.InvokeListTransactions(ctx, &ltRES, symbol, tokenType, limitInt)
+	// if err != nil {
+	// 	status = http.StatusInternalServerError
+	// } else {
+	// 	logger.InfoLog(" - ListTransactionsHandler Success. Symbol: "+symbol, req)
+	// }
 
 	// handle success response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(ltRES)
 }

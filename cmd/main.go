@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	cron "github.com/btcid/wallet-services-backend-go/cmd/schedulingtask"
 	"github.com/spf13/cobra"
 )
 
@@ -16,13 +17,13 @@ func main() {
 		},
 	}
 
-	// cmd.AddCommand(&cobra.Command{
-	// 	Use:   "run-server",
-	// 	Short: "Run",
-	// 	Run: func(*cobra.Command, []string) {
-	// 		serv()
-	// 	},
-	// })
+	cmd.AddCommand(&cobra.Command{
+		Use:   "run-cron",
+		Short: "Run",
+		Run: func(cmd *cobra.Command, args []string) {
+			cron.Run(args)
+		},
+	})
 
 	// cmd.AddCommand(&cobra.Command{
 	// 	Use:   "run-nsq",

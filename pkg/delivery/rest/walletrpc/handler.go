@@ -17,6 +17,7 @@ type WalletRpcHandler interface {
 	ListTransactionsHandler(w http.ResponseWriter, req *http.Request)
 	ListWithdrawsHandler(w http.ResponseWriter, req *http.Request)
 	SendToAddressHandler(w http.ResponseWriter, req *http.Request)
+	MaintenanceListHandler(w http.ResponseWriter, req *http.Request)
 }
 
 type (

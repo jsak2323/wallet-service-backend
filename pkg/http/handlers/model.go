@@ -47,9 +47,9 @@ type ListTransactionsRes struct {
 }
 
 type ListWithdrawsRes struct {
-    RpcConfig       RpcConfigResDetail
-    Withdraws       []model.Withdraw
-    Error           string
+	RpcConfig RpcConfigResDetail
+	Withdraws []model.Withdraw
+	Error     *errs.Error
 }
 
 type SendToAddressRes struct {

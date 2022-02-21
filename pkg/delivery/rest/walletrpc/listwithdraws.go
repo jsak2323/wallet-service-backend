@@ -8,8 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
+	"github.com/btcid/wallet-services-backend-go/pkg/service/walletrpc"
 )
 
 func (re *Rest) ListWithdrawsHandler(w http.ResponseWriter, req *http.Request) {
@@ -20,6 +20,7 @@ func (re *Rest) ListWithdrawsHandler(w http.ResponseWriter, req *http.Request) {
 	isGetAll := symbol == ""
 	ctx := req.Context()
 	status := http.StatusOK
+	wdRES := make(walletrpc.ListWithdrawsHandlerResponseMap)
 
 	if isGetAll {
 		logger.InfoLog(" - ListWithdrawsHandler For all symbols, Requesting ...", req)
@@ -28,16 +29,10 @@ func (re *Rest) ListWithdrawsHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	service := re.svc.WalletRpc
-	res, err := service.InvokeListWithdraws(ctx, symbol, tokenType, limitInt)
-	if err != nil {
-		status = http.StatusInternalServerError
-		logger.ErrorLog(errs.Logged(err), ctx)
-	} else {
-		logger.InfoLog(" - ListWithdrawsHandler Success. Symbol: "+symbol, req)
-	}
+	service.InvokeListWithdraws(ctx, &wdRES, symbol, tokenType, limitInt)
 
 	// handle success response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(wdRES)
 }

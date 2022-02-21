@@ -61,7 +61,7 @@ func (s *WithdrawService) Update() {
 			}
 
 			for _, resRpcConfig := range resRpcConfigs {
-				if resRpcConfig.Error != "" {
+				if resRpcConfig.Error != nil {
 					logger.ErrorLog(fmt.Sprintf(" - Withdraw Update - %s err: %s", symbolTokenTypeLogStr, resRpcConfig.Error), ctx)
 					continue
 				}

@@ -42,7 +42,7 @@ func (svc *ColdWalletService) ActivateHandler(w http.ResponseWriter, req *http.R
 		return
 	}
 
-	if err = svc.cbRepo.ToggleActive(id, true); err != nil {
+	if err = svc.cbRepo.ToggleActive(ctx, id, true); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedActivatedColdBalance)
 		return
 	}

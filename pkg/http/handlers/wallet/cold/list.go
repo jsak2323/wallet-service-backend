@@ -20,6 +20,7 @@ func (s *ColdWalletService) ListHandler(w http.ResponseWriter, req *http.Request
 	var (
 		RES ListRes
 		err error
+		ctx = req.Context()
 	)
 
 	handleResponse := func() {
@@ -37,7 +38,7 @@ func (s *ColdWalletService) ListHandler(w http.ResponseWriter, req *http.Request
 	page, _ := strconv.Atoi(vars["page"])
 	limit, _ := strconv.Atoi(vars["limit"])
 
-	if RES.ColdWallets, err = s.cbRepo.GetAll(page, limit); err != nil {
+	if RES.ColdWallets, err = s.cbRepo.GetAll(ctx, page, limit); err != nil {
 		RES.Error = errs.AssignErr(errs.AddTrace(err), errs.FailedGetAllColdBalance)
 		return
 	}

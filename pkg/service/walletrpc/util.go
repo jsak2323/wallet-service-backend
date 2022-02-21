@@ -28,9 +28,9 @@ func (s *walletRpcService) DecodeAndLogPostRequest(req *http.Request, output int
 	return nil
 }
 
-func (s *walletRpcService) GetMaintenanceList(ctx context.Context, systemConfigRepo sc.Repository) (map[string]bool, error) {
+func (s *walletRpcService) GetMaintenanceList(ctx context.Context) (map[string]bool, error) {
 	maintenanceList := map[string]bool{}
-	maintenanceListObj, err := systemConfigRepo.GetByName(ctx, sc.MAINTENANCE_LIST)
+	maintenanceListObj, err := s.systemConfigRepo.GetByName(ctx, sc.MAINTENANCE_LIST)
 	if err != nil {
 		return maintenanceList, errs.AddTrace(err)
 	}

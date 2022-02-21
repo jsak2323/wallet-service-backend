@@ -21,7 +21,7 @@ func (s *walletRpcService) InvokeGetBlockCount(ctx context.Context, symbol, toke
 		resChannel     = make(chan handlers.GetBlockCountRes)
 	)
 
-	maintenanceList, err := s.GetMaintenanceList(ctx, s.systemConfigRepo)
+	maintenanceList, err := s.GetMaintenanceList(ctx)
 	if err != nil {
 		return nil, errs.AssignErr(errs.AddTrace(err), errs.FailedGetMaintenanceList)
 	}

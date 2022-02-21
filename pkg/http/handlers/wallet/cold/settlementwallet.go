@@ -1,12 +1,14 @@
 package cold
 
 import (
+	"context"
+
 	domain "github.com/btcid/wallet-services-backend-go/pkg/domain/coldbalance"
 	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 )
 
-func (s *ColdWalletService) SettlementWallet(currencyId int) (result domain.ColdBalance, err error) {
-	cbs, err := s.cbRepo.GetByCurrencyId(currencyId)
+func (s *ColdWalletService) SettlementWallet(ctx context.Context, currencyId int) (result domain.ColdBalance, err error) {
+	cbs, err := s.cbRepo.GetByCurrencyId(ctx, currencyId)
 	if err != nil {
 		return domain.ColdBalance{}, errs.AddTrace(err)
 	}

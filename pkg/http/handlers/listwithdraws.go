@@ -12,6 +12,7 @@ import (
 	"github.com/btcid/wallet-services-backend-go/cmd/config"
 	cc "github.com/btcid/wallet-services-backend-go/pkg/domain/currencyconfig"
 	rc "github.com/btcid/wallet-services-backend-go/pkg/domain/rpcconfig"
+	errs "github.com/btcid/wallet-services-backend-go/pkg/lib/error"
 	logger "github.com/btcid/wallet-services-backend-go/pkg/logging"
 	"github.com/btcid/wallet-services-backend-go/pkg/modules"
 )
@@ -91,19 +92,19 @@ func (lts *ListWithdrawsService) InvokeListWithdraws(ctx context.Context, RES *L
 				module, err := lts.moduleServices.GetModule(currencyConfig.Id)
 				if err != nil {
 					logger.ErrorLog(" - ListWithdrawsHandler lts.moduleServices.GetModule err: "+err.Error(), ctx)
-					_RES.Error = err.Error()
+					_RES.Error = errs.AddTrace(err)
 					return
 				}
 
 				rpcRes, err := module.ListWithdraws(ctx, rpcConfig, limit)
 				if err != nil {
 					logger.ErrorLog(" - ListWithdrawsHandler (*lts.moduleServices)[SYMBOL].ListWithdraws(rpcConfig, limit) Error: "+err.Error(), ctx)
-					_RES.Error = err.Error()
+					_RES.Error = errs.AddTrace(err)
 
 				} else {
 					logger.Log(" - InvokeListWithdraws Symbol: "+currencyConfig.Symbol+", RpcConfigId: "+strconv.Itoa(rpcConfig.Id)+", Host: "+rpcConfig.Host, ctx)
 					_RES.Withdraws = rpcRes.Withdraws
-					_RES.Error = rpcRes.Error
+					// _RES.Error = errs.AddTrace(err)
 				}
 
 				resChannel <- _RES

@@ -24,7 +24,7 @@ func (s *ColdWalletService) GetBalance(ctx context.Context, currencyConfigId int
 		}
 	}()
 
-	if cbs, err := s.cbRepo.GetByCurrencyId(currency.Id); err != nil {
+	if cbs, err := s.cbRepo.GetByCurrencyId(ctx, currency.Id); err != nil {
 		errField = errs.AssignErr(errs.AddTrace(err), errs.FailedGetCurrencyByID)
 	} else if len(cbs) > 0 {
 		for i := range cbs {
