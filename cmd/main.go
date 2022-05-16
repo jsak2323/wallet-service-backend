@@ -13,9 +13,17 @@ func main() {
 		Use:   "app",
 		Short: "Wallet Service API",
 		Run: func(*cobra.Command, []string) {
-			serv()
+			mainServ()
 		},
 	}
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "run-cron",
+		Short: "Run",
+		Run: func(cmd *cobra.Command, args []string) {
+			cron.Run(args)
+		},
+	})
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "run-cron",

@@ -196,6 +196,7 @@ func calculateCurrency(method, a, b string) (res string, err error) {
 		calculate = aBig.Sub(aBig, bBig).String()
 	case "add":
 		calculate = aBig.Add(aBig, bBig).String()
+		_ = aBig.Int64()
 	default:
 		return "0", errs.AddTrace(errors.New("wrong method of calculate currency"))
 	}

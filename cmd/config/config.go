@@ -117,6 +117,21 @@ func MysqlDbConn() (db *sql.DB) {
 	dbPass := CONF.MysqlDbPass
 	dbName := CONF.MysqlDbName
 
+	if IS_DEV {
+		// 		Environment: development
+		// Loading App Configuration ... Done.
+		// Loading Currency Configurations ... 2022/02/08 15:54:58 ENV DEV : true
+		// Done.
+		// 2022/02/08 15:54:58 config.go:120: ENV DEV : true
+		db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp(localhost:3307)/"+dbName)
+		if err != nil {
+			panic(err.Error())
+		}
+		return db
+	}
+
+	fmt.Println("not development")
+
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())

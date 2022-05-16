@@ -23,7 +23,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func serv() {
+func mainServ() {
 	appPtr := flag.String("app", "http", "Specifies which app to run.")
 	funcPtr := flag.String("function", "all", "Specifies which functions to run.")
 	sleepPtr := flag.Duration("sleep", time.Minute*10, `A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".`)
